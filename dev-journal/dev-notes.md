@@ -1,12 +1,23 @@
 
 # Development Notes: COVID-19 Trend Map
 
+## Continuous Development
+
+- `npm i` Installs dependencies
+- `ng build` Updates the dist folder
+- `heroku local` Starts the app in a local server
+  - Useful for back-end testing; must use if there is no mockdata
+  - port 5000 is default: http://localhost:5000
+- `ng serve` Starts the app in a local server
+  - Useful for front-end testing
+  - port 4200 is default: http://localhost:4200
+
 ## Timeline / TODO
 
 - **Week 1** (6/15 - 6/21)
-  - [ ] Initialize GitHub Repository
-  - [ ] Initialize Heroku Project and GitHub deployment integration
-  - [ ] Architect source code for the server and application
+  - [x] Initialize GitHub Repository
+  - [x] Architect source code for the server and application
+  - [x] Initialize Heroku Project and GitHub deployment integration
   - [ ] [Deliverable] Plan, record, post, and deliver elevator pitch
 
 - **Week 2** (6/22 - 6/28)
