@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-// const Bot = require("./bot.js");
+const Diego = require("./Diego-DataBroker.bot.js");
 
 module.exports = {
   start: function () {
@@ -8,18 +8,24 @@ module.exports = {
     app.use(express.static('./dist/covid19trendmap'));
     setUrlRoutes(app);
     app.listen(process.env.PORT || 8080);
-    // Bot.start();
+    Diego.start();
   }
 }
 
 function setUrlRoutes(app) {
 
   /* Set non-angular routes (server / api calls) */
-  // app.get('/api/call', functionName);
+  app.get('/api/getLatest', function (req, res) {
+    res.send(Diego.getLatestDataAndMetrics());
+  });
 
   /* Send all other routes to Angular app */
   app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, '../dist/covid19trendmap/index.html'));
   });
+
+}
+
+function getLatest(req, res) {
 
 }
