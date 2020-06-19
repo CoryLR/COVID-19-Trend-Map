@@ -7,10 +7,11 @@
 - `ng build` Updates the dist folder
 - `heroku local` Starts the app in a local server
   - Useful for back-end testing; must use if there is no mockdata
-  - port 5000 is default: http://localhost:5000
+  - Port 5000 is default: http://localhost:5000
+  - Requires `ng build --watch` to also be running so that source code changes are visible on browser tab reload
 - `ng serve` Starts the app in a local server
   - Useful for front-end testing
-  - port 4200 is default: http://localhost:4200
+  - Port 4200 is default: http://localhost:4200, but can be changed like `--port 4201`
 
 ## Timeline / TODO
 
