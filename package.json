@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "~9.1.11",
     "@angular/router": "~9.1.11",
     "express": "^4.17.1",
+    "got": "^11.3.0",
     "path": "^0.12.7",
     "pg": "^8.2.1",
     "rxjs": "~6.5.4",
