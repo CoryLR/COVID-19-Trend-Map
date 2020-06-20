@@ -1,8 +1,10 @@
+
 /* Hello, I am Diego the Data Broker. */
 
 const {
   Client,
-  got,
+  Got,
+  Papa,
 } = getDependencies();
 
 module.exports = {
@@ -28,8 +30,9 @@ async function runStartupTasks() {
   /* Testing */
   // getWeeklyAcceleration();
   // getWeeklyAcceleration_dev();
-  console.log("await getWeeklyAcceleration_dev()", await getWeeklyAcceleration_dev());
   // console.log("await getWeeklyAcceleration()", await getWeeklyAcceleration());
+  // console.log("await getWeeklyAcceleration_dev()", await getWeeklyAcceleration_dev());
+  await getWeeklyAcceleration_dev()
 }
 
 /**
@@ -44,7 +47,7 @@ function initDataCollectionSchedule() {
 async function getWeeklyAcceleration() {
 
   const CSV_URL_JHU_US_Confirmed = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
-  const csvContent = await got(CSV_URL_JHU_US_Confirmed).text();
+  const csvContent = await Got(CSV_URL_JHU_US_Confirmed).text();
   const temporalEnumerationInDays = 7;
   return getAccelerationAggregation(csvContent, temporalEnumerationInDays);
 
@@ -60,23 +63,50 @@ async function getWeeklyAcceleration_dev() {
   const csvContent = data;
   return getAccelerationAggregation(csvContent, temporalEnumerationInDays);
 
-  //   , {
-  //   encoding: 'utf-8'
-  // }, function (err, data) {
-  //   if (!err) {
-  //     const temporalEnumerationInDays = 7;
-  //     const csvContent = data;
-  //     return getAccelerationAggregation(csvContent, temporalEnumerationInDays);
-  //   } else {
-  //     return [false, responseMessage]
-  //   }
-  // });
 }
 
 function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
 
-  /* Crunch numbers */
+  usDailyConfirmedArray2d = Papa.parse(csvContent).data;
 
+  /** Data diagnostics **/
+
+  let dataStartColumnIndex;
+  let headers = usDailyConfirmedArray2d[0];
+  for (let i_header = 0; i_header < headers.length; i_header++) {
+    if ((headers[i_header].length === 7 || headers[i_header].length === 8) && headers[i_header].match(/\//g).length == 2) {
+      dataStartColumnIndex = i_header;
+      break;
+    }
+  }
+
+  /** Calculate weekly rate **/
+
+  let covid19DailyCountLookup = {};
+  let covid19WeeklyRateLookup = {};
+  let covid193WeekAccelerationLookup = {};
+  let dataHeaders = headers.slice(dataStartColumnIndex, headers.length);
+  for (let i_row = 2; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
+    currentFips = parseInt(usDailyConfirmedArray2d[i_row][4], 10).toString().padStart(5, '0');
+    currentDailyDataArray = usDailyConfirmedArray2d[i_row].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_row].length);
+    covid19DailyCountLookup[`fips${currentFips}`] = currentDailyDataArray;
+    currentDailyDataArray;
+
+    console.log("currentFips", currentFips);
+    console.log("currentDailyDataArray first last", currentDailyDataArray[0], currentDailyDataArray.slice(-1)[0]);
+    console.log("currentDailyDataArray.length", currentDailyDataArray.length);
+
+    for (let i_col = currentDailyDataArray.length - 1; i_col >= 0; i_col -= 7) {
+      console.log(dataHeaders[i_col], "\t", currentDailyDataArray[i_col]);
+      /* TODO: Calculate rate from the weekly cumulative snapshots*/
+    }
+
+    break;
+  }
+
+  // console.log("covid19WeeklyRateLookup", covid19WeeklyRateLookup["fips1001.0"]);
+
+  /* Initialize new 2dArray to hold FIPS and weekly aggregated data. For each row, walk backwards from the end of the row using the given number of days ("temporalEnumerationInDays"), subtract the number of cases, add that to the weeklyArray under the latest day in that week */
 
   return {
     "temporalEnumerationInDays": temporalEnumerationInDays,
@@ -102,11 +132,12 @@ function getDependencies() {
   const {
     Client
   } = require('pg');
-  const got = require('got');
-
+  const Got = require('got');
+  const Papa = require('papaparse');
 
   return {
     Client,
-    got,
+    Got,
+    Papa,
   };
 }
