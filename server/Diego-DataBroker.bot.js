@@ -1,4 +1,3 @@
-
 /* Hello, I am Diego the Data Broker. */
 
 const {
@@ -13,7 +12,7 @@ module.exports = {
     initDataCollectionSchedule();
   },
   getLatestDataAndMetrics: async () => {
-    let weeklyAcceleration = await getWeeklyAcceleration();
+    let weeklyAcceleration = await getCovidCountyAggregations();
     return {
       test: "Hello World!",
       weeklyAcceleration: weeklyAcceleration
@@ -27,12 +26,16 @@ module.exports = {
 async function runStartupTasks() {
   /* Run startup tasks if needed */
 
+
   /* Testing */
-  // getWeeklyAcceleration();
-  // getWeeklyAcceleration_dev();
-  // console.log("await getWeeklyAcceleration()", await getWeeklyAcceleration());
-  // console.log("await getWeeklyAcceleration_dev()", await getWeeklyAcceleration_dev());
-  await getWeeklyAcceleration_dev()
+  const covidCountiesData = await getCovidCountyAggregations_dev();
+  const weeklyRateLookup = covidCountiesData.weeklyRateLookup;
+  const weeklyAccelerationLookup = covidCountiesData.weeklyAccelerationLookup;
+  const weeklyDataHeaders = covidCountiesData.weeklyDataHeaders;
+  console.log("weeklyRateLookup length", Object.keys(weeklyRateLookup).length);
+  console.log("weeklyAccelerationLookup length", Object.keys(weeklyAccelerationLookup).length);
+  console.log("weeklyDataHeaders", weeklyDataHeaders);
+
 }
 
 /**
@@ -44,7 +47,7 @@ function initDataCollectionSchedule() {
   /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load */
 }
 
-async function getWeeklyAcceleration() {
+async function getCovidCountyAggregations() {
 
   const CSV_URL_JHU_US_Confirmed = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const csvContent = await Got(CSV_URL_JHU_US_Confirmed).text();
@@ -53,7 +56,7 @@ async function getWeeklyAcceleration() {
 
 }
 
-async function getWeeklyAcceleration_dev() {
+async function getCovidCountyAggregations_dev() {
 
   let fs = require("fs");
   let path = require('path');
@@ -84,46 +87,60 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
 
   let covid19DailyCountLookup = {};
   let covid19WeeklyRateLookup = {};
-  let covid193WeekAccelerationLookup = {};
+  let covid19WeeklyAccelerationLookup = {};
   let dataHeaders = headers.slice(dataStartColumnIndex, headers.length);
-  for (let i_row = 2; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
-    currentFips = parseInt(usDailyConfirmedArray2d[i_row][4], 10).toString().padStart(5, '0');
-    currentDailyDataArray = usDailyConfirmedArray2d[i_row].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_row].length);
-    covid19DailyCountLookup[`fips${currentFips}`] = currentDailyDataArray;
-    currentDailyDataArray;
-
-    console.log("currentFips", currentFips);
-    console.log("currentDailyDataArray first last", currentDailyDataArray[0], currentDailyDataArray.slice(-1)[0]);
-    console.log("currentDailyDataArray.length", currentDailyDataArray.length);
-
-    for (let i_col = currentDailyDataArray.length - 1; i_col >= 0; i_col -= 7) {
-      console.log(dataHeaders[i_col], "\t", currentDailyDataArray[i_col]);
-      /* TODO: Calculate rate from the weekly cumulative snapshots*/
-    }
-
-    break;
+  let weeklyDataHeaders = [];
+  /* Get weekly data headers */
+  for (let i_header = dataHeaders.length - 1; i_header >= 0; i_header -= 7) {
+    weeklyDataHeaders.push(dataHeaders[i_header]);
   }
 
-  // console.log("covid19WeeklyRateLookup", covid19WeeklyRateLookup["fips1001.0"]);
+  for (let i_row = 2 /* <- TODO: Change this to 1 */ ; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
+    let currentFips = parseInt(usDailyConfirmedArray2d[i_row][4], 10).toString().padStart(5, '0');
+    let currentDailyDataArray = usDailyConfirmedArray2d[i_row].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_row].length);
+    covid19DailyCountLookup[`fips${currentFips}`] = currentDailyDataArray;
+
+    let currentWeeklyRateArray = [];
+    let lastCount = false;
+    let currentCount;
+    for (let i_count = currentDailyDataArray.length - 1; i_count >= 0; i_count -= 7) {
+      currentCount = currentDailyDataArray[i_count];
+      if (lastCount) {
+        let currentRate = lastCount - currentCount;
+        currentWeeklyRateArray.push(currentRate);
+      }
+      lastCount = currentDailyDataArray[i_count];
+    }
+
+    let currentWeeklyAccelerationArray = [];
+    let lastRate = false;
+    let currentRate;
+    for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate ++) {
+      currentRate = currentWeeklyRateArray[i_rate];
+      if (lastRate) {
+        let currentAcceleration = lastRate - currentRate;
+        currentWeeklyAccelerationArray.push(currentAcceleration);
+      }
+      lastRate = currentWeeklyRateArray[i_rate];
+    }
+
+    /* Log results */
+    currentWeeklyRateArray.reverse();
+    currentWeeklyAccelerationArray.reverse();
+    weeklyDataHeaders.reverse();
+    covid19WeeklyRateLookup[`fips${currentFips}`] = currentWeeklyRateArray;
+    covid19WeeklyAccelerationLookup[`fips${currentFips}`] = currentWeeklyAccelerationArray;
+  }
 
   /* Initialize new 2dArray to hold FIPS and weekly aggregated data. For each row, walk backwards from the end of the row using the given number of days ("temporalEnumerationInDays"), subtract the number of cases, add that to the weeklyArray under the latest day in that week */
 
   return {
-    "temporalEnumerationInDays": temporalEnumerationInDays,
-    "typeof_csvContent": typeof csvContent,
-    "csvContent_length": csvContent.length,
+    "weeklyRateLookup": covid19WeeklyRateLookup,
+    "weeklyAccelerationLookup": covid19WeeklyAccelerationLookup,
+    "weeklyDataHeaders": weeklyDataHeaders,
   }
 }
 
-function getWebFileContent(URL, callBack) {
-  request.get(URL, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      callBack(body, response);
-    } else {
-      callBack(false, error);
-    }
-  });
-}
 
 /**
  * Gets all dependencies used by Diego
