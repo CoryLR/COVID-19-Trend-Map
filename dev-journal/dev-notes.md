@@ -19,7 +19,7 @@
   - [x] Initialize GitHub Repository
   - [x] Architect source code for the server and application
   - [x] Initialize Heroku Project and GitHub deployment integration
-  - [ ] [Deliverable] Plan, record, post, and deliver elevator pitch
+  - [x] [Deliverable] Plan, record, post, and deliver elevator pitch
 
 - **Week 2** (6/22 - 6/28)
   - [ ] Write server code to pull, aggregate, and geo-enable COVID-19 data from Johns Hopkins for use in the front-end

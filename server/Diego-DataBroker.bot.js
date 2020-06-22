@@ -12,11 +12,7 @@ module.exports = {
     initDataCollectionSchedule();
   },
   getLatestDataAndMetrics: async () => {
-    let weeklyAcceleration = await getCovidCountyAggregations();
-    return {
-      test: "Hello World!",
-      weeklyAcceleration: weeklyAcceleration
-    }
+    return await getCovidCountyAggregations_dev();
   }
 }
 
@@ -28,13 +24,13 @@ async function runStartupTasks() {
 
 
   /* Testing */
-  const covidCountiesData = await getCovidCountyAggregations_dev();
-  const weeklyRateLookup = covidCountiesData.weeklyRateLookup;
-  const weeklyAccelerationLookup = covidCountiesData.weeklyAccelerationLookup;
-  const weeklyDataHeaders = covidCountiesData.weeklyDataHeaders;
-  console.log("weeklyRateLookup length", Object.keys(weeklyRateLookup).length);
-  console.log("weeklyAccelerationLookup length", Object.keys(weeklyAccelerationLookup).length);
-  console.log("weeklyDataHeaders", weeklyDataHeaders);
+  // const covidCountiesData = await getCovidCountyAggregations_dev();
+  // const weeklyRateLookup = covidCountiesData.weeklyRateLookup;
+  // const weeklyAccelerationLookup = covidCountiesData.weeklyAccelerationLookup;
+  // const weeklyDataHeaders = covidCountiesData.weeklyDataHeaders;
+  // console.log("weeklyRateLookup length", Object.keys(weeklyRateLookup).length);
+  // console.log("weeklyAccelerationLookup length", Object.keys(weeklyAccelerationLookup).length);
+  // console.log("weeklyDataHeaders", weeklyDataHeaders);
 
 }
 
@@ -127,7 +123,6 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
     /* Log results */
     currentWeeklyRateArray.reverse();
     currentWeeklyAccelerationArray.reverse();
-    weeklyDataHeaders.reverse();
     covid19WeeklyRateLookup[`fips${currentFips}`] = currentWeeklyRateArray;
     covid19WeeklyAccelerationLookup[`fips${currentFips}`] = currentWeeklyAccelerationArray;
   }
@@ -137,7 +132,7 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
   return {
     "weeklyRateLookup": covid19WeeklyRateLookup,
     "weeklyAccelerationLookup": covid19WeeklyAccelerationLookup,
-    "weeklyDataHeaders": weeklyDataHeaders,
+    "weeklyDataHeaders": weeklyDataHeaders.reverse(),
   }
 }
 

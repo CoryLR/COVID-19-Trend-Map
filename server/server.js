@@ -6,6 +6,7 @@ module.exports = {
   start: function () {
     const app = express();
     app.use(express.static('./dist/covid19trendmap'));
+    app.use(express.json());
     setUrlRoutes(app);
     app.listen(process.env.PORT || 8080);
     Diego.start();
@@ -15,8 +16,10 @@ module.exports = {
 function setUrlRoutes(app) {
 
   /* Set non-angular routes (server / api calls) */
-  app.get('/api/getLatest', function (req, res) {
-    res.send(Diego.getLatestDataAndMetrics());
+  app.post('/api/getData', async function (req, res) {
+    const params = req.body;
+    console.log("/api/getData called; params:", params);
+    res.send(await Diego.getLatestDataAndMetrics());
   });
 
   /* Send all other routes to Angular app */
