@@ -9,9 +9,26 @@
   - Useful for back-end testing; must use if there is no mockdata
   - Port 5000 is default: http://localhost:5000
   - Requires `ng build --watch` to also be running so that source code changes are visible on browser tab reload
+  - Alternative command: `npm start`
 - `ng serve` Starts the app in a local server
   - Useful for front-end testing
   - Port 4200 is default: http://localhost:4200, but can be changed like `--port 4201`
+
+## Analysis Documentation
+
+County map layer with size reduction (7.8 MB > 2.2 MB) process:
+
+  1. Pull Esri's "USA Counties (Generalized)" from the Living Atlas
+  2. Fix the layer's geometry by importing & exporting from GRASS via QGIS, then running QGIS's "Fix geometries" tool
+  3. Dissolve based on FIPS to turn the resulting Polygon layer back into a MultiPolygon
+  4. Export as GeoJSON with only Name, FIPS, and POPULATION; set coordinate precision to 2
+
+## Sources & References
+
+- [COVID-19 Data](https://github.com/CSSEGISandData/COVID-19): Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE)
+  - *COVID-19 rate & acceleration are calculated from this data
+- [Image of COVID-19](https://phil.cdc.gov/Details.aspx?pid=23312): U.S. Centers for Disease Control (CDC)
+- [USA Counties Map Layer & Population](https://www.arcgis.com/home/item.html?id=7566e0221e5646f99ea249a197116605): Esri
 
 ## Timeline / TODO
 
@@ -22,7 +39,7 @@
   - [x] [Deliverable] Plan, record, post, and deliver elevator pitch
 
 - **Week 2** (6/22 - 6/28)
-  - [ ] Write server code to pull, aggregate, and geo-enable COVID-19 data from Johns Hopkins for use in the front-end
+  - [x] Write server code to pull, aggregate, and geo-enable COVID-19 data from Johns Hopkins for use in the front-end
   - [ ] Brainstorm & create wireframe mock-ups using responsive design best-practices to account for varying screen sizes
   - [ ] [Deliverable] Write and deliver Status Report #1
 
