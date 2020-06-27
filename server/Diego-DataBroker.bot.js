@@ -1,10 +1,8 @@
+/*                                    */
 /* Hello, I am Diego the Data Broker. */
+/*                                    */
 
-const {
-  Client,
-  Got,
-  Papa,
-} = getDependencies();
+const { Client, Got, Papa, fs, path } = getDependencies();
 
 module.exports = {
   start: () => {
@@ -19,12 +17,13 @@ module.exports = {
 /**
  * Runs on every new build
  */
-async function runStartupTasks() {
+async function runStartupTasks () {
   /* Run startup tasks if needed */
 
 
   /* Testing */
-  // const covidCountiesData = await getCovidCountyAggregations_dev();
+  const covidCountiesData = await getCovidCountyAggregations_dev();
+
   // const weeklyRateLookup = covidCountiesData.weeklyRateLookup;
   // const weeklyAccelerationLookup = covidCountiesData.weeklyAccelerationLookup;
   // const weeklyDataHeaders = covidCountiesData.weeklyDataHeaders;
@@ -37,34 +36,33 @@ async function runStartupTasks() {
 /**
  * Runs according to a schedule
  */
-function initDataCollectionSchedule() {
+function initDataCollectionSchedule () {
   // Todo
   /* `npm i cron` - this is the dependency I'll want to use to establish Diego's agenda */
   /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load */
 }
 
-async function getCovidCountyAggregations() {
+async function getCovidCountyAggregations () {
 
   const CSV_URL_JHU_US_Confirmed = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const csvContent = await Got(CSV_URL_JHU_US_Confirmed).text();
   const temporalEnumerationInDays = 7;
-  return getAccelerationAggregation(csvContent, temporalEnumerationInDays);
+
+  return getCovidResults(csvContent, temporalEnumerationInDays);
 
 }
 
-async function getCovidCountyAggregations_dev() {
+async function getCovidCountyAggregations_dev () {
 
-  let fs = require("fs");
-  let path = require('path');
   let filePath = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
   let data = fs.readFileSync(filePath, "utf8");
   const temporalEnumerationInDays = 7;
   const csvContent = data;
-  return getAccelerationAggregation(csvContent, temporalEnumerationInDays);
+  return getCovidResults(csvContent, temporalEnumerationInDays);
 
 }
 
-function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
+function getCovidResults (csvContent, temporalEnumerationInDays) {
 
   usDailyConfirmedArray2d = Papa.parse(csvContent).data;
 
@@ -91,7 +89,7 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
     weeklyDataHeaders.push(dataHeaders[i_header]);
   }
 
-  for (let i_row = 2 /* <- TODO: Change this to 1 */ ; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
+  for (let i_row = 1; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
     let currentFips = parseInt(usDailyConfirmedArray2d[i_row][4], 10).toString().padStart(5, '0');
     let currentDailyDataArray = usDailyConfirmedArray2d[i_row].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_row].length);
     covid19DailyCountLookup[`fips${currentFips}`] = currentDailyDataArray;
@@ -111,7 +109,7 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
     let currentWeeklyAccelerationArray = [];
     let lastRate = false;
     let currentRate;
-    for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate ++) {
+    for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
       currentRate = currentWeeklyRateArray[i_rate];
       if (lastRate) {
         let currentAcceleration = lastRate - currentRate;
@@ -119,6 +117,8 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
       }
       lastRate = currentWeeklyRateArray[i_rate];
     }
+
+    /* https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer */
 
     /* Log results */
     currentWeeklyRateArray.reverse();
@@ -140,16 +140,14 @@ function getAccelerationAggregation(csvContent, temporalEnumerationInDays) {
 /**
  * Gets all dependencies used by Diego
  */
-function getDependencies() {
+function getDependencies () {
   const {
     Client
   } = require('pg');
   const Got = require('got');
   const Papa = require('papaparse');
+  const fs = require("fs");
+  const path = require('path');
 
-  return {
-    Client,
-    Got,
-    Papa,
-  };
+  return { Client, Got, Papa, fs, path, };
 }
