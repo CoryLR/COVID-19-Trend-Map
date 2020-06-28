@@ -10,8 +10,8 @@ module.exports = {
     initDataCollectionSchedule();
   },
   getLatestDataAndMetrics: async () => {
-    return await getCovidCountyAggregations_dev();
-    // return await getCovidCountyAggregations();
+    // return await getCovidCountyAggregations_dev();
+    return await getCovidCountyAggregations();
   }
 }
 

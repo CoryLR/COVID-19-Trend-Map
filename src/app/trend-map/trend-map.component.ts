@@ -14,7 +14,7 @@ export class TrendMapComponent implements OnInit {
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    // this.getData();
+    this.getData();
     this.map = this.initializeMap();
   }
 
