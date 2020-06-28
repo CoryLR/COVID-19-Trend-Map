@@ -11,6 +11,7 @@ module.exports = {
   },
   getLatestDataAndMetrics: async () => {
     return await getCovidCountyAggregations_dev();
+    // return await getCovidCountyAggregations();
   }
 }
 

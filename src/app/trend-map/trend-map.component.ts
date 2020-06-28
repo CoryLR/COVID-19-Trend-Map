@@ -20,7 +20,7 @@ export class TrendMapComponent implements OnInit {
 
   getData() {
     const url = '/api/getData';
-    const body = {test: "test"};
+    const body = { };
     this.http.post(url, body).subscribe((data: any) => {
       console.log(url, data);
     });

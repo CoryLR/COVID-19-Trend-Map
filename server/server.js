@@ -18,7 +18,7 @@ function setUrlRoutes(app) {
   /* Set non-angular routes (server / api calls) */
   app.post('/api/getData', async function (req, res) {
     const params = req.body;
-    console.log("/api/getData called; params:", params);
+    console.log("/api/getData called, params:", params);
     res.send(await Diego.getLatestDataAndMetrics());
   });
 
