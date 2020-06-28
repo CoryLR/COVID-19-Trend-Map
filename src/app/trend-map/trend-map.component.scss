@@ -1,0 +1,28 @@
+
+.trend-map-container {
+
+  $header-height: 40px;
+
+  .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: $header-height;
+    background-color: rgb(52, 52, 52);
+    color: white;
+  }
+  .map-wrapper {
+    position: absolute;
+    top: $header-height;
+    left: 0;
+    width: 100%;
+    height: calc( 100vh - #{$header-height} );
+    background-color: lightgray;
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
