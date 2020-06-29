@@ -10,8 +10,8 @@ module.exports = {
     initDataCollectionSchedule();
   },
   getLatestDataAndMetrics: async () => {
-    // return await getCovidCountyAggregations_dev();
-    return await getCovidCountyAggregations();
+    return await getCovidCountyAggregations_dev();
+    // return await getCovidCountyAggregations();
   }
 }
 
@@ -56,13 +56,13 @@ async function getCovidCountyAggregations_dev() {
 
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
   const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
+  const dev = true;
 
-
-  return getCovidResults(csvContent, geoJsonContent);
+  return getCovidResults(csvContent, geoJsonContent, dev);
 
 }
 
-function getCovidResults(csvContent, geoJsonContent) {
+function getCovidResults(csvContent, geoJsonContent, dev = false) {
 
   /* Parse inputs into usable data structures */
   const usDailyConfirmedArray2d = Papa.parse(csvContent).data;
@@ -193,7 +193,8 @@ function getCovidResults(csvContent, geoJsonContent) {
     "weekdefinitions": {
       "list": weekDefinitionsList,
       "lookup": weekDefinitionsLookup,
-    }
+    },
+    "dev": dev,
   }
 }
 
