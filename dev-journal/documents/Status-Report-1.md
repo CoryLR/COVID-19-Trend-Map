@@ -14,7 +14,7 @@ Master's in GIS and Web Map Programming, University of Wisconsin-Madison
 
 ## Introduction
 
-This is the first of four status reports on the development progress of the COVID-19 Trend Map application ([Project Plan](https://github.com/CoryLR/COVID-19-Trend-Map/blob/main/dev-journal/Project-Plan-Geog778-2020-06-14-Cory-Leigh-Rahman.md)). The project is **on schedule** because the following tasks have been completed.
+This is the first of four status reports on the development progress of the COVID-19 Trend Map application ([Project Plan](https://github.com/CoryLR/COVID-19-Trend-Map/blob/main/dev-journal/documents/Project-Plan-Geog778-2020-06-14-Cory-Leigh-Rahman.md)). The project is **on schedule** because the following tasks have been completed.
 
 - **Week 1** (6/15 - 6/21)
   - [x] Initialize GitHub Repository
@@ -59,7 +59,7 @@ The biggest challenge right now is time. Even sticking to the schedule I've made
 
 ## Next Steps
 
-As stated in the [Project Plan](https://github.com/CoryLR/COVID-19-Trend-Map/blob/main/dev-journal/Project-Plan-Geog778-2020-06-14-Cory-Leigh-Rahman.md), the following are my goals for the next 2 weeks. However, if possible, I'd like to advance the "Build functionality" task into Week 3 to have more content available for Beta #1.
+As stated in the [Project Plan](https://github.com/CoryLR/COVID-19-Trend-Map/blob/main/dev-journal/documents/Project-Plan-Geog778-2020-06-14-Cory-Leigh-Rahman.md), the following are my goals for the next 2 weeks. However, if possible, I'd like to advance the "Build functionality" task into Week 3 to have more content available for Beta #1.
 
 - **Week 3** (6/29 - 7/5)
   - [ ] Write front-end code to display COVID-19 data using a time-slider and animation controls
