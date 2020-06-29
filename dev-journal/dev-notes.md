@@ -40,8 +40,8 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
 - **Week 2** (6/22 - 6/28)
   - [x] Write server code to pull, aggregate, and geo-enable COVID-19 data from Johns Hopkins for use in the front-end
-  - [ ] Brainstorm & create wireframe mock-ups using responsive design best-practices to account for varying screen sizes
-  - [ ] [Deliverable] Write and deliver Status Report #1
+  - [x] Brainstorm & create wireframe mock-ups using responsive design best-practices to account for varying screen sizes
+  - [x] [Deliverable] Write and deliver Status Report #1
 
 - **Week 3** (6/29 - 7/5)
   - [ ] Write front-end code to display COVID-19 data using a time-slider and animation controls
