@@ -105,7 +105,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
     /* Calculate rate */
     let lastCount = undefined;
     for (let i_count = currentDailyDataArray.length - 1; i_count >= 0; i_count -= 7) {
-      let currentCount = currentDailyDataArray[i_count];
+      let currentCount = parseInt(currentDailyDataArray[i_count], 10);
       currentWeeklyCountArray.push(currentCount);
       if (lastCount !== undefined) {
         let currentRate = lastCount - currentCount;
