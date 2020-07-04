@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
+import * as leafletPip from '@mapbox/leaflet-pip'
 
 @Component({
   selector: 'app-trend-map',
@@ -22,6 +23,7 @@ export class TrendMapComponent implements OnInit {
   latestTimeStop: { name: string, num: number }; /* Latest data available */
   currentTimeStop: { name: string, num: number };
   stateFipsLookup: { [StateFips_AA: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+  lastSelectedLayer: any;
 
   constructor(private http: HttpClient) { }
 
@@ -63,13 +65,15 @@ export class TrendMapComponent implements OnInit {
     const map = L.map('map', {
       maxZoom: 14,
       minZoom: 3,
-      maxBounds: L.latLngBounds([[72, -173],[-15, 15]]),
+      // maxBounds: L.latLngBounds([[80, -230], [-15, 15]]),
     }).setView([40, -98.5], 4);
 
-    /* openStreetMap as backup basemap */
-    const OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {});
-    map.addLayer(OpenStreetMap);
-
+    /* Basemaps */
+    // const OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {});
+    // const Stamen_TonerLite = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.{ext}', { ext: 'png' });
+    // const Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', { ext: 'png' });
+    const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
+    map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('');
     map.attributionControl.addAttribution('Cartographer: Cory Leigh Rahman');
 
@@ -81,13 +85,13 @@ export class TrendMapComponent implements OnInit {
       showMarker: false,
       showPopup: false,
       autoClose: true,
-      searchLabel: "Search the U.S.",
+      searchLabel: "Search for your County, Town, or City",
       classNames: { container: "geosearch-container", button: "geosearch-button", /* resetButton: "geosearch-resetButton", */ msgbox: "geosearch-msgbox", form: "geosearch-form", input: "geosearch-input" },
       retainZoomLevel: true,
       autoCompleteDelay: 500,
     });
     map.addControl(geoSearch);
-    map.on('geosearch/showlocation', (place) => {this.locationSelected(place)} );
+    map.on('geosearch/showlocation', (place) => { this.locationSelected(place) });
 
     return map;
   }
@@ -95,20 +99,42 @@ export class TrendMapComponent implements OnInit {
   locationSelected(place) {
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
+    const secondLevelLocation = locationInfo.slice(-2)[0];
+    console.log("place", place);
     console.log("locationInfo", locationInfo);
-    if ( topLevelLocation == "United States of America" || topLevelLocation == "United States") {
-
-      this.map.flyToBounds(place.location.bounds);
+    try {
+      this.map.closePopup();
+      this.lastSelectedLayer.setStyle({ weight: 0 });
+    } catch (e) { }
+    if (topLevelLocation == "United States of America") {
+      if (locationInfo.length > 2) {
+        /* Testing */
+        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
+        console.log("matchedLayer", matchedLayer);
+        console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
+        this.map.flyToBounds(matchedLayer.getBounds());
+        this.map.once('zoomend', () => {
+          matchedLayer.setStyle({ weight: 4 });
+          matchedLayer.openPopup();
+        });
+        this.lastSelectedLayer = matchedLayer;
+        /* TODO: Exception for Alaska and places within */
+      } else {
+        this.map.flyToBounds(place.location.bounds);
+      }
+    } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
+      this.map.setView([40, -98.5], 4);
     } else {
       const currentView = this.map.getBounds();
-      alert("Location is not in the U.S.");
+      alert("Location not found in the U.S.");
       setTimeout(() => {
         this.map.fitBounds(currentView);
       }, 50)
     }
     setTimeout(() => {
+      /* Fix bug where the map needs to be clicked twice to show a popup */
       this.eventFire(document.getElementById('map'), 'click');
-    }, 10);
+    }, 200);
   }
 
   updateMapData(geojson) {
@@ -116,8 +142,8 @@ export class TrendMapComponent implements OnInit {
     const accelerationStyle = {
       // radius: 8,
       fillColor: "transparent",
-      // color: "#000",
-      weight: 0,
+      color: "black", /* This is the focus color */
+      weight: 0, /* Weight gets toggled to focus a particular region */
       opacity: 1,
       fillOpacity: 0.6
     };
@@ -153,6 +179,7 @@ export class TrendMapComponent implements OnInit {
     }
 
     this.countyGeoJSON = L.geoJSON(geojson, {
+      smoothFactor: 0.6,
       style: setAccelerationStyle,
       onEachFeature: onEachFeature
     });
@@ -176,7 +203,7 @@ export class TrendMapComponent implements OnInit {
     return { "01": { "name": "Alabama", "abbr": "AL" }, "02": { "name": "Alaska", "abbr": "AK" }, "03": { "name": "American Samoa", "abbr": "AS" }, "04": { "name": "Arizona", "abbr": "AZ" }, "05": { "name": "Arkansas", "abbr": "AR" }, "06": { "name": "California", "abbr": "CA" }, "07": { "name": "Canal Zone", "abbr": "CZ" }, "08": { "name": "Colorado", "abbr": "CO" }, "09": { "name": "Connecticut", "abbr": "CT" }, "10": { "name": "Delaware", "abbr": "DE" }, "11": { "name": "District Of Columbia", "abbr": "DC" }, "12": { "name": "Florida", "abbr": "FL" }, "13": { "name": "Georgia", "abbr": "GA" }, "14": { "name": "Guam", "abbr": "GU" }, "15": { "name": "Hawaii", "abbr": "HI" }, "16": { "name": "Idaho", "abbr": "ID" }, "17": { "name": "Illinois", "abbr": "IL" }, "18": { "name": "Indiana", "abbr": "IN" }, "19": { "name": "Iowa", "abbr": "IA" }, "20": { "name": "Kansas", "abbr": "KS" }, "21": { "name": "Kentucky", "abbr": "KY" }, "22": { "name": "Louisiana", "abbr": "LA" }, "23": { "name": "Maine", "abbr": "ME" }, "24": { "name": "Maryland", "abbr": "MD" }, "25": { "name": "Massachusetts", "abbr": "MA" }, "26": { "name": "Michigan", "abbr": "MI" }, "27": { "name": "Minnesota", "abbr": "MN" }, "28": { "name": "Mississippi", "abbr": "MS" }, "29": { "name": "Missouri", "abbr": "MO" }, "30": { "name": "Montana", "abbr": "MT" }, "31": { "name": "Nebraska", "abbr": "NE" }, "32": { "name": "Nevada", "abbr": "NV" }, "33": { "name": "New Hampshire", "abbr": "NH" }, "34": { "name": "New Jersey", "abbr": "NJ" }, "35": { "name": "New Mexico", "abbr": "NM" }, "36": { "name": "New York", "abbr": "NY" }, "37": { "name": "North Carolina", "abbr": "NC" }, "38": { "name": "North Dakota", "abbr": "ND" }, "39": { "name": "Ohio", "abbr": "OH" }, "40": { "name": "Oklahoma", "abbr": "OK" }, "41": { "name": "Oregon", "abbr": "OR" }, "42": { "name": "Pennsylvania", "abbr": "PA" }, "43": { "name": "Puerto Rico", "abbr": "PR" }, "44": { "name": "Rhode Island", "abbr": "RI" }, "45": { "name": "South Carolina", "abbr": "SC" }, "46": { "name": "South Dakota", "abbr": "SD" }, "47": { "name": "Tennessee", "abbr": "TN" }, "48": { "name": "Texas", "abbr": "TX" }, "49": { "name": "Utah", "abbr": "UT" }, "50": { "name": "Vermont", "abbr": "VT" }, "51": { "name": "Virginia", "abbr": "VA" }, "52": { "name": "Virgin Islands", "abbr": "VI" }, "53": { "name": "Washington", "abbr": "WA" }, "54": { "name": "West Virginia", "abbr": "WV" }, "55": { "name": "Wisconsin", "abbr": "WI" }, "56": { "name": "Wyoming", "abbr": "WY" }, "72": { "name": "Puerto Rico", "abbr": "PR" } }
   }
 
-  eventFire(el, etype){
+  eventFire(el, etype) {
     if (el.fireEvent) {
       el.fireEvent('on' + etype);
     } else {
