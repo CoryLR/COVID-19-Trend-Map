@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
@@ -25,9 +26,15 @@ export class TrendMapComponent implements OnInit {
   stateFipsLookup: { [StateFips_AA: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   lastSelectedLayer: any;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle("COVID-19 Trend Map");
+    this.metaService.addTags([
+      { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
+      { name: 'description', content: 'See COVID-19 trends where you live.' },
+      // {name: 'robots', content: 'index, follow'}
+    ]);
     this.map = this.initializeMap();
     this.getData();
 
