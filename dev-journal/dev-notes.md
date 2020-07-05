@@ -3,16 +3,19 @@
 
 ## Continuous Development
 
-- `npm i` Installs dependencies
-- `ng build` Updates the dist folder
-- `heroku local` Starts the app in a local server
-  - Useful for back-end testing; must use if there is no mockdata
-  - Port 5000 is default: http://localhost:5000
-  - Requires `ng build --watch` to also be running so that source code changes are visible on browser tab reload
-  - Alternative command: `npm start`
-- `ng serve` Starts the app in a local server
-  - Useful for front-end testing
-  - Port 4200 is default: http://localhost:4200, but can be changed like `--port 4201`
+1. `npm ci` Installs dependencies exactly according to the `package-lock.json`
+2. `ng build --watch` creates an app build in the `dist/` folder and updates it when source code is changed
+3. `heroku local` serves the `dist/` folder
+  - Useful for full-stack testing
+  - The app is available on localhost port 5000 by default: http://localhost:5000
+  - After source code changes simply refresh the page to see updates
+
+Other commands:
+
+- `ng serve` is also useful to start the front-end in a local server
+  - Useful for front-end testing, but will it will be cut off from the server
+  - Port 4200 is default: http://localhost:4200, but can be changed like `ng s --port 4201`
+- `npm start` can be used as an alternative to `heroku local`, but heroku config/env values will not be accessible
 
 ## Analysis Documentation
 
