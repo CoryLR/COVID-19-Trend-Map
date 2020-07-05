@@ -1,7 +1,8 @@
-
 .trend-map-container {
 
   $header-height: 40px;
+  height: 100vh;
+  min-height: -webkit-fill-available; // Fix for weird iOS height issues
 
   .header {
     position: absolute;
@@ -12,12 +13,13 @@
     background-color: rgb(52, 52, 52);
     color: white;
   }
+
   .map-wrapper {
     position: absolute;
     top: $header-height;
     left: 0;
     width: 100%;
-    height: calc( 100vh - #{$header-height} );
+    height: calc(100% - #{$header-height});
     background-color: lightgray;
 
     #map {

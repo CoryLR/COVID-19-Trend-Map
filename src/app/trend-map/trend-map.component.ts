@@ -33,7 +33,8 @@ export class TrendMapComponent implements OnInit {
     this.metaService.addTags([
       { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
       { name: 'description', content: 'See COVID-19 trends where you live.' },
-      // {name: 'robots', content: 'index, follow'}
+      // {name: 'robots', content: 'index, follow'},
+      { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
     ]);
     this.map = this.initializeMap();
     this.getData();
