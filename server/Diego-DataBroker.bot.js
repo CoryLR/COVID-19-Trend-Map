@@ -15,6 +15,11 @@ module.exports = {
   }
 }
 
+/* TODO:
+  - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
+
+*/
+
 /**
  * Runs on every new build
  */
@@ -31,9 +36,9 @@ async function runStartupTasks() {
  * Runs according to a schedule
  */
 function initDataCollectionSchedule() {
-  // Todo
+  // TODO:
   /* `npm i cron` - this is the dependency I'll want to use to establish Diego's agenda */
-  /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load */
+  /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load. Also perhaps pull multiple times per day. 2?*/
 }
 
 async function getCovidCountyAggregations() {
