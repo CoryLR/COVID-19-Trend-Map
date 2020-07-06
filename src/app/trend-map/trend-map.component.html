@@ -1,8 +1,50 @@
 <div class="trend-map-container">
+
   <div class="header">
     <h3>COVID-19 Trend Map</h3>
+    <h5> ALPHA // WORK IN PROGRESS</h5>
   </div>
+
   <div class="map-wrapper">
     <div id="map"></div>
+  </div>
+
+  <div class="info-panel" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
+
+    <div class="close-panel" (click)="closePanel()">x</div>
+
+    <div><em>Status Report for:</em></div>
+    <h4>{{panelContent.title}}</h4> <!-- County or State -->
+    <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
+    <!-- <p>{{panelContent.date}}20</p> -->
+    <br>
+
+    <p innerHTML="{{panelContent.summary}}"></p>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Cases</th>
+          <th scope="col">Confirmed</th>
+          <!-- <th scope="col">Last</th>
+          <th scope="col">Handle</th> -->
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Rate (7 days)</th>
+          <td>{{panelContent.rate}}</td>
+        </tr>
+        <tr>
+          <th scope="row">Acceleration</th>
+          <td>{{panelContent.acceleration}}</td>
+        </tr>
+        <tr>
+          <th scope="row">Cumulative</th>
+          <td>{{panelContent.cumulative}}</td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 </div>

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { trigger, state, style, animate, transition, } from '@angular/animations';
+
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
 import * as leafletPip from '@mapbox/leaflet-pip'
@@ -8,23 +10,30 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 @Component({
   selector: 'app-trend-map',
   templateUrl: './trend-map.component.html',
-  styleUrls: ['./trend-map.component.scss']
+  styleUrls: ['./trend-map.component.scss'],
+  animations: [
+    trigger('panelOpenClosed', getPanelTransitions()),
+    trigger('mapMinMax', getMapTransitions())
+  ]
 })
 export class TrendMapComponent implements OnInit {
 
   map: any;
+  infoPanelOpen: boolean = false;
   countyGeoJSON: any; /* GeoJSON Object format,  */
   countyDataLookup: {
-    [FIPS_f00000: string]: number[][] /* [[count, rate, acceleration] (x tN)] (non-normalized) */
+    [FIPS_f00000: string]: number[][] /* [ [count, rate, acceleration] (x#) ] (non-normalized) */
   };
   weekDefinitions: {
-    list: string[],
-    lookup: { [timeStop_tN: string]: string }
+    list: string[], lookup: { [timeStop_tN: string]: string }
   };
   latestTimeStop: { name: string, num: number }; /* Latest data available */
   currentTimeStop: { name: string, num: number };
-  stateFipsLookup: { [StateFips_AA: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+  stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   lastSelectedLayer: any;
+
+  // panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
+  panelContent: any = {};
 
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta) { }
 
@@ -66,15 +75,23 @@ export class TrendMapComponent implements OnInit {
       console.log("this.countyDataLookup", this.countyDataLookup);
 
       this.updateMapData(response.geojson);
+
+      console.log("!! this.latestTimeStop", this.latestTimeStop);
+      console.log("!! this.currentTimeStop", this.currentTimeStop);
+      console.log("!! this.weekDefinitions", this.weekDefinitions);
+      console.log("this.weekDefinitions.lookup[this.currentTimeStop.name]", this.weekDefinitions.lookup[this.currentTimeStop.name]);
     });
+
   }
 
   initializeMap() {
     const map = L.map('map', {
       maxZoom: 14,
       minZoom: 3,
-      // maxBounds: L.latLngBounds([[80, -230], [-15, 15]]),
-    }).setView([40, -98.5], 4);
+      maxBounds: L.latLngBounds([[80, -230], [-15, 15]]),
+    })
+
+    map.setView([40, -98.5], 4); /* TODO: Maybe use fitBounds with padding to account for panel size */
 
     /* Basemaps */
     // const OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {});
@@ -84,6 +101,28 @@ export class TrendMapComponent implements OnInit {
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('');
     map.attributionControl.addAttribution('Cartographer: Cory Leigh Rahman');
+    var Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', {
+      // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: 'abcd',
+      minZoom: 0,
+      maxZoom: 20,
+      ext: 'png'
+    });
+
+    map.on('zoomend', () => {
+      const zoomLevel = this.map.getZoom();
+      if (zoomLevel >= 6) {
+        if (!this.map.hasLayer(Stamen_TonerHybrid)) {
+          this.map.addLayer(Stamen_TonerHybrid);
+          this.countyGeoJSON.setStyle({fillOpacity: 0.4});
+        }
+      } else {
+        if (this.map.hasLayer(Stamen_TonerHybrid)) {
+          this.map.removeLayer(Stamen_TonerHybrid)
+          this.countyGeoJSON.setStyle({fillOpacity: 0.7});
+        }
+      }
+    });
 
     /* This is the default Leaflet Control and is somewhat customizable */
 
@@ -120,18 +159,65 @@ export class TrendMapComponent implements OnInit {
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
         console.log("matchedLayer", matchedLayer);
         console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
-        this.map.flyToBounds(matchedLayer.getBounds());
+
+        /* Update Map */
+        this.map.flyToBounds(matchedLayer.getBounds().pad(0.25)/* , { duration: 1.5 } */);
         this.map.once('zoomend', () => {
-          matchedLayer.setStyle({ weight: 4 });
-          matchedLayer.openPopup();
+          matchedLayer.bringToFront();
+          matchedLayer.setStyle({ weight: 6 });
+          const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+          this.map.openPopup(popupText, [place.location.y, place.location.x])
+          // matchedLayer.openPopup(); // This is for opening the normal click-popup
+          setTimeout(() => {
+            this.infoPanelOpen = true;
+          }, 250)
         });
+
+        /* Update Info Panel */
+        // title: "Natchitoches", subtitle: "Louisiana", rate: 20,
+        // acceleration: 10, cumulative: 300, accWord: "more",
+
+        const countyData = this.countyDataLookup[`f${matchedLayer.feature.properties.FIPS}`][this.latestTimeStop.num]
+
+        let cumulative: number = countyData[0];
+        let rate: number = countyData[1];
+        let acceleration: number = countyData[2];
+
+        this.panelContent.title = matchedLayer.feature.properties.NAME;
+        this.panelContent.subtitle = this.stateFipsLookup[matchedLayer.feature.properties.FIPS.substr(0, 2)].name;
+        this.panelContent.rate = this.styleNum(rate);
+        this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
+        this.panelContent.cumulative = this.styleNum(cumulative);
+        this.panelContent.date = this.weekDefinitions.lookup[this.currentTimeStop.name];
+
+        // {{panelContent.title}} is reporting new cases of COVID-19 this week {{panelContent.accWordAndBut}} the number of new cases is {{panelContent.accWordAccelDecel}}.
+
+        // let summaryString = `${this.panelContent.title} is reporting`;
+        // if (rate > 0) {
+        //   summaryString += " new cases of COVID-19 this week";
+        //   summaryString += acceleration >= 0 ? " and" : " but";
+        //   summaryString += " the number of new cases is";
+        //   summaryString += acceleration > 0 ? " accelerating."
+        //     : acceleration == 0 ? "steady." : " decelerating."
+        // } else {
+        //   summaryString += "no new cases of COVID-19 this week.";
+        // }
+
+        this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+
+
+
+        // this.panelContent.accWordMoreLess = countyData[2] > 0 ? "more" : "less";
+        // this.panelContent.accWordAccelDecel = countyData[2] > 0 ? "accelerating" : "decelerating";
+        // this.panelContent.accWordAndBut = countyData[2] > 0 ? "and" : "but";
+
         this.lastSelectedLayer = matchedLayer;
         /* TODO: Exception for Alaska and places within */
       } else {
         this.map.flyToBounds(place.location.bounds);
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
-      this.map.setView([40, -98.5], 4);
+      this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
     } else {
       const currentView = this.map.getBounds();
       alert("Location not found in the U.S.");
@@ -153,7 +239,7 @@ export class TrendMapComponent implements OnInit {
       color: "black", /* This is the focus color */
       weight: 0, /* Weight gets toggled to focus a particular region */
       opacity: 1,
-      fillOpacity: 0.6
+      fillOpacity: 0.7
     };
 
     const setAccelerationStyle = (feature) => {
@@ -178,16 +264,16 @@ export class TrendMapComponent implements OnInit {
       const stateName = this.stateFipsLookup[feature.properties.FIPS.substr(0, 2)].name
       layer.bindPopup(`
       <strong>${feature.properties.NAME}</strong>, ${stateName}
-      <br>Cumulative Cases: <strong>${this.styleNum(countyData[0])}</strong>
       <br>New This Week: <strong>${this.styleNum(countyData[1])}</strong>
       <br>Acceleration: <strong>${this.styleNum(countyData[2])}</strong>
+      <br>Cumulative Cases: <strong>${this.styleNum(countyData[0])}</strong>
       `);
       /* TODO:  - Use Math.abs() for Acceleration and use "more/less new cases than previous week"
                 - Make Acceleration dynamic if 0, e.g. "Weeks since last new case: 2"  */
     }
 
     this.countyGeoJSON = L.geoJSON(geojson, {
-      smoothFactor: 0.6,
+      smoothFactor: 0.7,
       style: setAccelerationStyle,
       onEachFeature: onEachFeature
     });
@@ -203,12 +289,20 @@ export class TrendMapComponent implements OnInit {
 
   }
 
+  closePanel() {
+    this.infoPanelOpen = false;
+    this.lastSelectedLayer.setStyle({ weight: 0 });
+    // setTimeout(() => {
+    // this.map.invalidateSize();
+    // }, 750)
+  }
+
   styleNum(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
   getStateFipsLookup() {
-    return { "01": { "name": "Alabama", "abbr": "AL" }, "02": { "name": "Alaska", "abbr": "AK" }, "03": { "name": "American Samoa", "abbr": "AS" }, "04": { "name": "Arizona", "abbr": "AZ" }, "05": { "name": "Arkansas", "abbr": "AR" }, "06": { "name": "California", "abbr": "CA" }, "07": { "name": "Canal Zone", "abbr": "CZ" }, "08": { "name": "Colorado", "abbr": "CO" }, "09": { "name": "Connecticut", "abbr": "CT" }, "10": { "name": "Delaware", "abbr": "DE" }, "11": { "name": "District Of Columbia", "abbr": "DC" }, "12": { "name": "Florida", "abbr": "FL" }, "13": { "name": "Georgia", "abbr": "GA" }, "14": { "name": "Guam", "abbr": "GU" }, "15": { "name": "Hawaii", "abbr": "HI" }, "16": { "name": "Idaho", "abbr": "ID" }, "17": { "name": "Illinois", "abbr": "IL" }, "18": { "name": "Indiana", "abbr": "IN" }, "19": { "name": "Iowa", "abbr": "IA" }, "20": { "name": "Kansas", "abbr": "KS" }, "21": { "name": "Kentucky", "abbr": "KY" }, "22": { "name": "Louisiana", "abbr": "LA" }, "23": { "name": "Maine", "abbr": "ME" }, "24": { "name": "Maryland", "abbr": "MD" }, "25": { "name": "Massachusetts", "abbr": "MA" }, "26": { "name": "Michigan", "abbr": "MI" }, "27": { "name": "Minnesota", "abbr": "MN" }, "28": { "name": "Mississippi", "abbr": "MS" }, "29": { "name": "Missouri", "abbr": "MO" }, "30": { "name": "Montana", "abbr": "MT" }, "31": { "name": "Nebraska", "abbr": "NE" }, "32": { "name": "Nevada", "abbr": "NV" }, "33": { "name": "New Hampshire", "abbr": "NH" }, "34": { "name": "New Jersey", "abbr": "NJ" }, "35": { "name": "New Mexico", "abbr": "NM" }, "36": { "name": "New York", "abbr": "NY" }, "37": { "name": "North Carolina", "abbr": "NC" }, "38": { "name": "North Dakota", "abbr": "ND" }, "39": { "name": "Ohio", "abbr": "OH" }, "40": { "name": "Oklahoma", "abbr": "OK" }, "41": { "name": "Oregon", "abbr": "OR" }, "42": { "name": "Pennsylvania", "abbr": "PA" }, "43": { "name": "Puerto Rico", "abbr": "PR" }, "44": { "name": "Rhode Island", "abbr": "RI" }, "45": { "name": "South Carolina", "abbr": "SC" }, "46": { "name": "South Dakota", "abbr": "SD" }, "47": { "name": "Tennessee", "abbr": "TN" }, "48": { "name": "Texas", "abbr": "TX" }, "49": { "name": "Utah", "abbr": "UT" }, "50": { "name": "Vermont", "abbr": "VT" }, "51": { "name": "Virginia", "abbr": "VA" }, "52": { "name": "Virgin Islands", "abbr": "VI" }, "53": { "name": "Washington", "abbr": "WA" }, "54": { "name": "West Virginia", "abbr": "WV" }, "55": { "name": "Wisconsin", "abbr": "WI" }, "56": { "name": "Wyoming", "abbr": "WY" }, "72": { "name": "Puerto Rico", "abbr": "PR" } }
+    return { "01": { "name": "Alabama", "abbr": "AL" }, "02": { "name": "Alaska", "abbr": "AK" }, "03": { "name": "American Samoa", "abbr": "AS" }, "04": { "name": "Arizona", "abbr": "AZ" }, "05": { "name": "Arkansas", "abbr": "AR" }, "06": { "name": "California", "abbr": "CA" }, "07": { "name": "Canal Zone", "abbr": "CZ" }, "08": { "name": "Colorado", "abbr": "CO" }, "09": { "name": "Connecticut", "abbr": "CT" }, "10": { "name": "Delaware", "abbr": "DE" }, "11": { "name": "District of Columbia", "abbr": "DC" }, "12": { "name": "Florida", "abbr": "FL" }, "13": { "name": "Georgia", "abbr": "GA" }, "14": { "name": "Guam", "abbr": "GU" }, "15": { "name": "Hawaii", "abbr": "HI" }, "16": { "name": "Idaho", "abbr": "ID" }, "17": { "name": "Illinois", "abbr": "IL" }, "18": { "name": "Indiana", "abbr": "IN" }, "19": { "name": "Iowa", "abbr": "IA" }, "20": { "name": "Kansas", "abbr": "KS" }, "21": { "name": "Kentucky", "abbr": "KY" }, "22": { "name": "Louisiana", "abbr": "LA" }, "23": { "name": "Maine", "abbr": "ME" }, "24": { "name": "Maryland", "abbr": "MD" }, "25": { "name": "Massachusetts", "abbr": "MA" }, "26": { "name": "Michigan", "abbr": "MI" }, "27": { "name": "Minnesota", "abbr": "MN" }, "28": { "name": "Mississippi", "abbr": "MS" }, "29": { "name": "Missouri", "abbr": "MO" }, "30": { "name": "Montana", "abbr": "MT" }, "31": { "name": "Nebraska", "abbr": "NE" }, "32": { "name": "Nevada", "abbr": "NV" }, "33": { "name": "New Hampshire", "abbr": "NH" }, "34": { "name": "New Jersey", "abbr": "NJ" }, "35": { "name": "New Mexico", "abbr": "NM" }, "36": { "name": "New York", "abbr": "NY" }, "37": { "name": "North Carolina", "abbr": "NC" }, "38": { "name": "North Dakota", "abbr": "ND" }, "39": { "name": "Ohio", "abbr": "OH" }, "40": { "name": "Oklahoma", "abbr": "OK" }, "41": { "name": "Oregon", "abbr": "OR" }, "42": { "name": "Pennsylvania", "abbr": "PA" }, "43": { "name": "Puerto Rico", "abbr": "PR" }, "44": { "name": "Rhode Island", "abbr": "RI" }, "45": { "name": "South Carolina", "abbr": "SC" }, "46": { "name": "South Dakota", "abbr": "SD" }, "47": { "name": "Tennessee", "abbr": "TN" }, "48": { "name": "Texas", "abbr": "TX" }, "49": { "name": "Utah", "abbr": "UT" }, "50": { "name": "Vermont", "abbr": "VT" }, "51": { "name": "Virginia", "abbr": "VA" }, "52": { "name": "Virgin Islands", "abbr": "VI" }, "53": { "name": "Washington", "abbr": "WA" }, "54": { "name": "West Virginia", "abbr": "WV" }, "55": { "name": "Wisconsin", "abbr": "WI" }, "56": { "name": "Wyoming", "abbr": "WY" }, "72": { "name": "Puerto Rico", "abbr": "PR" } }
   }
 
   eventFire(el, etype) {
@@ -221,4 +315,40 @@ export class TrendMapComponent implements OnInit {
     }
   }
 
+}
+
+function getPanelTransitions() {
+  return [
+    state('open', style({
+      left: '0',
+    })),
+    state('closed', style({
+      left: '-300px',
+    })),
+    transition('open => closed', [
+      animate('0.25s')
+    ]),
+    transition('closed => open', [
+      animate('0.25s')
+    ]),
+  ]
+}
+
+function getMapTransitions() {
+  return [
+    state('max', style({
+      left: '0',
+      width: '100%',
+    })),
+    state('min', style({
+      left: '280px',
+      width: 'calc( 100% - 280px )',
+    })),
+    transition('max => min', [
+      animate('0.25s')
+    ]),
+    transition('min => max', [
+      animate('0.25s')
+    ]),
+  ]
 }
