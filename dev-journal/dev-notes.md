@@ -47,14 +47,16 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] [Deliverable] Write and deliver Status Report #1
 
 - **Week 3** (6/29 - 7/5)
-  - [ ] Write front-end code to display COVID-19 data using a time-slider and animation controls
-  - [ ] Create non-functioning UI for location search, share sheet / URL scheme, and maybe chart graphics
-  - [ ] Publish live Beta #1
-  - [ ] [Deliverable] Write and deliver user-testing guide utilizing Live Beta #1
+  - [x] Write front-end code to display COVID-19 data
+  - [x] Create non-functioning UI for location search, share sheet / URL scheme, and maybe chart graphics
+  - [x] Build functionality for location search
+  - [x] Publish live Beta #1
+  - [x] [Deliverable] Write and deliver user-testing guide utilizing Live Beta #1
 
 - **Week 4** (7/6 - 7/12)
-  - [ ] Solicit feedback on the live Beta #1 from mentors and peers
-  - [ ] Build functionality for location search, share sheet / URL scheme, and chart graphics
+  - [x] Solicit feedback on the live Beta #1 from mentors and peers
+  - [ ] Update legend UI
+  - [ ] Build functionality for chart graphics
   - [ ] Update application to address feedback from Beta #1
   - [ ] [Deliverable] Write and deliver Status Report #2
 
@@ -63,8 +65,10 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [ ] Automate data calls to update the database daily
   - [ ] Re-route data pulls to come from the database
   - [ ] Conduct bug review
+  - [ ] Build functionality for share sheet & URL scheme
 
 - **Week 6** (7/20 - 7/26)
+  - [ ] Build functionality for a time-slider and animation controls
   - [ ] Conduct UX, UI, & responsive design review
   - [ ] Conduct cross-browser compatibility review
   - [ ] Add "about", tutorial, data source, and disclaimer information

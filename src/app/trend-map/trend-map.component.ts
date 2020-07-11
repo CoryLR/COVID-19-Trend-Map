@@ -55,6 +55,8 @@ export class TrendMapComponent implements OnInit {
 
     */
 
+    /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
+
   }
 
   getData() {

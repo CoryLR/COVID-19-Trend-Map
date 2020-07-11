@@ -30,7 +30,7 @@ Goal A) Access the app
 1. Use a Desktop or Laptop computer
 2. Open Google Chrome or Safari
    - Edge and Firefox are not tested yet but they may work too
-3. Navigate to the app's testing URL: [https://covid-19-trend-map.herokuapp.com/](https://covid-19-trend-map.herokuapp.com/)
+3. Navigate to the app's testing URL: [https://covid-19-trend-map.herokuapp.com/](https://covid-19-trend-map.herokuapp.com/). The app may take a moment to load up the first time since it's on free hosting and the server "sleeps".
    - **Note:** Please do not share this app URL just yet since it's still in development
 
 Goal B) Find COVID-19 trends for your local area
@@ -66,13 +66,13 @@ Please return your answers to these questions by copy-pasting them into a docume
 1. How fast were you able to find the *Status Report* for your local area?
 2. Did you have difficulty finding a *Status Report* for any area?
 3. How informative was the information presented in the *Status Report*?
-4. What other information would be **need-to-have** and **nice-to-have** for the *Status Report*?
+4. What other information would be useful the *Status Report*? Please mark which suggestions you think are **need-to-have** vs **nice-to-have**.
 5. How easy was it to explore the map?
 6. What trends did you notice in the map?
 7. What is one thing you learned from using this app?
 8. How could you see yourself using direct links to specific *Status Reports*?
-9. What do you think about animating the map to show the spread of COVID-19 over time?
-10. Do you think access to historical COVID-19 data would be useful?
+9. Would it be useful to see an animation in the map of the spread of COVID-19 over time?
+10. Do you think easy access to historical COVID-19 data would be useful?
 11. Did you encounter any bugs, issues, or oddities?
 12. Please write **any** other comments and thoughts you have.
 
