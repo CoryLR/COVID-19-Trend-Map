@@ -245,7 +245,7 @@ export class TrendMapComponent implements OnInit {
     };
 
     const setAccelerationStyle = (feature) => {
-      let value = feature.properties["t22"][1];
+      let value = feature.properties[this.currentTimeStop.name][1];
       switch (true) {
         case (value > 50): accelerationStyle.fillColor = "#990000"; return accelerationStyle;
         case (value > 25): accelerationStyle.fillColor = "#ef6548"; return accelerationStyle;
