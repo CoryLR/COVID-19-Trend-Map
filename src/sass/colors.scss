@@ -1,0 +1,31 @@
+
+/*            */
+/* Choropleth */
+/*            */
+
+/* Acceleration Original */// Red for acceleration, Blue for deceleration
+// $red3: #990000;
+// $red2: #ef6548;
+// $red1: #fef0d9;
+// $blue1: #c6dbef;
+// $blue2: #4292c6;
+// $blue3: #084594;
+// $null: lightgray;
+
+/* Acceleration Revision 1 */// Deemphasized blue to keep focus on value and acceleration
+$acc-red4: #5e0000;
+$acc-red3: #990000;
+$acc-red2: #d4644d;
+$acc-red1: #f0dcbc;
+$acc-blue1: #cddcea;
+$acc-blue2: #90a1ad;
+$acc-blue3: #434d5b;
+$null: lightgray;
+
+/* Rate */
+$rate-red-5: hsl(0, 100%, 17%);
+$rate-red-4: hsl(0, 64%, 34%);
+$rate-red-3: hsl(0, 43%, 52%);
+$rate-red-2: hsl(25, 57%, 75%);
+$rate-red-1: hsl(51, 62%, 92%);
+$rate-red-0: hsl(0, 0%, 95%);

@@ -31,6 +31,7 @@ export class TrendMapComponent implements OnInit {
   currentTimeStop: { name: string, num: number };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   lastSelectedLayer: any;
+  choroplethOrigin: string = "rate";// rate, acceleration, deaths
 
   // panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
   panelContent: any = {};
@@ -75,13 +76,14 @@ export class TrendMapComponent implements OnInit {
       }
       console.log("this.weekDefinitions", this.weekDefinitions);
       console.log("this.countyDataLookup", this.countyDataLookup);
+      console.log("response.geojson", response.geojson)
 
       this.updateMapData(response.geojson);
 
-      console.log("!! this.latestTimeStop", this.latestTimeStop);
-      console.log("!! this.currentTimeStop", this.currentTimeStop);
-      console.log("!! this.weekDefinitions", this.weekDefinitions);
-      console.log("this.weekDefinitions.lookup[this.currentTimeStop.name]", this.weekDefinitions.lookup[this.currentTimeStop.name]);
+      // console.log("!! this.latestTimeStop", this.latestTimeStop);
+      // console.log("!! this.currentTimeStop", this.currentTimeStop);
+      // console.log("!! this.weekDefinitions", this.weekDefinitions);
+      // console.log("this.weekDefinitions.lookup[this.currentTimeStop.name]", this.weekDefinitions.lookup[this.currentTimeStop.name]);
     });
 
   }
@@ -91,9 +93,14 @@ export class TrendMapComponent implements OnInit {
       maxZoom: 14,
       minZoom: 3,
       maxBounds: L.latLngBounds([[80, -230], [-15, 15]]),
+      zoomControl: false,
     })
 
     map.setView([40, -98.5], 4); /* TODO: Maybe use fitBounds with padding to account for panel size */
+
+    L.control.zoom({
+      position: 'topright'
+    }).addTo(map);
 
     /* Basemaps */
     // const OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {});
@@ -116,12 +123,12 @@ export class TrendMapComponent implements OnInit {
       if (zoomLevel >= 6) {
         if (!this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.addLayer(Stamen_TonerHybrid);
-          this.countyGeoJSON.setStyle({fillOpacity: 0.4});
+          this.countyGeoJSON.setStyle({ fillOpacity: 0.5 });
         }
       } else {
         if (this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.removeLayer(Stamen_TonerHybrid)
-          this.countyGeoJSON.setStyle({fillOpacity: 0.7});
+          this.countyGeoJSON.setStyle({ fillOpacity: 0.9 });
         }
       }
     });
@@ -153,7 +160,7 @@ export class TrendMapComponent implements OnInit {
     console.log("locationInfo", locationInfo);
     try {
       this.map.closePopup();
-      this.lastSelectedLayer.setStyle({ weight: 0 });
+      this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
       if (locationInfo.length > 2) {
@@ -163,10 +170,10 @@ export class TrendMapComponent implements OnInit {
         console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
 
         /* Update Map */
-        this.map.flyToBounds(matchedLayer.getBounds().pad(0.25)/* , { duration: 1.5 } */);
+        this.map.flyToBounds(matchedLayer.getBounds().pad(1)/* , { duration: 1.5 } */);
         this.map.once('zoomend', () => {
           matchedLayer.bringToFront();
-          matchedLayer.setStyle({ weight: 6 });
+          matchedLayer.setStyle({ weight: 6/* , color: "black" */ });
           const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
@@ -235,29 +242,6 @@ export class TrendMapComponent implements OnInit {
 
   updateMapData(geojson) {
 
-    const accelerationStyle = {
-      // radius: 8,
-      fillColor: "transparent",
-      color: "black", /* This is the focus color */
-      weight: 0, /* Weight gets toggled to focus a particular region */
-      opacity: 1,
-      fillOpacity: 0.7
-    };
-
-    const setAccelerationStyle = (feature) => {
-      let value = feature.properties[this.currentTimeStop.name][1];
-      switch (true) {
-        case (value > 50): accelerationStyle.fillColor = "#990000"; return accelerationStyle;
-        case (value > 25): accelerationStyle.fillColor = "#ef6548"; return accelerationStyle;
-        case (value > 0): accelerationStyle.fillColor = "#fef0d9"; return accelerationStyle;
-        case (value == 0): accelerationStyle.fillColor = "lightgray"; return accelerationStyle;
-        case (value >= -25): accelerationStyle.fillColor = "#c6dbef"; return accelerationStyle;
-        case (value >= -50): accelerationStyle.fillColor = "#4292c6"; return accelerationStyle;
-        case (value < -50): accelerationStyle.fillColor = "#084594"; return accelerationStyle;
-        default: return accelerationStyle;
-      }
-    }
-
     console.log("TESTING", this.countyDataLookup[`f40001`][this.latestTimeStop.num][0])
     let onEachFeature = (feature: any, layer: any) => {
       // TODO: if this feature has a property named popupContent, update popupContent, otherwise .bindPopup
@@ -274,9 +258,25 @@ export class TrendMapComponent implements OnInit {
                 - Make Acceleration dynamic if 0, e.g. "Weeks since last new case: 2"  */
     }
 
+    const countyStyle = {
+      // radius: 8,
+      fillColor: "transparent",
+      color: "black", /* This is the focus color */
+      weight: 0, /* Weight gets toggled to focus a particular region */
+      opacity: 1,
+      fillOpacity: 0.9
+    };
+
+    let styleFunction: any;
+    if (this.choroplethOrigin === "rate") {
+      styleFunction = this.getRateStyleFunction(countyStyle);
+    } else {
+      styleFunction = this.getAccelerationStyleFunction(countyStyle);
+    }
+
     this.countyGeoJSON = L.geoJSON(geojson, {
-      smoothFactor: 0.7,
-      style: setAccelerationStyle,
+      smoothFactor: 0.6,
+      style: styleFunction,
       onEachFeature: onEachFeature
     });
 
@@ -293,7 +293,7 @@ export class TrendMapComponent implements OnInit {
 
   closePanel() {
     this.infoPanelOpen = false;
-    this.lastSelectedLayer.setStyle({ weight: 0 });
+    this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
     // setTimeout(() => {
     // this.map.invalidateSize();
     // }, 750)
@@ -301,6 +301,58 @@ export class TrendMapComponent implements OnInit {
 
   styleNum(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  getAccelerationStyleFunction(style) {
+    return (feature) => {
+      let value = feature.properties[this.currentTimeStop.name][1];
+      switch (true) {
+        case (value > 200): style.fillColor = "#5e0000"; return style;
+        case (value > 50): style.fillColor = "#990000"; return style;
+        case (value > 25): style.fillColor = "#d4644d"; return style;
+        case (value > 0): style.fillColor = "#fef0d9"; return style;
+        case (value == 0): style.fillColor = "lightgray"; return style;
+        case (value >= -25): style.fillColor = "#cddcea"; return style;
+        case (value >= -50): style.fillColor = "#90a1ad"; return style;
+        case (value < -50): style.fillColor = "#434d5b"; return style;
+        default: return style;
+      }
+    }
+  }
+  getRateStyleFunction(style) {
+    return (feature) => {
+      // let value = feature.properties["t23"][0];
+      let value = feature.properties[this.currentTimeStop.name][0];
+      if (typeof value === "string") {
+        /* Expects format of "0wN" e.g. "0w2" for 2 weeks with no new cases */
+
+        /* For now, return 0 style for all strings */
+        console.log("0week!", feature);
+        style.fillColor = "orange"; return style;
+        // style.fillColor = "hsl(0, 0%, 95%)"; return style;
+
+        /* Color zeroStreak counties */
+        // const zeroStreak = parseInt(value.slice(2), 10);
+        // switch (true) {
+        //   case (zeroStreak === 1): style.fillColor = "green"; return style;
+        //   case (zeroStreak === 2): style.fillColor = "green"; return style;
+        //   case (zeroStreak === 3): style.fillColor = "green"; return style;
+        //   case (zeroStreak === 4): style.fillColor = "green"; return style;
+        //   case (zeroStreak > 4): style.fillColor = "green"; return style;
+        //   default: return style;
+        // }
+      } else {
+        switch (true) {
+          case (value > 400): style.fillColor = "hsl(0, 100%, 17%)"; return style;
+          case (value > 200): style.fillColor = "hsl(0, 64%, 34%)"; return style;
+          case (value > 100): style.fillColor = "hsl(0, 43%, 52%)"; return style;
+          case (value > 50): style.fillColor = "hsl(15, 57%, 75%)"; return style;
+          case (value > 0): style.fillColor = "hsl(30, 62%, 93%)"; return style;
+          case (value <= 0): style.fillColor = "hsl(0, 0%, 95%)"; return style;
+          default: return style;
+        }
+      }
+    }
   }
 
   getStateFipsLookup() {

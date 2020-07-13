@@ -10,15 +10,11 @@ module.exports = {
     initDataCollectionSchedule();
   },
   getLatestDataAndMetrics: async () => {
-    // return await getCovidCountyAggregations_dev();
-    return await getCovidCountyAggregations();
+    // return await retrieveCovidDataPackage();
+    return await generateCovidDataPackage_dev();
+    // return await generateCovidDataPackage();
   }
 }
-
-/* TODO:
-  - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
-
-*/
 
 /**
  * Runs on every new build
@@ -26,9 +22,11 @@ module.exports = {
 async function runStartupTasks() {
   /* Run startup tasks if needed */
 
+  // retrieveCovidDataPackage()
+
   /* Testing */
-  // const covidCountiesData = await getCovidCountyAggregations_dev();
-  // const covidCountiesData = await getCovidCountyAggregations();
+  // const covidCountiesData = await generateCovidDataPackage_dev();
+  // const covidCountiesData = await generateCovidDataPackage();
 
 }
 
@@ -41,7 +39,35 @@ function initDataCollectionSchedule() {
   /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load. Also perhaps pull multiple times per day. 2?*/
 }
 
-async function getCovidCountyAggregations() {
+/* 
+  TODO:
+  - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
+
+*/
+
+async function retrieveCovidDataPackage() {
+
+  try {
+    /* First, attempt to retrieve the data from the database */
+    return queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='test_latest'`, () => {
+      if (err) {
+
+      } else {
+
+      }  
+    })
+  } catch (err) {
+    console.log("err", err)
+    /* If data cannot be retrieved from the database, manually recalculate directly from the data source */
+    // return await generateCovidDataPackage_dev();
+    // return await generateCovidDataPackage();
+
+  }
+
+
+}
+
+async function generateCovidDataPackage() {
 
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const csvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
@@ -53,7 +79,7 @@ async function getCovidCountyAggregations() {
 
 }
 
-async function getCovidCountyAggregations_dev() {
+async function generateCovidDataPackage_dev() {
 
   let filePath = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
   let data = fs.readFileSync(filePath, "utf8");
@@ -98,16 +124,16 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
   }
 
   /* For each county */
-  for (let i_row = 1; i_row < usDailyConfirmedArray2d.length - 1; i_row++) {
-    let currentFips = parseInt(usDailyConfirmedArray2d[i_row][4], 10).toString().padStart(5, '0');
-    let currentDailyDataArray = usDailyConfirmedArray2d[i_row].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_row].length);
+  for (let i_county = 1; i_county < usDailyConfirmedArray2d.length - 1; i_county++) {
+    let currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
+    let currentDailyDataArray = usDailyConfirmedArray2d[i_county].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_county].length);
     covid19DailyCountLookup[`f${currentFips}`] = currentDailyDataArray;
 
     let currentWeeklyCountArray = [];
     let currentWeeklyRateArray = [];
     let currentWeeklyAccelerationArray = [];
 
-    /* Calculate rate */
+    /* Calculate county rate for all time-stops */
     let lastCount = undefined;
     for (let i_count = currentDailyDataArray.length - 1; i_count >= 0; i_count -= 7) {
       let currentCount = parseInt(currentDailyDataArray[i_count], 10);
@@ -119,7 +145,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
       lastCount = currentDailyDataArray[i_count];
     }
 
-    /* Calculate Acceleration */
+    /* Calculate county acceleration for all time-stops */
     let lastRate = undefined;
     let currentRate;
     for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
@@ -131,14 +157,45 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
       lastRate = currentWeeklyRateArray[i_rate];
     }
 
-    /* https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer */
+    currentWeeklyCountArray.reverse();
+    currentWeeklyRateArray.reverse();
+    currentWeeklyAccelerationArray.reverse();
+
+    /* Good test index (i_county) is 5 */
+    if (true /* i_county === 5 */ /* || i_county === 6 */ ) {
+      // console.log("DIFFERENTIATION")
+      /* Differentiate zero values between "has never had a new case", "back to no new cases",
+      and the magnitude of "back to no new cases" */
+
+      /* TODO: Figure out why the strings are coming through as null in the front end */
+
+      let zeroStreak = 0;
+      let lastValueWasZero = false;
+      let noCasesYet = true;
+      for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
+        if (currentWeeklyRateArray[i_rate] === 0) {
+          if (noCasesYet === false) {
+            // currentWeeklyRateArray[i_rate] = zeroStreak < 5 ? zeroCaseValueLookup[zeroStreak] : "0_5w+"
+            currentWeeklyRateArray[i_rate] = `0w${zeroStreak + 1}`;
+            zeroStreak++;
+          }
+        } else {
+          zeroStreak = 0;
+          lastValueWasZero = false;
+          noCasesYet = false;
+        }
+      }
+
+      // console.log(currentWeeklyRateArray);
+      // console.log(currentWeeklyAccelerationArray);
+      // break;
+    }
 
     /* Log results */
     // currentWeeklyCountArray.reverse();
     // currentWeeklyRateArray.reverse();
-    currentWeeklyAccelerationArray.reverse();
-    covid19WeeklyCountLookup[`f${currentFips}`] = currentWeeklyCountArray.reverse();
-    covid19WeeklyRateLookup[`f${currentFips}`] = currentWeeklyRateArray.reverse();
+    covid19WeeklyCountLookup[`f${currentFips}`] = currentWeeklyCountArray;
+    covid19WeeklyRateLookup[`f${currentFips}`] = currentWeeklyRateArray;
     covid19WeeklyAccelerationLookup[`f${currentFips}`] = currentWeeklyAccelerationArray;
   }
 
@@ -192,7 +249,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
     weekDefinitionsLookup[`t${i_wk-1}`] = weeklyDataHeaders[i_wk];
   }
 
-  return {
+  let dataPackage = {
     "geojson": countiesGeoJson,
     "datalookup": countyCovidDataLookup,
     "weekdefinitions": {
@@ -201,8 +258,63 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
     },
     "dev": dev,
   }
+
+  // queryPrimaryDatabase(`
+  //   INSERT INTO covid_19 (
+  //     label,
+  //     data
+  //   ) VALUES (
+  //     'test_latest',
+  //     $1
+  //   );
+  // `, [dataPackage], (err, res) => {
+  //   if (err) {
+  //     console.log("[Diego]: Error adding data to database:\n", err);
+  //     /* TODO: Add "data upload failure" entry to Diego's Journal, get rid of "err" in console.log*/
+  //   } else {
+  //     console.log("[Diego]: Success adding COVID-19 data to database.");
+  //   }
+  // });
+
+  return dataPackage
 }
 
+
+/**
+ * Asynchronous function which queries the database and returns the response
+ * @param {string} queryString - SQL Query String
+ * @param {function} callBackFunction - requires parameters (err, res), fires when query finishes
+ */
+async function queryPrimaryDatabase(queryString, dataArr, callBackFunction = (err, res) => {}) {
+  console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
+  const pgPsqlClient = new Client({
+    connectionString: process.env.DATABASE_URL,
+    // ssl: true,
+    ssl: { rejectUnauthorized: false }
+  });
+  await pgPsqlClient.connect();
+  return pgPsqlClient.query(queryString, dataArr, async (err, res) => {
+    try {
+      callBackFunction(err, res);
+    } catch (err) {
+      console.log("Error in callback function: \n", err);
+    }
+    pgPsqlClient.end();
+  });
+}
+
+/**
+ * Add an entry to Diego's journal by utilizing an INSERT queryPrimaryDatabase on table diegos_journal
+ * @param {string} entry_name - Title of entry (max 255 characters)
+ * @param {boolean} success - Whether the task succeeded or failed; options are true, false, and null of not relevant
+ * @param {string} note - Details of entry
+ */
+function addEntryToDiegosJournal(entry_name, success, note) {
+  queryPrimaryDatabase(`
+  INSERT INTO diegos_journal ( entry_name, success, note )
+  VALUES ( '${entry_name}', ${String(success)}, '${note}' );
+  `);
+}
 
 /**
  * Gets all dependencies used by Diego

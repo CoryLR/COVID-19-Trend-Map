@@ -3,19 +3,23 @@
 
 ## Continuous Development
 
+Follow these steps to get the app up-and-running after a fresh clone
+
 1. `npm ci` Installs dependencies exactly according to the `package-lock.json`
-2. `ng build --watch` creates an app build in the `dist/` folder and updates it when source code is changed
-3. `heroku local` serves the `dist/` folder
+2. Update the gitignored `.env` file with the necessary config vars/keys:
+    - `heroku config:get DATABASE_URL -s  >> .env`
+3. `heroku local` serves Angular's build folder (`dist/`) locally with Heroku connections (config vars, database, etc)
   - Useful for full-stack testing
-  - The app is available on localhost port 5000 by default: http://localhost:5000
-  - After source code changes simply refresh the page to see updates
+  - The current app build is available on localhost port 5000 by default: http://localhost:5000
+3. `ng build --watch` creates an app build in the `dist/` folder
+  - After source code changes simply refresh the page to see updates (thanks to the `--watch` flag)
 
 Other commands:
 
 - `ng serve` is also useful to start the front-end in a local server
   - Useful for front-end testing, but will it will be cut off from the server
   - Port 4200 is default: http://localhost:4200, but can be changed like `ng s --port 4201`
-- `npm start` can be used as an alternative to `heroku local`, but heroku config/env values will not be accessible
+- `npm start` can be used as an alternative to `heroku local`, but heroku-specific tools will not be accessible
 
 ## Analysis Documentation
 
@@ -47,28 +51,24 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] [Deliverable] Write and deliver Status Report #1
 
 - **Week 3** (6/29 - 7/5)
-  - [x] Write front-end code to display COVID-19 data
+  - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
   - [x] Create non-functioning UI for location search, share sheet / URL scheme, and maybe chart graphics
-  - [x] Build functionality for location search
   - [x] Publish live Beta #1
   - [x] [Deliverable] Write and deliver user-testing guide utilizing Live Beta #1
 
 - **Week 4** (7/6 - 7/12)
   - [x] Solicit feedback on the live Beta #1 from mentors and peers
-  - [ ] Update legend UI
-  - [ ] Build functionality for chart graphics
+  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
   - [ ] Update application to address feedback from Beta #1
-  - [ ] [Deliverable] Write and deliver Status Report #2
+  - [x] [Deliverable] Write and deliver Status Report #2
 
 - **Week 5** (7/13 - 7/19)
-  - [ ] Architect database to store COVID-19 data
+  - [x] Architect database to store COVID-19 data
   - [ ] Automate data calls to update the database daily
   - [ ] Re-route data pulls to come from the database
   - [ ] Conduct bug review
-  - [ ] Build functionality for share sheet & URL scheme
 
 - **Week 6** (7/20 - 7/26)
-  - [ ] Build functionality for a time-slider and animation controls
   - [ ] Conduct UX, UI, & responsive design review
   - [ ] Conduct cross-browser compatibility review
   - [ ] Add "about", tutorial, data source, and disclaimer information
@@ -90,3 +90,7 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 - **Week 9** (8/10 - 8/16)
   - [ ] [Deliverable] Write & deliver executive report
   - [ ] Socialize & advertize the application publicly
+
+- **Scope Creep**
+  - [x] Teach Diego to differentiate "zero" (`0`) values between "has never had a new case", "back to no new cases", and the magnitude of "back to no new cases" (e.g. "no new cases in x weeks")
+  - [ ] Automatically acquire the user's location using their device's GPS
