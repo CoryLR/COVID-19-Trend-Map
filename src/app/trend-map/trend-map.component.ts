@@ -76,6 +76,33 @@ export class TrendMapComponent implements OnInit {
         name: this.latestTimeStop.name,
         num: this.latestTimeStop.num
       }
+
+      /* Useful for debugging */
+      console.log("Data Source:", response.source);
+      // console.log("Data Package:", response);
+      // console.log("this.countyDataLookup['31041']", this.countyDataLookup['31041']);
+      // console.log("this.countyDataLookup['08009']", this.countyDataLookup['08009']);
+
+      this.updateMapData(response.geojson);
+
+    });
+
+  }
+
+  getDataTest() {
+    const url = '/api/getDataFromDatabaseTest';
+    const body = {};
+    this.http.post(url, body).subscribe((response: any) => {
+/*       this.weekDefinitions = response.weekdefinitions;
+      this.countyDataLookup = response.datalookup;
+      this.latestTimeStop = {
+        name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
+        num: this.weekDefinitions.list.length - 1
+      }
+      this.currentTimeStop = {
+        name: this.latestTimeStop.name,
+        num: this.latestTimeStop.num
+      }
       console.log("this.weekDefinitions", this.weekDefinitions);
       console.log("this.countyDataLookup", this.countyDataLookup);
       console.log("this.countyDataLookup['31041']", this.countyDataLookup['31041']);
@@ -83,6 +110,9 @@ export class TrendMapComponent implements OnInit {
       console.log("response.geojson", response.geojson)
 
       this.updateMapData(response.geojson);
+ */
+
+      console.log("from database: ", response);
 
       // console.log("!! this.latestTimeStop", this.latestTimeStop);
       // console.log("!! this.currentTimeStop", this.currentTimeStop);

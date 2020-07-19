@@ -12,7 +12,10 @@
 SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';
 
 /* See covid-19 data records */
-SELECT label, created_time_stamp FROM covid_19;
+SELECT id, label, created_time_stamp FROM covid_19;
+
+/* Select latest data */
+SELECT id FROM covid_19 WHERE label='test_latest' ORDER BY created_time_stamp DESC LIMIT 1;
 
 /* Add covid-19 data */
 INSERT INTO covid_19 (
@@ -23,6 +26,11 @@ INSERT INTO covid_19 (
   '{"key": "value", "key2": "value2"}'
 );
 /* Helpful guide for JSON w/ Node & Postgres: https://itnext.io/storing-json-in-postgres-using-node-js-c8ff50337013 */
+
+/* Delete all but the 2 "latest" data from the database */
+DELETE FROM covid_19 WHERE id IN (
+  SELECT id FROM covid_19 WHERE label = 'test_latest' ORDER BY created_time_stamp DESC OFFSET 2
+);
 
 /* Delete test data */
 delete from covid_19 where lower(label) like 'test%';

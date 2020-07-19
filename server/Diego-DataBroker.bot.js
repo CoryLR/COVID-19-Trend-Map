@@ -2,6 +2,7 @@
 /* Hello, I am Diego the Data Broker. */
 /*                                    */
 
+const productionMode = false;
 const { Client, Got, Papa, fs, path } = getDependencies();
 
 module.exports = {
@@ -9,10 +10,11 @@ module.exports = {
     runStartupTasks();
     initDataCollectionSchedule();
   },
-  getLatestDataAndMetrics: async () => {
-    // return await retrieveCovidDataPackage();
-    return await generateCovidDataPackage_dev();
-    // return await generateCovidDataPackage();
+  getLatestDataPackage: async () => {
+    return await retrieveCovidDataPackage();
+
+    /* Useful for testing Diego: */
+    // return await generateCovidDataPackage_dev();
   }
 }
 
@@ -22,11 +24,10 @@ module.exports = {
 async function runStartupTasks() {
   /* Run startup tasks if needed */
 
-  // retrieveCovidDataPackage()
-
-  /* Testing */
-  // const covidCountiesData = await generateCovidDataPackage_dev();
-  // const covidCountiesData = await generateCovidDataPackage();
+  if (productionMode === true) {
+    await updateDatabaseWithCovidDataPackage();
+  }
+  await cleanUpDatabase();
 
 }
 
@@ -46,28 +47,55 @@ function initDataCollectionSchedule() {
 */
 
 async function retrieveCovidDataPackage() {
+  let result = await queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='latest' ORDER BY created_time_stamp DESC LIMIT 1;`);
+  if (result && result.rows.length && result.rows[0].data) {
+    return result.rows[0].data;
+  } else {
+    console.log("Error in retrieveCovidDataPackage")
+    /* TODO: Write the error to Diego's Journal */
 
-  try {
-    /* First, attempt to retrieve the data from the database */
-    return queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='test_latest'`, () => {
-      if (err) {
-
-      } else {
-
-      }
-    })
-  } catch (err) {
-    console.log("err", err)
     /* If data cannot be retrieved from the database, manually recalculate directly from the data source */
-    // return await generateCovidDataPackage_dev();
-    // return await generateCovidDataPackage();
-
+    if (productionMode === true) {
+      const source = "1 - GitHub (JHU CSSE)";
+      return await generateCovidDataPackage(source);
+    } else {
+      return await generateCovidDataPackage_dev();
+    }
   }
-
-
 }
 
-async function generateCovidDataPackage() {
+async function updateDatabaseWithCovidDataPackage() {
+  const source = "0 - Database";
+  const dataPackage = await generateCovidDataPackage(source);
+  queryPrimaryDatabase(`
+    INSERT INTO covid_19 (
+      label,
+      data
+    ) VALUES (
+      'latest',
+      $1
+    );
+  `, [dataPackage], (err, res) => {
+    if (err) {
+      console.log("[Diego]: Error adding data to database:\n", err);
+      return false;
+      /* TODO: Add "data upload failure" entry to Diego's Journal, get rid of "err" in console.log*/
+    } else {
+      console.log("[Diego]: Success adding COVID-19 data to database.");
+      return true;
+    }
+  });
+}
+
+async function cleanUpDatabase() {
+  await queryPrimaryDatabase(`
+    DELETE FROM covid_19 WHERE id IN (
+      SELECT id FROM covid_19 WHERE label = 'latest' ORDER BY created_time_stamp DESC OFFSET 1
+    );
+  `);
+}
+
+async function generateCovidDataPackage(source = "unknown") {
 
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const csvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
@@ -75,7 +103,7 @@ async function generateCovidDataPackage() {
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
   const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
 
-  return getCovidResults(csvContent, geoJsonContent);
+  return getCovidResults(csvContent, geoJsonContent, source);
 
 }
 
@@ -87,13 +115,13 @@ async function generateCovidDataPackage_dev() {
 
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
   const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
-  const dev = true;
 
-  return getCovidResults(csvContent, geoJsonContent, dev);
+  const source = "2 - Local (Diego is in 'dev' mode)";
+  return getCovidResults(csvContent, geoJsonContent, source);
 
 }
 
-function getCovidResults(csvContent, geoJsonContent, dev = false) {
+function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
 
   /* Parse inputs into usable data structures */
   const usDailyConfirmedArray2d = Papa.parse(csvContent).data;
@@ -164,6 +192,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
       lastRate = currentWeeklyRateArray[i_rate];
     }
 
+    /* Reverse arrays to order time-stops chronologically */
     currentWeeklyCountArray.reverse();
     currentWeeklyRateArray.reverse();
     currentWeeklyAccelerationArray.reverse();
@@ -188,16 +217,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
       }
     }
 
-    /* TODO: Cedar, Nebraska still shows "New This Week: -9,999,999 (-116184489 per 100k)" */
-
-    // console.log(currentWeeklyRateArray);
-    // console.log(currentWeeklyAccelerationArray);
-    // break;
-
-
     /* Log results */
-    // currentWeeklyCountArray.reverse();
-    // currentWeeklyRateArray.reverse();
     covid19WeeklyCountLookup[currentFips] = currentWeeklyCountArray;
     covid19WeeklyRateLookup[currentFips] = currentWeeklyRateArray;
     covid19WeeklyAccelerationLookup[currentFips] = currentWeeklyAccelerationArray;
@@ -205,7 +225,7 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
   }
 
 
-  /* Enrich county GeoJSON with weekly acceleration data */
+  /* Add data to County Data Lookup for every feature in the geojson */
 
   let countyCovidDataLookup = {};
 
@@ -263,25 +283,8 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
       "list": weekDefinitionsList,
       "lookup": weekDefinitionsLookup,
     },
-    "dev": dev,
+    "source": source,
   }
-
-  queryPrimaryDatabase(`
-    INSERT INTO covid_19 (
-      label,
-      data
-    ) VALUES (
-      'test_latest',
-      $1
-    );
-  `, [dataPackage], (err, res) => {
-    if (err) {
-      console.log("[Diego]: Error adding data to database:\n", err);
-      /* TODO: Add "data upload failure" entry to Diego's Journal, get rid of "err" in console.log*/
-    } else {
-      console.log("[Diego]: Success adding COVID-19 data to database.");
-    }
-  });
 
   return dataPackage
 }
@@ -293,21 +296,21 @@ function getCovidResults(csvContent, geoJsonContent, dev = false) {
  * @param {function} callBackFunction - requires parameters (err, res), fires when query finishes
  */
 async function queryPrimaryDatabase(queryString, dataArr, callBackFunction = (err, res) => {}) {
-  console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
   const pgPsqlClient = new Client({
     connectionString: process.env.DATABASE_URL,
     // ssl: true,
     ssl: { rejectUnauthorized: false }
   });
-  await pgPsqlClient.connect();
-  return pgPsqlClient.query(queryString, dataArr, async (err, res) => {
-    try {
-      callBackFunction(err, res);
-    } catch (err) {
-      console.log("Error in callback function: \n", err);
-    }
-    pgPsqlClient.end();
-  });
+  let result;
+  try {
+    await pgPsqlClient.connect();
+    result = await pgPsqlClient.query(queryString, dataArr);
+  } catch (err) {
+    result = false;
+    /* TODO: Return this error somehow */
+  }
+  pgPsqlClient.end();
+  return result;
 }
 
 /**

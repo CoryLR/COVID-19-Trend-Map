@@ -105,6 +105,7 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [ ] Automatically acquire the user's location using their device's GPS
   - [ ] Make the app accessible so people with disabilities can find out the same information.
   - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
+  - [ ] Add lazy loading for historical COVID-19 data, load on opening of the historical data section
 
 ## Triage
 
@@ -112,8 +113,9 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
   - [x] Move normalized attributes out of GeoJSON and into the county data lookup
   - [x] Update "nodata" values out to new weekly "streak" attribute to differentiate zero values for no new cases
+  - [x] Re-route data pulls to come from the database
   - [ ] Automate data calls to update the database daily
-  - [ ] Re-route data pulls to come from the database
+  - [ ] If data doesn't look right from the database, run an analysis call to pull the data directly from JHU
   - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
     - [x] Display COVID-19 data
     - [ ] Historical data with time-slider
