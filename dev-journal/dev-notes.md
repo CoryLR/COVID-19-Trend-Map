@@ -36,6 +36,7 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - *COVID-19 rate & acceleration are calculated from this data
 - [Image of COVID-19](https://phil.cdc.gov/Details.aspx?pid=23312): U.S. Centers for Disease Control (CDC)
 - [USA Counties Map Layer & Population](https://www.arcgis.com/home/item.html?id=7566e0221e5646f99ea249a197116605): Esri
+- [Florida Dashboard](https://floridacovidaction.com)
 
 ## Timeline / TO DO
 
@@ -52,6 +53,9 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
 - **Week 3** (6/29 - 7/5)
   - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
+    - [x] Display COVID-19 data
+    - [ ] Historical data with time-slider
+    - [ ] Animation controls for historical data
   - [x] Create non-functioning UI for location search, share sheet / URL scheme, and maybe chart graphics
   - [x] Publish live Beta #1
   - [x] [Deliverable] Write and deliver user-testing guide utilizing Live Beta #1
@@ -59,7 +63,12 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 - **Week 4** (7/6 - 7/12)
   - [x] Solicit feedback on the live Beta #1 from mentors and peers
   - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+    - [x] Be able to search for locations
+    - [ ] Build URL scheme & add share sheet
+    - [ ] Add chart graphics
   - [ ] Update application to address feedback from Beta #1
+    - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
+    - [ ] (triaged feedback)
   - [x] [Deliverable] Write and deliver Status Report #2
 
 - **Week 5** (7/13 - 7/19)
@@ -94,3 +103,26 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 - **Scope Creep**
   - [x] Teach Diego to differentiate "zero" (`0`) values between "has never had a new case", "back to no new cases", and the magnitude of "back to no new cases" (e.g. "no new cases in x weeks")
   - [ ] Automatically acquire the user's location using their device's GPS
+  - [ ] Make the app accessible so people with disabilities can find out the same information.
+  - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
+
+## Triage
+
+2020-07-18 Most important -> least important
+
+  - [x] Move normalized attributes out of GeoJSON and into the county data lookup
+  - [x] Update "nodata" values out to new weekly "streak" attribute to differentiate zero values for no new cases
+  - [ ] Automate data calls to update the database daily
+  - [ ] Re-route data pulls to come from the database
+  - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
+    - [x] Display COVID-19 data
+    - [ ] Historical data with time-slider
+    - [ ] Animation controls for historical data
+  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+    - [x] Be able to search for locations
+    - [ ] Build URL scheme & add share sheet
+    - [ ] Add chart graphics
+  - [ ] Update application to address feedback from Beta #1
+    - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
+    - [ ] (triaged feedback)
+  - [ ] Conduct bug review

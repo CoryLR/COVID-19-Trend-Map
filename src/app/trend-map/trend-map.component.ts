@@ -58,6 +58,8 @@ export class TrendMapComponent implements OnInit {
 
     /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
 
+    /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
+
   }
 
   getData() {
@@ -76,6 +78,8 @@ export class TrendMapComponent implements OnInit {
       }
       console.log("this.weekDefinitions", this.weekDefinitions);
       console.log("this.countyDataLookup", this.countyDataLookup);
+      console.log("this.countyDataLookup['31041']", this.countyDataLookup['31041']);
+      console.log("this.countyDataLookup['08009']", this.countyDataLookup['08009']);
       console.log("response.geojson", response.geojson)
 
       this.updateMapData(response.geojson);
@@ -166,8 +170,8 @@ export class TrendMapComponent implements OnInit {
       if (locationInfo.length > 2) {
         /* Testing */
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
-        console.log("matchedLayer", matchedLayer);
-        console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
+        // console.log("matchedLayer", matchedLayer);
+        // console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
 
         /* Update Map */
         this.map.flyToBounds(matchedLayer.getBounds().pad(1)/* , { duration: 1.5 } */);
@@ -186,7 +190,7 @@ export class TrendMapComponent implements OnInit {
         // title: "Natchitoches", subtitle: "Louisiana", rate: 20,
         // acceleration: 10, cumulative: 300, accWord: "more",
 
-        const countyData = this.countyDataLookup[`f${matchedLayer.feature.properties.FIPS}`][this.latestTimeStop.num]
+        const countyData = this.countyDataLookup[`${matchedLayer.feature.properties.FIPS}`][this.latestTimeStop.num]
 
         let cumulative: number = countyData[0];
         let rate: number = countyData[1];
@@ -242,16 +246,16 @@ export class TrendMapComponent implements OnInit {
 
   updateMapData(geojson) {
 
-    console.log("TESTING", this.countyDataLookup[`f40001`][this.latestTimeStop.num][0])
+    // console.log("TESTING", this.countyDataLookup[`40001`][this.latestTimeStop.num][0])
     let onEachFeature = (feature: any, layer: any) => {
       // TODO: if this feature has a property named popupContent, update popupContent, otherwise .bindPopup
 
-      const countyData = this.countyDataLookup[`f${feature.properties.FIPS}`][this.latestTimeStop.num]
+      const countyData = this.countyDataLookup[`${feature.properties.FIPS}`][this.latestTimeStop.num]
       const stateName = this.stateFipsLookup[feature.properties.FIPS.substr(0, 2)].name
       layer.bindPopup(`
-      <strong>${feature.properties.NAME}</strong>, ${stateName}
-      <br>New This Week: <strong>${this.styleNum(countyData[1])}</strong>
-      <br>Acceleration: <strong>${this.styleNum(countyData[2])}</strong>
+      <strong>${feature.properties.NAME}</strong>, ${stateName} [<em>${feature.properties.FIPS}</em>]
+      <br>New This Week: <strong>${this.styleNum(countyData[1])}</strong> (${feature.properties[this.currentTimeStop.name][0]} per 100k)
+      <br>Acceleration: <strong>${this.styleNum(countyData[2])}</strong> (${feature.properties[this.currentTimeStop.name][1]} per 100k)
       <br>Cumulative Cases: <strong>${this.styleNum(countyData[0])}</strong>
       `);
       /* TODO:  - Use Math.abs() for Acceleration and use "more/less new cases than previous week"
@@ -270,8 +274,10 @@ export class TrendMapComponent implements OnInit {
     let styleFunction: any;
     if (this.choroplethOrigin === "rate") {
       styleFunction = this.getRateStyleFunction(countyStyle);
-    } else {
+    } else if (this.choroplethOrigin === "acceleration") {
       styleFunction = this.getAccelerationStyleFunction(countyStyle);
+    } else {
+      styleFunction = this.getRateStyleFunction(countyStyle);
     }
 
     this.countyGeoJSON = L.geoJSON(geojson, {
@@ -305,7 +311,8 @@ export class TrendMapComponent implements OnInit {
 
   getAccelerationStyleFunction(style) {
     return (feature) => {
-      let value = feature.properties[this.currentTimeStop.name][1];
+      const timeStopData = this.countyDataLookup[feature.properties.FIPS][this.currentTimeStop.num]
+      const value = timeStopData[4];// 4 = pop-normalized acceleration
       switch (true) {
         case (value > 200): style.fillColor = "#5e0000"; return style;
         case (value > 50): style.fillColor = "#990000"; return style;
@@ -321,36 +328,16 @@ export class TrendMapComponent implements OnInit {
   }
   getRateStyleFunction(style) {
     return (feature) => {
-      // let value = feature.properties["t23"][0];
-      let value = feature.properties[this.currentTimeStop.name][0];
-      if (typeof value === "string") {
-        /* Expects format of "0wN" e.g. "0w2" for 2 weeks with no new cases */
-
-        /* For now, return 0 style for all strings */
-        console.log("0week!", feature);
-        style.fillColor = "orange"; return style;
-        // style.fillColor = "hsl(0, 0%, 95%)"; return style;
-
-        /* Color zeroStreak counties */
-        // const zeroStreak = parseInt(value.slice(2), 10);
-        // switch (true) {
-        //   case (zeroStreak === 1): style.fillColor = "green"; return style;
-        //   case (zeroStreak === 2): style.fillColor = "green"; return style;
-        //   case (zeroStreak === 3): style.fillColor = "green"; return style;
-        //   case (zeroStreak === 4): style.fillColor = "green"; return style;
-        //   case (zeroStreak > 4): style.fillColor = "green"; return style;
-        //   default: return style;
-        // }
-      } else {
-        switch (true) {
-          case (value > 400): style.fillColor = "hsl(0, 100%, 17%)"; return style;
-          case (value > 200): style.fillColor = "hsl(0, 64%, 34%)"; return style;
-          case (value > 100): style.fillColor = "hsl(0, 43%, 52%)"; return style;
-          case (value > 50): style.fillColor = "hsl(15, 57%, 75%)"; return style;
-          case (value > 0): style.fillColor = "hsl(30, 62%, 93%)"; return style;
-          case (value <= 0): style.fillColor = "hsl(0, 0%, 95%)"; return style;
-          default: return style;
-        }
+      const timeStopData = this.countyDataLookup[feature.properties.FIPS][this.currentTimeStop.num]
+      const value = timeStopData[3];// 3 = pop-normalized rate
+      switch (true) {
+        case (value > 400): style.fillColor = "hsl(0, 100%, 17%)"; return style;
+        case (value > 200): style.fillColor = "hsl(0, 64%, 34%)"; return style;
+        case (value > 100): style.fillColor = "hsl(0, 43%, 52%)"; return style;
+        case (value > 50): style.fillColor = "hsl(15, 57%, 75%)"; return style;
+        case (value > 0): style.fillColor = "hsl(30, 62%, 93%)"; return style;
+        case (value <= 0): style.fillColor = "hsl(0, 0%, 95%)"; return style;
+        default: return style;
       }
     }
   }
