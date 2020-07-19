@@ -53,16 +53,42 @@ ALTER TABLE diegos_journal ALTER COLUMN created_time_stamp SET DEFAULT now();
 /** Architectural SQL commands used on live database: **/
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-/* 2020-07-12 1849 */
+/* 2020-07-12 1850 */
+SET timezone = 'America/New_York';
+
+/* 2020-07-19 */
 CREATE TABLE covid_19 (
   id SERIAL PRIMARY KEY,
   label TEXT,
-  data JSONB NOT NULL,
+  data TEXT,
   created_time_stamp TIMESTAMPTZ
 );
 ALTER TABLE covid_19 ALTER COLUMN created_time_stamp SET DEFAULT NOW();
 
-/* 2020-07-12 1850 */
-SET timezone = 'America/New_York';
 
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/** Scratch & Notes: **/
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* 
+
+# Database Testing
+
+## Storing & transporting data as string vs JSONB (Full 2020-07-19 Data Package)
+
+String
+- Network Call Size: 3.9MB
+- Times: 743ms, 742ms, 741ms, 727ms, 648ms, 783ms, 790ms, 664ms, 658ms, 742ms
+
+JSONB
+- Network Call Size: 3.9MB
+- Times: 1.59s, 1.36s, 1.17s, 1.11s, 1.34s, 1.14s, 1.20s, 1.27s, 1.15s, 1.21s
+
+JSONB + server-side JSON.stringify()
+- Network Call Size: 3.9MB
+- Times: 1.24s, 1.23s, 1.22s, 1.40s, 1.33s, 1.61s, 1.10s, 1.12s, 1.34s, 1.16s
+
+Tests agree with guidance from: [Faster apps with JSON.parse (Chrome Dev Summit 2019)](https://www.youtube.com/watch?v=ff4fgQxPaO0)
+
+
+*/

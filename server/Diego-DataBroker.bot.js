@@ -27,6 +27,8 @@ async function runStartupTasks() {
   if (productionMode === true) {
     await updateDatabaseWithCovidDataPackage();
   }
+  /* Useful for testing backend */
+  // await updateDatabaseWithCovidDataPackage();
   await cleanUpDatabase();
 
 }
