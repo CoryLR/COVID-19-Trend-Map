@@ -266,7 +266,7 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
         const accelerationNormalized = Math.round(acceleration / pop * 100000);
         const streak = covid19WeeklyStreakLookup[fips][i_wk - 1];
 
-        county.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
+        // county.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
         weeklyCovidNonNormalizedDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, streak])
       }
     } catch (err) {
