@@ -114,16 +114,16 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] Move normalized attributes out of GeoJSON and into the county data lookup
   - [x] Update "nodata" values out to new weekly "streak" attribute to differentiate zero values for no new cases
   - [x] Re-route data pulls to come from the database
-  - [ ] Automate data calls to update the database daily
-  - [ ] If data doesn't look right from the database, run an analysis call to pull the data directly from JHU
+  - [x] Automate data calls to update the database daily
+  - [x] If data errors from database, run an analysis call to pull the data directly from JHU
+  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+    - [x] Be able to search for locations
+    - [ ] Add chart graphics
+    - [ ] Build URL scheme & add share sheet
   - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
     - [x] Display COVID-19 data
     - [ ] Historical data with time-slider
     - [ ] Animation controls for historical data
-  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
-    - [x] Be able to search for locations
-    - [ ] Build URL scheme & add share sheet
-    - [ ] Add chart graphics
   - [ ] Update application to address feedback from Beta #1
     - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
     - [ ] (triaged feedback)

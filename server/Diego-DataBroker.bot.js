@@ -2,8 +2,9 @@
 /* Hello, I am Diego the Data Broker. */
 /*                                    */
 
+const { Client, CronJob, Got, PapaParse, fs, path } = getDependencies();
+
 const productionMode = false;
-const { Client, Got, Papa, fs, path } = getDependencies();
 
 module.exports = {
   start: () => {
@@ -37,9 +38,17 @@ async function runStartupTasks() {
  * Runs according to a schedule
  */
 function initDataCollectionSchedule() {
-  // TODO:
-  /* `npm i cron` - this is the dependency I'll want to use to establish Diego's agenda */
-  /* JHU updates their data around midnight to 1am Et, so I should pull around 2-3am ET to be safe, and not on the hour to help even out server load. Also perhaps pull multiple times per day. 2?*/
+
+  /* Cron format: */
+  /*Seconds(0-59) Minutes(0-59) Hours(0-23) Day-of-Month(1-31) Months(0-11,Jann-Dec)) Day-of-Week(0-6,Sun-Sat)*/
+
+  /* Pull data daily at 2:44:26 AM ET; JHU does automated updates to their time-series data at 1:50 AM ET. Use 2:44:26 AM ET to give buffer time and pull at low-load time. */
+  const dataCollectionJob = new CronJob('26 44 02 * * *', async function() {
+    await updateDatabaseWithCovidDataPackage();
+    await cleanUpDatabase();
+  }, null, true, 'America/New_York');
+  dataCollectionJob.start();
+
 }
 
 /* 
@@ -126,7 +135,7 @@ async function generateCovidDataPackage_dev() {
 function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
 
   /* Parse inputs into usable data structures */
-  const usDailyConfirmedArray2d = Papa.parse(csvContent).data;
+  const usDailyConfirmedArray2d = PapaParse(csvContent).data;
   const countiesGeoJson = JSON.parse(geoJsonContent); // "Object.keys(countiesGeoJson)" => [ 'type', 'name', 'crs', 'features' ]
 
   /** Data diagnostics **/
@@ -335,10 +344,11 @@ function getDependencies() {
   const {
     Client
   } = require('pg');
+  const CronJob = require('cron').CronJob;
   const Got = require('got');
-  const Papa = require('papaparse');
+  const PapaParse = require('papaparse').parse;
   const fs = require("fs");
   const path = require('path');
 
-  return { Client, Got, Papa, fs, path, };
+  return { Client, CronJob, Got, PapaParse, fs, path };
 }
