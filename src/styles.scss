@@ -12,14 +12,31 @@ html {
 }
 
 /* Leaflet modifications */
-
 .leaflet-popup-content {
   font-size: 14px;
+  .popup-place-title {
+    font-size: 16px;
+  }
+  .popup-status-report-btn-wrapper {
+    margin-top: 10px;
+    width: 100%;
+    .popup-status-report-btn {
+      width: 100%;
+      border: 1px solid rgb(200, 200, 200);
+      color: rgb(90, 90, 90);
+    }
+  }
+  .popup-fips-label {
+    color: white;
+  }
 }
-.popup-see-status-report-btn {
-  border: 1px solid rgb(200, 200, 200);
-  color: rgb(90, 90, 90);
-}
-.popup-fips-label {
-  color: white;
+
+/* Bootstreap modifications */
+.popover {
+  z-index: 10000;
+  border-radius: 10px;
+  .popover-header {
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
+  }
 }

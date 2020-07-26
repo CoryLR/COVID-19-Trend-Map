@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, } from '@angular/animations';
+import { faInfoCircle, faFileMedicalAlt } from '@fortawesome/free-solid-svg-icons';
 
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
@@ -26,15 +27,18 @@ export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
 })
 export class TrendMapComponent implements OnInit {
 
+  /* * Component Pseudo-Global Variables * */
+
   /* Map Data Control */
   map: any;
   countyGeoJSON: any; /* GeoJSON Object format,  */
+  countyLayerLookup: { [FIPS_00000: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
 
   /* Component Coordination */
-  countyDataLookup: { [FIPS_00000: string]: {name: string, data: number[][]} };
-  geoJsonCountyLookup: {[FIPS_00000: string]: any}; /* Contains references to each county in the GeoJSON layer */
+  countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
+  geoJsonCountyLookup: { [FIPS_00000: string]: any }; /* Contains references to each county in the GeoJSON layer */
 
   /* Temporal Coordination */
   latestTimeStop: { name: string, num: number }; /* Latest data available */
@@ -44,12 +48,17 @@ export class TrendMapComponent implements OnInit {
   panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+  
+  /* Font Awesome Icons */
+  faInfoCircle = faInfoCircle;
+  faFileMedicalAlt = faFileMedicalAlt;
 
   /* State Control */
   infoPanelOpen: boolean = false;
+  initialLoadDone: boolean = false;
 
 
-  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta) { }
+  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef) { }
 
   ngOnInit(): void {
     this.titleService.setTitle("COVID-19 Trend Map");
@@ -128,21 +137,6 @@ export class TrendMapComponent implements OnInit {
 
   }
 
-  getDataTest() {
-    const url = '/api/getDataFromDatabaseTest';
-    const body = {};
-    this.http.post(url, body).subscribe((response: any) => {
-
-      console.log("from database: ", response);
-
-      // console.log("!! this.latestTimeStop", this.latestTimeStop);
-      // console.log("!! this.currentTimeStop", this.currentTimeStop);
-      // console.log("!! this.weekDefinitions", this.weekDefinitions);
-      // console.log("this.weekDefinitions.lookup[this.currentTimeStop.name]", this.weekDefinitions.lookup[this.currentTimeStop.name]);
-    });
-
-  }
-
   initializeMap() {
     const map = L.map('map', {
       maxZoom: 14,
@@ -198,27 +192,28 @@ export class TrendMapComponent implements OnInit {
       showMarker: false,
       showPopup: false,
       autoClose: true,
-      searchLabel: "Search for your County, Town, or City",
+      searchLabel: "Search for a County, Town, or City",
       classNames: { container: "geosearch-container", button: "geosearch-button", /* resetButton: "geosearch-resetButton", */ msgbox: "geosearch-msgbox", form: "geosearch-form", input: "geosearch-input" },
       retainZoomLevel: true,
       autoCompleteDelay: 500,
     });
     map.addControl(geoSearch);
-    map.on('geosearch/showlocation', (place) => { this.locationSelected(place) });
+    map.on('geosearch/showlocation', (place) => { this.locationSearched(place) });
 
-    map.on('popupopen', function (event) {
-      console.log("event", event);
-      // self.elementRef.nativeElement.querySelector('.partner-link')
-      //   .addEventListener('click', (e) => {
-      //     const partnerId = e.target.getAttribute('data-partnerId');
-      //     self.showPartner(partnerId);
-      //   });
-    })
+    /* Add popup click listener(s) */
+    this.elementRef.nativeElement.querySelector('.leaflet-popup-pane')
+      .addEventListener('click', (e) => {
+        if (e.target.classList.contains("popup-status-report-btn")) {
+          const popupFips = e.target.getAttribute('popup-fips');
+          const selectedLayer = this.countyLayerLookup[popupFips];
+          this.openStatusReport(selectedLayer);
+        }
+      });
 
     return map;
   }
 
-  locationSelected(place) {
+  locationSearched(place) {
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
@@ -230,66 +225,21 @@ export class TrendMapComponent implements OnInit {
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
       if (locationInfo.length > 2) {
-        /* Testing */
-        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
-        // console.log("matchedLayer", matchedLayer);
-        // console.log("matchedLayer.getBounds()", matchedLayer.getBounds());
+        /* TODO: Exception for Alaska and places within */
 
-        /* Update Map */
+        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
         this.map.flyToBounds(matchedLayer.getBounds().pad(1)/* , { duration: 1.5 } */);
         this.map.once('zoomend', () => {
-          matchedLayer.bringToFront();
-          matchedLayer.setStyle({ weight: 6/* , color: "black" */ });
           const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
           setTimeout(() => {
-            this.infoPanelOpen = true;
-          }, 250)
+            this.openStatusReport(matchedLayer);
+          }, 250);
         });
 
-        /* Update Info Panel */
-        // title: "Natchitoches", subtitle: "Louisiana", rate: 20,
-        // acceleration: 10, cumulative: 300, accWord: "more",
-
-        const countyInfo = this.countyDataLookup[`${matchedLayer.feature.properties.FIPS}`];
-        const countyName = countyInfo.name;
-        const countyData = countyInfo.data[this.currentTimeStop.num];
-  
-        let cumulative: number = countyData[0];
-        let rate: number = countyData[1];
-        let acceleration: number = countyData[2];
-
-        this.panelContent.title = countyName;
-        this.panelContent.subtitle = this.stateFipsLookup[matchedLayer.feature.properties.FIPS.substr(0, 2)].name;
-        this.panelContent.rate = this.styleNum(rate);
-        this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
-        this.panelContent.cumulative = this.styleNum(cumulative);
-        this.panelContent.date = this.weekDefinitions.lookup[this.currentTimeStop.name];
-
-        // {{panelContent.title}} is reporting new cases of COVID-19 this week {{panelContent.accWordAndBut}} the number of new cases is {{panelContent.accWordAccelDecel}}.
-
-        // let summaryString = `${this.panelContent.title} is reporting`;
-        // if (rate > 0) {
-        //   summaryString += " new cases of COVID-19 this week";
-        //   summaryString += acceleration >= 0 ? " and" : " but";
-        //   summaryString += " the number of new cases is";
-        //   summaryString += acceleration > 0 ? " accelerating."
-        //     : acceleration == 0 ? "steady." : " decelerating."
-        // } else {
-        //   summaryString += "no new cases of COVID-19 this week.";
-        // }
-
-        this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
 
-
-        // this.panelContent.accWordMoreLess = countyData[2] > 0 ? "more" : "less";
-        // this.panelContent.accWordAccelDecel = countyData[2] > 0 ? "accelerating" : "decelerating";
-        // this.panelContent.accWordAndBut = countyData[2] > 0 ? "and" : "but";
-
-        this.lastSelectedLayer = matchedLayer;
-        /* TODO: Exception for Alaska and places within */
       } else {
         this.map.flyToBounds(place.location.bounds);
       }
@@ -300,12 +250,60 @@ export class TrendMapComponent implements OnInit {
       alert("Location not found in the U.S.");
       setTimeout(() => {
         this.map.fitBounds(currentView);
-      }, 50)
+      }, 50);
     }
     setTimeout(() => {
       /* Fix bug where the map needs to be clicked twice to show a popup */
-      this.eventFire(document.getElementById('map'), 'click');
+      this.eventFire(this.elementRef.nativeElement.querySelector('#map'), 'click');
     }, 200);
+  }
+
+  openStatusReport(layer) {
+
+    /* Update map feature */
+    layer.bringToFront();
+    layer.setStyle({ weight: 6/* , color: "black" */ });
+
+    /* Open the Status Report panel */
+    if (this.infoPanelOpen) {
+      this.closePanel();
+      setTimeout(() => {
+        this.openPanel(layer);
+      }, 500);
+    } else {
+      this.openPanel(layer);
+    }
+  }
+
+  openPanel(layer) {
+
+    /* Update Status Report */
+    const countyInfo = this.countyDataLookup[`${layer.feature.properties.FIPS}`];
+    const countyName = countyInfo.name;
+    const countyData = countyInfo.data[this.currentTimeStop.num];
+
+    const cumulative: number = countyData[0];
+    const rate: number = countyData[1];
+    const rateNorm: number = countyData[3];
+    const acceleration: number = countyData[2];
+    const accelerationNorm: number = countyData[4];
+
+    this.panelContent.title = countyName;
+    this.panelContent.subtitle = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name;
+    this.panelContent.rate = this.styleNum(rate);
+    this.panelContent.rateNorm = this.styleNum(rateNorm);
+    this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
+    this.panelContent.accelerationNorm = accelerationNorm < 0 ? `-${this.styleNum(Math.abs(accelerationNorm))}` : this.styleNum(Math.abs(accelerationNorm));
+    this.panelContent.cumulative = this.styleNum(cumulative);
+    this.panelContent.date = this.weekDefinitions.lookup[this.currentTimeStop.name];
+    this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+
+    /* Open the Status Report */
+    this.infoPanelOpen = true;
+
+    /* Used to reset the feature style when the Status Report is closed. */
+    this.lastSelectedLayer = layer;
+
   }
 
   initMapData(geojson) {
@@ -324,12 +322,14 @@ export class TrendMapComponent implements OnInit {
       style: countyStyle,
       onEachFeature: (feature, layer) => {
         layer.bindPopup("");
+        this.countyLayerLookup[feature.properties.FIPS] = layer;
       }
     }
     this.countyGeoJSON = L.geoJSON(geojson, countyGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
+    this.initialLoadDone = true;
 
   }
 
@@ -371,10 +371,14 @@ export class TrendMapComponent implements OnInit {
       const countyData = countyInfo.data[this.currentTimeStop.num];
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
       layer.setPopupContent(`
-      <strong>${countyName}</strong>, ${stateName} <span class="popup-fips-label">[${layer.feature.properties.FIPS}]</span>
-      <br>${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
+        <div class="popup-place-title">
+          <strong>${countyName}</strong>, ${stateName} <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
+        </div>
+        ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
+        <div class="popup-status-report-btn-wrapper">
+          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn btn btn-secondary btn-sm btn-light">See Status Report</button>
+        <div>
       `);
-      // <br><br><button type="button" class="popup-see-status-report-btn btn btn-secondary btn-sm btn-light">See Status Report</button>
 
       /* Update color */
       layer.setStyle(getStyle(countyData[normalizedId]));

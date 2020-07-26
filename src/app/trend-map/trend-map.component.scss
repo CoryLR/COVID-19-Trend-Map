@@ -46,7 +46,6 @@
     top: $header-height;
     left: -280px; // Updated by Angular Animations
     opacity: 0; // Updated by Angular Animations
-    // left: 0;
     width: 280px;
     height: calc( 100% - #{$header-height} );
     background-color: rgba(240,240,240, 0.9);
@@ -58,6 +57,26 @@
 
     .panel-stats-list {
       padding-left: 18px;
+    }
+
+    .panel-stats-section {
+      .stat-title {
+        font-weight: 800;
+        margin-top: 15px;
+        display: inline-block;
+      }
+      .primary-stat {
+        font-weight: 600;
+      }
+    }
+
+    .table {
+      th, td {
+        padding-left: 0;
+      }
+      // .separate-top {
+      //   border-top: 2px solid rgb(52, 52, 52);
+      // }
     }
 
     .close-panel {
