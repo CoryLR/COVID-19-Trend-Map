@@ -7,6 +7,14 @@ import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
 import * as leafletPip from '@mapbox/leaflet-pip'
 
+/* TODO: Contribute to @types/leaflet to fix these types */
+export interface CustomTileLayerOptions extends L.TileLayerOptions {
+  ext?: string;
+}
+export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
+  smoothFactor?: number;
+}
+
 @Component({
   selector: 'app-trend-map',
   templateUrl: './trend-map.component.html',
@@ -18,23 +26,28 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 })
 export class TrendMapComponent implements OnInit {
 
+  /* Map Data Control */
   map: any;
-  infoPanelOpen: boolean = false;
   countyGeoJSON: any; /* GeoJSON Object format,  */
-  countyDataLookup: {
-    [FIPS_f00000: string]: number[][] /* [ [count, rate, acceleration] (x#) ] (non-normalized) */
-  };
-  weekDefinitions: {
-    list: string[], lookup: { [timeStop_tN: string]: string }
-  };
-  latestTimeStop: { name: string, num: number }; /* Latest data available */
-  currentTimeStop: { name: string, num: number };
-  stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
 
-  // panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
-  panelContent: any = {};
+  /* Component Coordination */
+  countyDataLookup: { [FIPS_00000: string]: {name: string, data: number[][]} };
+  geoJsonCountyLookup: {[FIPS_00000: string]: any}; /* Contains references to each county in the GeoJSON layer */
+
+  /* Temporal Coordination */
+  latestTimeStop: { name: string, num: number }; /* Latest data available */
+  currentTimeStop: { name: string, num: number };
+
+  /* UI Text Content Control */
+  panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
+  weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
+  stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+
+  /* State Control */
+  infoPanelOpen: boolean = false;
+
 
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta) { }
 
@@ -107,8 +120,7 @@ export class TrendMapComponent implements OnInit {
       /* Useful for debugging */
       console.log("Data Source:", response.source);
       // console.log("Data Package:", response);
-      // console.log("this.countyDataLookup['31041']", this.countyDataLookup['31041']);
-      // console.log("this.countyDataLookup['08009']", this.countyDataLookup['08009']);
+      // Good FIPS test-cases to console.log: 31041, 08009
 
       this.initMapData(response.geojson);
 
@@ -120,24 +132,6 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getDataFromDatabaseTest';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      /*       this.weekDefinitions = response.weekdefinitions;
-            this.countyDataLookup = response.datalookup;
-            this.latestTimeStop = {
-              name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
-              num: this.weekDefinitions.list.length - 1
-            }
-            this.currentTimeStop = {
-              name: this.latestTimeStop.name,
-              num: this.latestTimeStop.num
-            }
-            console.log("this.weekDefinitions", this.weekDefinitions);
-            console.log("this.countyDataLookup", this.countyDataLookup);
-            console.log("this.countyDataLookup['31041']", this.countyDataLookup['31041']);
-            console.log("this.countyDataLookup['08009']", this.countyDataLookup['08009']);
-            console.log("response.geojson", response.geojson)
-      
-            this.initMapData(response.geojson);
-       */
 
       console.log("from database: ", response);
 
@@ -171,13 +165,15 @@ export class TrendMapComponent implements OnInit {
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('');
     map.attributionControl.addAttribution('Cartographer: Cory Leigh Rahman');
-    var Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', {
+
+    let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       subdomains: 'abcd',
       minZoom: 0,
       maxZoom: 20,
       ext: 'png'
-    });
+    }
+    var Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', Stamen_TonerHybrid_Options);
 
     map.on('zoomend', () => {
       const zoomLevel = this.map.getZoom();
@@ -209,6 +205,15 @@ export class TrendMapComponent implements OnInit {
     });
     map.addControl(geoSearch);
     map.on('geosearch/showlocation', (place) => { this.locationSelected(place) });
+
+    map.on('popupopen', function (event) {
+      console.log("event", event);
+      // self.elementRef.nativeElement.querySelector('.partner-link')
+      //   .addEventListener('click', (e) => {
+      //     const partnerId = e.target.getAttribute('data-partnerId');
+      //     self.showPartner(partnerId);
+      //   });
+    })
 
     return map;
   }
@@ -247,13 +252,15 @@ export class TrendMapComponent implements OnInit {
         // title: "Natchitoches", subtitle: "Louisiana", rate: 20,
         // acceleration: 10, cumulative: 300, accWord: "more",
 
-        const countyData = this.countyDataLookup[`${matchedLayer.feature.properties.FIPS}`][this.latestTimeStop.num]
-
+        const countyInfo = this.countyDataLookup[`${matchedLayer.feature.properties.FIPS}`];
+        const countyName = countyInfo.name;
+        const countyData = countyInfo.data[this.currentTimeStop.num];
+  
         let cumulative: number = countyData[0];
         let rate: number = countyData[1];
         let acceleration: number = countyData[2];
 
-        this.panelContent.title = matchedLayer.feature.properties.NAME;
+        this.panelContent.title = countyName;
         this.panelContent.subtitle = this.stateFipsLookup[matchedLayer.feature.properties.FIPS.substr(0, 2)].name;
         this.panelContent.rate = this.styleNum(rate);
         this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
@@ -312,13 +319,14 @@ export class TrendMapComponent implements OnInit {
       fillOpacity: 0.9
     };
 
-    this.countyGeoJSON = L.geoJSON(geojson, {
+    const countyGeoJsonOptions: CustomGeoJSONOptions = {
       smoothFactor: 0.6,
       style: countyStyle,
       onEachFeature: (feature, layer) => {
         layer.bindPopup("");
       }
-    });
+    }
+    this.countyGeoJSON = L.geoJSON(geojson, countyGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
@@ -332,23 +340,23 @@ export class TrendMapComponent implements OnInit {
     /* Set configurations */
     let getStyle: Function;
     let attributeLabel: string;
-    let countId: number;
-    let normId: number;
+    let rawCountId: number;
+    let normalizedId: number;
     if (attribute === 3) {
       getStyle = this.getRateStyleFunction;
       attributeLabel = "New This Week";
-      countId = 1;
-      normId = 3;
+      rawCountId = 1;
+      normalizedId = 3;
     } else if (attribute === 4) {
       getStyle = this.getAccelerationStyleFunction;
       attributeLabel = "Acceleration";
-      countId = 2;
-      normId = 4;
+      rawCountId = 2;
+      normalizedId = 4;
     } else {
       getStyle = this.getRateStyleFunction;
       attributeLabel = "New This Week";
-      countId = 1;
-      normId = 3;
+      rawCountId = 1;
+      normalizedId = 3;
     }
 
     /* Update GeoJSON features */
@@ -358,42 +366,20 @@ export class TrendMapComponent implements OnInit {
       // }
 
       /* Update popup */
-      const countyData = this.countyDataLookup[`${layer.feature.properties.FIPS}`][this.currentTimeStop.num]
+      const countyInfo = this.countyDataLookup[`${layer.feature.properties.FIPS}`];
+      const countyName = countyInfo.name;
+      const countyData = countyInfo.data[this.currentTimeStop.num];
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
       layer.setPopupContent(`
-      <strong>${layer.feature.properties.NAME}</strong>, ${stateName} [<em>${layer.feature.properties.FIPS}</em>]
-      <br>${attributeLabel}: <strong>${this.styleNum(countyData[countId])}</strong> (${this.styleNum(countyData[normId])} per 100k)
+      <strong>${countyName}</strong>, ${stateName} <span class="popup-fips-label">[${layer.feature.properties.FIPS}]</span>
+      <br>${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
       `);
+      // <br><br><button type="button" class="popup-see-status-report-btn btn btn-secondary btn-sm btn-light">See Status Report</button>
 
       /* Update color */
-      layer.setStyle(getStyle(countyData[normId]));
+      layer.setStyle(getStyle(countyData[normalizedId]));
 
     });
-
-    // let onEachFeature = (feature: any, layer: any) => {
-    //   // TODO: if this feature has a property named popupContent, update popupContent, otherwise .bindPopup
-
-    //   const countyData = this.countyDataLookup[`${feature.properties.FIPS}`][this.latestTimeStop.num]
-    //   const stateName = this.stateFipsLookup[feature.properties.FIPS.substr(0, 2)].name
-
-    //   layer.bindPopup(`
-    //   <strong>${feature.properties.NAME}</strong>, ${stateName} [<em>${feature.properties.FIPS}</em>]
-    //   <br>New This Week: <strong>${this.styleNum(countyData[1])}</strong> (${feature.properties[this.currentTimeStop.name][0]} per 100k)
-    //   <br>Acceleration: <strong>${this.styleNum(countyData[2])}</strong> (${feature.properties[this.currentTimeStop.name][1]} per 100k)
-    //   <br>Cumulative Cases: <strong>${this.styleNum(countyData[0])}</strong>
-    //   `);
-    //   /* TODO:  - Use Math.abs() for Acceleration and use "more/less new cases than previous week"
-    //             - Make Acceleration dynamic if 0, e.g. "Weeks since last new case: 2"  */
-    // }
-
-    // let styleFunction: any;
-    // if (this.choroplethDisplayAttribute === "rate") {
-    //   styleFunction = this.getRateStyleFunction(countyStyle);
-    // } else if (this.choroplethDisplayAttribute === "acceleration") {
-    //   styleFunction = this.getAccelerationStyleFunction(countyStyle);
-    // } else {
-    //   styleFunction = this.getRateStyleFunction(countyStyle);
-    // }
 
   }
 

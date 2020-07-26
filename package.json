@@ -23,6 +23,7 @@
     "@angular/router": "~9.1.11",
     "@mapbox/leaflet-pip": "^1.1.0",
     "@ng-bootstrap/ng-bootstrap": "^6.1.0",
+    "@types/leaflet": "^1.5.17",
     "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.4.0",
     "classlist.js": "^1.1.20150312",

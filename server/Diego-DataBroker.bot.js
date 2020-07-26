@@ -22,16 +22,15 @@ module.exports = {
 /**
  * Runs on every new build
  */
-async function runStartupTasks() {
-  /* Run startup tasks if needed */
-
+async function runStartupTasks() {  
   if (productionMode === true) {
     await updateDatabaseWithCovidDataPackage();
   }
+  
   /* Useful for testing backend */
-  // await updateDatabaseWithCovidDataPackage();
-  await cleanUpDatabase();
+  await updateDatabaseWithCovidDataPackage();
 
+  await cleanUpDatabase();
 }
 
 /**
@@ -155,7 +154,7 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
   let covid19WeeklyCountLookup = {};
   let covid19WeeklyRateLookup = {};
   let covid19WeeklyAccelerationLookup = {};
-  let covid19WeeklyStreakLookup = {};
+  let covid19WeeklyRecoveryStreakLookup = {};
   let dataHeaders = headers.slice(dataStartColumnIndex, headers.length);
   let weeklyDataHeaders = [];
   /* Get weekly data headers */
@@ -172,7 +171,7 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
     let currentWeeklyCountArray = [];
     let currentWeeklyRateArray = [];
     let currentWeeklyAccelerationArray = [];
-    let currentWeeklyStreakArray = [];
+    let currentWeeklyRecoveryStreakArray = [];
 
     // let currentWeeklyDeathCountArray = [];
     // let currentWeeklyDeathRateArray = [];
@@ -215,13 +214,13 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
     for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
       if (currentWeeklyRateArray[i_rate] === 0) {
         if (noCasesYet === false) {
-          currentWeeklyStreakArray.push(zeroStreak);
+          currentWeeklyRecoveryStreakArray.push(zeroStreak);
           zeroStreak++;
         } else {
-          currentWeeklyStreakArray.push(0);
+          currentWeeklyRecoveryStreakArray.push(0);
         }
       } else {
-        currentWeeklyStreakArray.push(0);
+        currentWeeklyRecoveryStreakArray.push(0);
         zeroStreak = 0;
         lastValueWasZero = false;
         noCasesYet = false;
@@ -232,7 +231,7 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
     covid19WeeklyCountLookup[currentFips] = currentWeeklyCountArray;
     covid19WeeklyRateLookup[currentFips] = currentWeeklyRateArray;
     covid19WeeklyAccelerationLookup[currentFips] = currentWeeklyAccelerationArray;
-    covid19WeeklyStreakLookup[currentFips] = currentWeeklyStreakArray;
+    covid19WeeklyRecoveryStreakLookup[currentFips] = currentWeeklyRecoveryStreakArray;
   }
 
 
@@ -242,7 +241,7 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
 
   for (let county of countiesGeoJson.features) {
 
-    weeklyCovidNonNormalizedDataArray = []
+    weeklyCovidDataArray = []
 
     /*
       - Match FIPS to calculate normalized rate and acceleration
@@ -252,8 +251,9 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
       - delete POPULATION from county 
     */
 
-    const pop = county.properties.POPULATION <= 0 ? 0.0001 : county.properties.POPULATION;
-    const fips = county.properties.FIPS;
+   const fips = county.properties.FIPS;
+   const name = county.properties.NAME;
+   const pop = county.properties.POPULATION <= 0 ? 0.0001 : county.properties.POPULATION;
 
     try {
       /* Initialize "i" at 2 to skip first 2 weeks where we do not have acceleration data */
@@ -264,17 +264,21 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
         const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - 2]
         const rateNormalized = Math.round(rate / pop * 100000);
         const accelerationNormalized = Math.round(acceleration / pop * 100000);
-        const streak = covid19WeeklyStreakLookup[fips][i_wk - 1];
+        const recoveryStreak = covid19WeeklyRecoveryStreakLookup[fips][i_wk - 1];
 
         // county.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
-        weeklyCovidNonNormalizedDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, streak])
+        weeklyCovidDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, recoveryStreak])
       }
     } catch (err) {
       console.log("County Data Processing Error at ", fips, county.properties.NAME);
       console.log("Error: ", err);
     }
 
-    countyCovidDataLookup[fips] = weeklyCovidNonNormalizedDataArray;
+    countyCovidDataLookup[fips] = {
+      name: name,
+      data: weeklyCovidDataArray,
+    };
+    delete county.properties.NAME;
     delete county.properties.POPULATION;
   }
 
