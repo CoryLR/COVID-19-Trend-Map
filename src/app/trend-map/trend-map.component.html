@@ -16,7 +16,7 @@
     <div><em>Status Report for:</em></div>
     <h4>{{panelContent.title}}</h4> <!-- County or State -->
     <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
-    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} (Latest)</em></p>
+    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[latestTimeStop.num] + 20}} (Latest)</em></p>
     <!-- <p>{{panelContent.date}}20</p> -->
 
     <p innerHTML="{{panelContent.summary}}"></p>

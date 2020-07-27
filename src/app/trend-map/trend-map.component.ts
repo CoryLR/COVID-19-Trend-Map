@@ -524,24 +524,16 @@ export class TrendMapComponent implements OnInit {
   playAnimation() {
     this.animationPaused = false;
     /* Working animation proof of concept: */
-    let initialTimeStop = this.currentTimeStop.num = this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
+    let initialTimeStop = this.currentTimeStop.num === this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
     let workingTimeStop = initialTimeStop;
     this.animationInterval = setInterval(() => {
-      // console.log("Changing this.currentTimeStop to ", { name: `t${workingTimeStop}`, num: workingTimeStop })
-      // console.log(this.weekDefinitions.list[workingTimeStop])
       this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
-      if(this.currentTimeStop.num != this.latestTimeStop.num) {
-        if (workingTimeStop < this.weekDefinitions.list.length -1 ) {
-          workingTimeStop++;
-          this.updateMapDisplay();
-        } else {
-          workingTimeStop = 0;
-          this.updateMapDisplay();
-        }
-      } else {
+      workingTimeStop++;
+      this.updateMapDisplay();
+      if(this.currentTimeStop.num === this.latestTimeStop.num) {
         this.pauseAnimation();
       }
-    }, 600);
+    }, 500);
   }
   
   pauseAnimation() {
