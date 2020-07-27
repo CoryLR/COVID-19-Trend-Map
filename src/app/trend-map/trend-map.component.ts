@@ -3,9 +3,6 @@ import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, } from '@angular/animations';
 import { ActivatedRoute } from '@angular/router';
-// import { DOCUMENT } from '@angular/common';
-// import {PlatformLocation } from '@angular/common';
-
 
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
@@ -209,8 +206,10 @@ export class TrendMapComponent implements OnInit {
       .addEventListener('click', (e) => {
         if (e.target.classList.contains("popup-status-report-btn")) {
           const popupFips = e.target.getAttribute('popup-fips');
-          const selectedLayer = this.countyLayerLookup[popupFips];
-          this.openStatusReport(selectedLayer);
+          if (this.panelContent.fips !== popupFips) {
+            const selectedLayer = this.countyLayerLookup[popupFips];
+            this.openStatusReport(selectedLayer);
+          }
         }
       });
 
@@ -222,9 +221,7 @@ export class TrendMapComponent implements OnInit {
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
     try {
-      if (this.infoPanelOpen) {
-        this.closePanel();
-      }
+      this.closePanel();
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
@@ -451,7 +448,7 @@ export class TrendMapComponent implements OnInit {
     let normalizedId: number;
     if (attribute === 3) {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New Cases This Week": "New Cases (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     } else if (attribute === 4) {
@@ -461,7 +458,7 @@ export class TrendMapComponent implements OnInit {
       normalizedId = 4;
     } else {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New Cases This Week": "New Cases (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     }
@@ -479,13 +476,15 @@ export class TrendMapComponent implements OnInit {
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
       layer.setPopupContent(`
         <div class="popup-place-title">
-          <strong>${countyName}</strong>, ${stateName} <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
+          <strong>${countyName}</strong>, ${stateName}
         </div>
         ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
         <div class="popup-status-report-btn-wrapper">
           <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn btn btn-secondary btn-sm btn-light">See Status Report</button>
         <div>
       `);
+      /* Invisible FIPS */
+      // <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
 
       /* Update color */
       layer.setStyle(getStyle(countyData[normalizedId]));
@@ -495,11 +494,10 @@ export class TrendMapComponent implements OnInit {
   }
 
   closePanel() {
-    this.infoPanelOpen = false;
-    this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
-    // setTimeout(() => {
-    // this.map.invalidateSize();
-    // }, 750)
+    if (this.infoPanelOpen) {
+      this.infoPanelOpen = false;
+      this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
+    }
   }
 
   timeSliderChange(timeStop) {
@@ -507,9 +505,8 @@ export class TrendMapComponent implements OnInit {
   }
 
   playAnimation() {
-    if (this.infoPanelOpen) {
-      this.closePanel();
-    }
+    this.closePanel();
+    // this.map.closePopup();
     this.animationPaused = false;
     /* Working animation proof of concept: */
     let initialTimeStop = this.currentTimeStop.num === this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
@@ -552,24 +549,25 @@ export class TrendMapComponent implements OnInit {
   }
   getRateStyleFunction(value) {
     switch (true) {
-      case (value > 400): return { fillColor: "hsl(0, 100%, 17%)" };
-      case (value > 200): return { fillColor: "hsl(0, 64%, 34%)" };
+      case (value > 400): return { fillColor: "hsl(-20, 100%, 17%)" };
+      case (value > 200): return { fillColor: "hsl(-10, 64%, 34%)" };
       case (value > 100): return { fillColor: "hsl(0, 43%, 52%)" };
-      case (value > 50): return { fillColor: "hsl(15, 57%, 75%)" };
-      case (value > 0): return { fillColor: "hsl(30, 62%, 85%)" };
-      case (value <= 0): return { fillColor: "hsl(0, 20%, 95%)" };
+      case (value > 50): return { fillColor: "hsl(10, 57%, 75%)" };
+      case (value > 0): return { fillColor: "hsl(20, 62%, 91%)" };
+      case (value <= 0): return { fillColor: "hsl(0, 0%, 97%)" };
+
       default: return {};
     }
   }
 
   getLegendColorSchemeData() {
     return [
-      {label: "> 400", color: "hsl(0, 100%, 17%)"},
-      {label: "200-400", color: "hsl(0, 64%, 34%)"},
+      {label: "> 400", color: "hsl(-20, 100%, 17%)"},
+      {label: "200-400", color: "hsl(-10, 64%, 34%)"},
       {label: "100-200", color: "hsl(0, 43%, 52%)"},
-      {label: "50-100", color: "hsl(15, 57%, 75%)"},
-      {label: "1-50", color: "hsl(30, 62%, 93%)"},
-      {label: "0", color: "hsl(0, 20%, 95%)"},
+      {label: "50-100", color: "hsl(10, 57%, 75%)"},
+      {label: "1-50", color: "hsl(20, 62%, 91%)"},
+      {label: "0", color: "hsl(0, 0%, 97%)"},
     ]
   }
 
