@@ -222,8 +222,10 @@ export class TrendMapComponent implements OnInit {
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
     try {
+      if (this.infoPanelOpen) {
+        this.closePanel();
+      }
       this.map.closePopup();
-      this.closePanel();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
       if (locationInfo.length > 2) {
@@ -505,6 +507,9 @@ export class TrendMapComponent implements OnInit {
   }
 
   playAnimation() {
+    if (this.infoPanelOpen) {
+      this.closePanel();
+    }
     this.animationPaused = false;
     /* Working animation proof of concept: */
     let initialTimeStop = this.currentTimeStop.num === this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
