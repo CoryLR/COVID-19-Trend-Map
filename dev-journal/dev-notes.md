@@ -52,38 +52,38 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] [Deliverable] Write and deliver Status Report #1
 
 - **Week 3** (6/29 - 7/5)
-  - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
+  - [x] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
     - [x] Display COVID-19 data
-    - [ ] Historical data with time-slider
-    - [ ] Animation controls for historical data
+    - [x] Historical data with time-slider
+    - [x] Animation controls for historical data
   - [x] Create non-functioning UI for location search, share sheet / URL scheme, and maybe chart graphics
   - [x] Publish live Beta #1
   - [x] [Deliverable] Write and deliver user-testing guide utilizing Live Beta #1
 
 - **Week 4** (7/6 - 7/12)
   - [x] Solicit feedback on the live Beta #1 from mentors and peers
-  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+  - [x] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
     - [x] Be able to search for locations
-    - [ ] Build URL scheme & add share sheet
-    - [ ] Add chart graphics
+    - [x] Build URL scheme & add share sheet
+    - [x] Add chart graphics
   - [ ] Update application to address feedback from Beta #1
-    - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
+    - [x] Review all feedback received, pick feedback to address, create actionable tasks, triage
     - [ ] (triaged feedback)
   - [x] [Deliverable] Write and deliver Status Report #2
 
 - **Week 5** (7/13 - 7/19)
   - [x] Architect database to store COVID-19 data
-  - [ ] Automate data calls to update the database daily
-  - [ ] Re-route data pulls to come from the database
-  - [ ] Conduct bug review
+  - [x] Automate data calls to update the database daily
+  - [x] Re-route data pulls to come from the database
+  - [x] Conduct bug review
 
 - **Week 6** (7/20 - 7/26)
-  - [ ] Conduct UX, UI, & responsive design review
-  - [ ] Conduct cross-browser compatibility review
+  - [x] Conduct UX, UI, & responsive design review
+  - [x] Conduct cross-browser compatibility review
   - [ ] Add "about", tutorial, data source, and disclaimer information
-  - [ ] Publish Beta #2
+  - [x] Publish Beta #2
   - [ ] Solicit feedback for Beta #2 from mentors, peers, and additional testers
-  - [ ] [Deliverable] Write and deliver Status Report #3
+  - [x] [Deliverable] Write and deliver Status Report #3
 
 - **Week 7** (7/27 - 8/2)
   - [ ] Update application to address feedback from Beta #2
@@ -116,10 +116,10 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] Re-route data pulls to come from the database
   - [x] Automate data calls to update the database daily
   - [x] If data errors from database, run an analysis call to pull the data directly from JHU
-  - [ ] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+  - [x] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
     - [x] Be able to search for locations
-    - [ ] Add chart graphics
-    - [ ] Build URL scheme & add share sheet
+    - [x] Add chart graphics
+    - [x] Build URL scheme & add share sheet
   - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
     - [x] Display COVID-19 data
     - [ ] Historical data with time-slider
@@ -127,4 +127,11 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [ ] Update application to address feedback from Beta #1
     - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
     - [ ] (triaged feedback)
-  - [ ] Conduct bug review
+  - [x] Conduct bug review
+
+  - [ ] Conduct UX, UI, & responsive design review
+  - [ ] Conduct cross-browser compatibility review
+  - [ ] Add "about", tutorial, data source, and disclaimer information
+  - [ ] Publish Beta #2
+  - [ ] Solicit feedback for Beta #2 from mentors, peers, and additional testers
+  - [ ] [Deliverable] Write and deliver Status Report #3
