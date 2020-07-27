@@ -65,6 +65,10 @@
         margin-top: 15px;
         display: inline-block;
       }
+      fa-icon {
+        color: rgb(180, 180, 180);
+        font-size: 18px;
+      }
       .primary-stat {
         font-weight: 600;
       }
@@ -105,11 +109,19 @@
     right: 15px;
     width: 200px;
     height: auto;
-    background-color: rgba(240,240,240, 0.9);
+    background-color: rgba(240,240,240, 0.8);
     padding: 15px;
-    box-shadow: 0px 0 5px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+
     overflow-y: auto;
     border-radius: 10px;
+
+    h5 {
+      display: inline-block;
+    }
+    .legend-date {
+      color: gray;
+    }
 
     .color-scheme {
       .color-set {
@@ -122,6 +134,36 @@
           margin-bottom: -3px;
         }
       }
+    }
+
+  }
+
+  .temporal-box {
+    position: absolute;
+    z-index: 9000;
+    bottom: 25px;
+    left: calc( 50% - 150px );
+    width: 300px;
+    height: auto;
+    background-color: rgba(240,240,240, 0.8);
+    padding: 15px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+    overflow-y: auto;
+    border-radius: 10px;
+
+    .time-slider-wrapper {
+      display: inline-block;
+      width: 190px;
+      height: 5px;
+    }
+    .animation-play-pause-button-wrapper {
+      cursor: pointer;
+      width: 30px;
+      display: inline-block;
+    }
+    .animation-date {
+      display: inline-block;
+      margin-left: 10px;
     }
 
   }

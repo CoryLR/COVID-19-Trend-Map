@@ -7,12 +7,12 @@ import { ActivatedRoute } from '@angular/router';
 // import {PlatformLocation } from '@angular/common';
 
 
-import { faInfoCircle, faFileMedicalAlt } from '@fortawesome/free-solid-svg-icons';
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
 import * as leafletPip from '@mapbox/leaflet-pip'
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
+import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -49,6 +49,8 @@ export class TrendMapComponent implements OnInit {
   /* Temporal Coordination */
   latestTimeStop: { name: string, num: number }; /* Latest data available */
   currentTimeStop: { name: string, num: number };
+  animationInterval: any;
+  animationPaused: boolean = true;
 
   /* UI Text Content Control */
   panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
@@ -59,6 +61,8 @@ export class TrendMapComponent implements OnInit {
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
   faFileMedicalAlt = faFileMedicalAlt;
+  faPlay = faPlay;
+  faPause = faPause;
 
   /* State Control */
   infoPanelOpen: boolean = false;
@@ -104,31 +108,6 @@ export class TrendMapComponent implements OnInit {
 
     */
 
-    /* Working animation proof of concept: */
-    /* 
-    let timeAnimation;
-    setTimeout(() => {
-      let initialTimeStop = this.currentTimeStop.num;
-      let workingTimeStop = initialTimeStop;
-      timeAnimation = setInterval(() => {
-        // console.log("Changing this.currentTimeStop to ", { name: `t${workingTimeStop}`, num: workingTimeStop })
-        console.log(this.weekDefinitions.list[workingTimeStop])
-        this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
-        if (workingTimeStop < this.weekDefinitions.list.length -1 ) {
-          workingTimeStop++;
-          this.updateMapDisplay();
-        } else {
-          workingTimeStop = 0;
-          this.updateMapDisplay();
-        }
-      }, 1000)
-    }, 3000);
-    */
-
-    // setTimeout(() => {
-    //   clearInterval(timeAnimation);
-    // }, 16000);
-
 
     /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
 
@@ -164,6 +143,7 @@ export class TrendMapComponent implements OnInit {
         name: this.latestTimeStop.name,
         num: this.latestTimeStop.num
       }
+      // console.log("this.currentTimeStop", this.currentTimeStop);
 
       /* Useful for debugging */
       console.log("Data Source:", response.source);
@@ -317,7 +297,7 @@ export class TrendMapComponent implements OnInit {
     /* Update Status Report */
     const countyInfo = this.countyDataLookup[`${layer.feature.properties.FIPS}`];
     const countyName = countyInfo.name;
-    const countyData = countyInfo.data[this.currentTimeStop.num];
+    const countyData = countyInfo.data[this.latestTimeStop.num];
 
     const cumulative: number = countyData[0];
     const rate: number = countyData[1];
@@ -333,7 +313,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
     this.panelContent.accelerationNorm = accelerationNorm < 0 ? `-${this.styleNum(Math.abs(accelerationNorm))}` : this.styleNum(Math.abs(accelerationNorm));
     this.panelContent.cumulative = this.styleNum(cumulative);
-    this.panelContent.date = this.weekDefinitions.lookup[this.currentTimeStop.name];
+    this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
     this.statusReportChartConfig = this.getStatusReportChartConfig(layer.feature.properties.FIPS, 1/* 1=Rate */);
@@ -486,7 +466,7 @@ export class TrendMapComponent implements OnInit {
     let normalizedId: number;
     if (attribute === 3) {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = "New This Week";
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New Cases This Week": "New Cases (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     } else if (attribute === 4) {
@@ -496,7 +476,7 @@ export class TrendMapComponent implements OnInit {
       normalizedId = 4;
     } else {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = "New This Week";
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New Cases This Week": "New Cases (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     }
@@ -537,6 +517,38 @@ export class TrendMapComponent implements OnInit {
     // }, 750)
   }
 
+  timeSliderChange(timeStop) {
+    this.updateMapDisplay(this.choroplethDisplayAttribute);
+  }
+
+  playAnimation() {
+    this.animationPaused = false;
+    /* Working animation proof of concept: */
+    let initialTimeStop = this.currentTimeStop.num = this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
+    let workingTimeStop = initialTimeStop;
+    this.animationInterval = setInterval(() => {
+      // console.log("Changing this.currentTimeStop to ", { name: `t${workingTimeStop}`, num: workingTimeStop })
+      // console.log(this.weekDefinitions.list[workingTimeStop])
+      this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
+      if(this.currentTimeStop.num != this.latestTimeStop.num) {
+        if (workingTimeStop < this.weekDefinitions.list.length -1 ) {
+          workingTimeStop++;
+          this.updateMapDisplay();
+        } else {
+          workingTimeStop = 0;
+          this.updateMapDisplay();
+        }
+      } else {
+        this.pauseAnimation();
+      }
+    }, 600);
+  }
+  
+  pauseAnimation() {
+    this.animationPaused = true;
+    clearInterval(this.animationInterval);
+  }
+
   /**
    * Converts number to string and adds commas to thousands places
    * @param number int
@@ -564,8 +576,8 @@ export class TrendMapComponent implements OnInit {
       case (value > 200): return { fillColor: "hsl(0, 64%, 34%)" };
       case (value > 100): return { fillColor: "hsl(0, 43%, 52%)" };
       case (value > 50): return { fillColor: "hsl(15, 57%, 75%)" };
-      case (value > 0): return { fillColor: "hsl(30, 62%, 93%)" };
-      case (value <= 0): return { fillColor: "hsl(0, 0%, 95%)" };
+      case (value > 0): return { fillColor: "hsl(30, 62%, 85%)" };
+      case (value <= 0): return { fillColor: "hsl(0, 20%, 95%)" };
       default: return {};
     }
   }
@@ -576,8 +588,8 @@ export class TrendMapComponent implements OnInit {
       {label: "200-400", color: "hsl(0, 64%, 34%)"},
       {label: "100-200", color: "hsl(0, 43%, 52%)"},
       {label: "50-100", color: "hsl(15, 57%, 75%)"},
-      {label: "0-50", color: "hsl(30, 62%, 93%)"},
-      // {label: "No Data", color: "hsl(0, 0%, 95%)"},
+      {label: "1-50", color: "hsl(30, 62%, 93%)"},
+      {label: "0", color: "hsl(0, 20%, 95%)"},
     ]
   }
 

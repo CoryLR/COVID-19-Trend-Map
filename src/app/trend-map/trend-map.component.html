@@ -2,7 +2,7 @@
 
   <div class="header">
     <h3>COVID-19 Trend Map</h3>
-    <h5> ALPHA 2 // WORK IN PROGRESS</h5>
+    <h5> BETA 2 // WORK IN PROGRESS</h5>
   </div>
 
   <div class="map-wrapper">
@@ -16,6 +16,7 @@
     <div><em>Status Report for:</em></div>
     <h4>{{panelContent.title}}</h4> <!-- County or State -->
     <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
+    <p>{{weekDefinitions.list[currentTimeStop.num] + 20}}</p>
     <!-- <p>{{panelContent.date}}20</p> -->
     <br>
 
@@ -79,9 +80,25 @@
     
   </div>
 
-  <div class="placeholder-box" style="z-index: 1000; position: absolute; left: 30%; bottom: 20px; width: 40%; height: 60px;">
-    <div>Placeholder: Historical Data & Animation Controls</div>
+  <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box">
+    <!-- <button class="btn btn-secondary">Copy</button>
+    <button class="btn btn-secondary">Copy</button> -->
+    <div class="animation-play-pause-button-wrapper">
+      <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
+      <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
+    </div>
+    <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
+      <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
+    </div>
+    <div class="animation-date">
+      {{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}
+    </div>
+
   </div>
+
+  <!-- <div class="placeholder-box" style="z-index: 1000; position: absolute; left: 30%; bottom: 20px; width: 40%; height: 60px;">
+    <div>Placeholder: Historical Data & Animation Controls</div>
+  </div> -->
 
   <!-- <div class="placeholder-box" style="z-index: 1000; position: absolute; right: 20px; bottom: 20px; width: 240px; height: 180px;">
     <div>Placeholder: Legend
@@ -92,13 +109,17 @@
     </div>
   </div> -->
   
-  <div class="map-legend">
-    <h5>Map Legend</h5>
+  <div *ngIf="weekDefinitions && legendColorSchemeData" class="map-legend">
+    <h5>Map Legend</h5> &nbsp;&nbsp; <span 
+      ngbPopover="Current map data is for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num] + 20}}"
+      triggers="mouseenter:mouseleave"
+      container="body"
+      class="legend-date">{{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}</span>
     <p
-    ngbPopover="Number of new COVID-19 Cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-    triggers="mouseenter:mouseleave"
-    container="body"
-    >New Cases (Weekly)</p>
+      ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}}"
+      triggers="mouseenter:mouseleave"
+      container="body"
+    >New COVID-19 Cases <br>(Weekly per 100k)</p>
     <div class="color-scheme">
       <div *ngFor="let item of legendColorSchemeData" class="color-set">
         <div [ngStyle]="{'background-color': item.color}" class="box"></div>{{item.label}}

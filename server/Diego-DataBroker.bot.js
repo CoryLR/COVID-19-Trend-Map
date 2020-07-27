@@ -4,7 +4,7 @@
 
 const { Client, CronJob, Got, PapaParse, fs, path } = getDependencies();
 
-const productionMode = false;
+const productionMode = true;
 
 module.exports = {
   start: () => {
@@ -28,7 +28,7 @@ async function runStartupTasks() {
   }
   
   /* Useful for testing backend */
-  await updateDatabaseWithCovidDataPackage();
+  // await updateDatabaseWithCovidDataPackage();
 
   await cleanUpDatabase();
 }
