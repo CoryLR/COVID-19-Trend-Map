@@ -21,41 +21,8 @@
 
     <p innerHTML="{{panelContent.summary}}"></p>
 
-    <div *ngIf="initialLoadDone" class="panel-stats-section">
-      <div class="stat-title">New Cases</div> (1 Week) &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="1-Week COVID-19 Case Rate"
-        ngbPopover="Number of new COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-        triggers="mouseenter:mouseleave"
-        placement="right"
-        container="body"
-        ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
-      
-      <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="2-Week COVID-19 Case Acceleration"
-        ngbPopover="The number of new cases this week compared to the previous week, i.e. the difference in weekly rate from {{weekDefinitions.list[currentTimeStop.num-2]}} to {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
-        triggers="mouseenter:mouseleave"
-        placement="right"
-        container="body"
-        ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
-      
-      <div class="stat-title">Cumulative</div> &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="Cumulative COVID-19 Case Count"
-        ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
-        triggers="mouseenter:mouseleave"
-        placement="right"
-        container="body"
-        ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.cumulative}}</span></div>
-    </div>
-
-    <br>
-
-    <div *ngIf="statusReportChartConfig.lineChartData" class="chart-wrapper">
+    <div class="chart-title">New Cases Per Week</div>
+    <div *ngIf="statusReportChartConfig.lineChartData">
       <canvas baseChart height="200" class="stat-chart"
           [datasets]="statusReportChartConfig.lineChartData" 
           [labels]="statusReportChartConfig.lineChartLabels" 
@@ -68,6 +35,37 @@
         </canvas>
     </div>
 
+    <div *ngIf="initialLoadDone" class="panel-stats-section">
+      <div class="stat-title">New Cases This Week</div>&nbsp;&nbsp;<fa-icon
+        [icon]="faInfoCircle"
+        popoverTitle="1-Week COVID-19 Case Rate"
+        ngbPopover="Number of new COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+        triggers="mouseenter:mouseleave"
+        placement="right"
+        container="body"
+        ></fa-icon>
+      <div><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
+      <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
+        [icon]="faInfoCircle"
+        popoverTitle="2-Week COVID-19 Case Acceleration"
+        ngbPopover="The number of more new cases this week compared to the previous week, i.e. the difference in weekly rate from {{weekDefinitions.list[currentTimeStop.num-2]}} to {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
+        triggers="mouseenter:mouseleave"
+        placement="right"
+        container="body"
+        ></fa-icon>
+      <div><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
+      <div class="stat-title">Cumulative</div> &nbsp;<fa-icon
+        [icon]="faInfoCircle"
+        popoverTitle="Cumulative COVID-19 Case Count"
+        ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
+        triggers="mouseenter:mouseleave"
+        placement="right"
+        container="body"
+        ></fa-icon>
+      <div><span class="primary-stat">{{panelContent.cumulative}}</span></div>
+    </div>
+
+    <br>
     <br>
     <div class="placeholder-box" style="width: 100%; height: 100px;">
       <div>Placeholder: Share a link to this Status Report</div>

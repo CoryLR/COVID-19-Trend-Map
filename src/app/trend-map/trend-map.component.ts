@@ -326,7 +326,7 @@ export class TrendMapComponent implements OnInit {
       }
     }
     const lineChartData: ChartDataSets[] = [
-      { data: data, label: 'New COVID-19 Cases Per Week' },
+      { data: data, label: 'New Cases' },
     ];
 
     let dates = [];
