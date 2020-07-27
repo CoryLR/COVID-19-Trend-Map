@@ -53,6 +53,7 @@ function initDataCollectionSchedule() {
 /* 
   TODO:
   - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
+  - Fix bug causing some Rate values to be negative
 
 */
 
@@ -260,7 +261,8 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
       for (let i_wk = 2; i_wk < weeklyDataHeaders.length; i_wk++) {
         let tN = i_wk - 1;
         const count = covid19WeeklyCountLookup[fips][i_wk];
-        const rate = covid19WeeklyRateLookup[fips][i_wk - 1];
+        let calculatedRate = covid19WeeklyRateLookup[fips][i_wk - 1];
+        const rate = calculatedRate >= 0 ? calculatedRate : 0;
         const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - 2]
         const rateNormalized = Math.round(rate / pop * 100000);
         const accelerationNormalized = Math.round(acceleration / pop * 100000);

@@ -2,11 +2,13 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, } from '@angular/animations';
-import { faInfoCircle, faFileMedicalAlt } from '@fortawesome/free-solid-svg-icons';
 
+import { faInfoCircle, faFileMedicalAlt } from '@fortawesome/free-solid-svg-icons';
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
 import * as leafletPip from '@mapbox/leaflet-pip'
+import { ChartDataSets, ChartOptions } from 'chart.js';
+import { Color, Label } from 'ng2-charts';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -48,7 +50,7 @@ export class TrendMapComponent implements OnInit {
   panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
-  
+
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
   faFileMedicalAlt = faFileMedicalAlt;
@@ -57,6 +59,10 @@ export class TrendMapComponent implements OnInit {
   infoPanelOpen: boolean = false;
   initialLoadDone: boolean = false;
 
+
+  /* Chart Testing */
+  statusReportChartConfig: any = {};
+  verticalLinePlugin: any = this.getVerticalLinePlugin();
 
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef) { }
 
@@ -129,7 +135,7 @@ export class TrendMapComponent implements OnInit {
       /* Useful for debugging */
       console.log("Data Source:", response.source);
       // console.log("Data Package:", response);
-      // Good FIPS test-cases to console.log: 31041, 08009
+      // Good FIPS test-cases to log: 31041, 08009
 
       this.initMapData(response.geojson);
 
@@ -217,8 +223,6 @@ export class TrendMapComponent implements OnInit {
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
-    console.log("place", place);
-    console.log("locationInfo", locationInfo);
     try {
       this.map.closePopup();
       this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
@@ -262,7 +266,7 @@ export class TrendMapComponent implements OnInit {
 
     /* Update map feature */
     layer.bringToFront();
-    layer.setStyle({ weight: 6/* , color: "black" */ });
+    layer.setStyle({ weight: 5/* , color: "black" */ });
 
     /* Open the Status Report panel */
     if (this.infoPanelOpen) {
@@ -298,6 +302,8 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.date = this.weekDefinitions.lookup[this.currentTimeStop.name];
     this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
+    this.statusReportChartConfig = this.getStatusReportChartConfig(layer.feature.properties.FIPS, 1/* 1=Rate */);
+
     /* Open the Status Report */
     this.infoPanelOpen = true;
 
@@ -306,12 +312,114 @@ export class TrendMapComponent implements OnInit {
 
   }
 
+  getStatusReportChartConfig(fips, attributeIndex) {
+
+    /* TODO: if latestTimeStop is first, second, second to last, or last... Right now this assumes it's last */
+    const dataRange = this.countyDataLookup[fips].data.slice(-5);
+    const dateRange = this.weekDefinitions.list.slice(-5);
+
+    /* Loop through the last 5 time-stops and get an array of rates */
+    let data = [];
+    for (let timeStop in dataRange) {
+      if (timeStop in dataRange) {
+        data.push(dataRange[timeStop][attributeIndex]);
+      }
+    }
+    const lineChartData: ChartDataSets[] = [
+      { data: data, label: 'New COVID-19 Cases Per Week' },
+    ];
+
+    let dates = [];
+    for (let timeStop in dateRange) {
+      if (timeStop in dateRange) {
+        dates.push(dateRange[timeStop].slice(0, -3));
+      }
+    }
+    const lineChartLabels: Label[] = dates;
+
+    const lineChartOptions = {
+      responsive: true,
+      pointHitRadius: 3,
+      lineAtIndex: [4],
+      scales: {
+        yAxes: [{
+          // type: 'time',
+          ticks: {
+            // autoSkip: true,
+            maxTicksLimit: 5,
+          }
+        }]
+      },
+      tooltips: {
+        mode: 'index',
+        intersect: false
+      }
+    };
+
+    const lineChartColors: Color[] = [
+      {
+        borderColor: 'black',
+        pointBackgroundColor: 'black',
+        backgroundColor: 'hsl(0, 43%, 52%)',
+      },
+    ];
+
+    const lineChartLegend = true;
+    const lineChartPlugins = [this.verticalLinePlugin];
+    const lineChartType = 'line';
+
+    return {
+      lineChartData,
+      lineChartLabels,
+      lineChartOptions,
+      lineChartColors,
+      lineChartLegend,
+      lineChartPlugins,
+      lineChartType,
+    }
+
+  }
+
+  getVerticalLinePlugin(): any {
+    return {
+      getLinePosition: function (chart, pointIndex) {
+        const meta = chart.getDatasetMeta(0); ///* first dataset is used to discover X coordinate of a point */
+        const data = meta.data;
+        return data[pointIndex]._model.x;
+      },
+      renderVerticalLine: function (chartInstance, pointIndex) {
+        const lineLeftOffset = this.getLinePosition(chartInstance, pointIndex);
+        const scale = chartInstance.scales['y-axis-0'];
+        const context = chartInstance.chart.ctx;
+
+        /* render vertical line */
+        context.beginPath();
+        context.strokeStyle = 'hsl(180, 100%, 44%)';
+        context.lineWidth = 5;
+        context.moveTo(lineLeftOffset, scale.top);
+        context.lineTo(lineLeftOffset, scale.bottom);
+        context.stroke();
+
+        /* write label */
+        // context.fillStyle = "black";
+        // context.textAlign = pointIndex < 2 ? 'left' : pointIndex > 2 ? 'right' : 'center';
+        // context.fillText('Now', lineLeftOffset, (scale.bottom - scale.top) / 3 + scale.top);
+      },
+
+      afterDatasetsDraw: function (chart, easing) {
+        if (chart.config.options.lineAtIndex) {
+          chart.config.options.lineAtIndex.forEach(pointIndex => this.renderVerticalLine(chart, pointIndex));
+        }
+      }
+    };
+  }
+
   initMapData(geojson) {
 
     const countyStyle = {
       // radius: 8,
       fillColor: "transparent",
-      color: "black", /* This is the focus color */
+      color: "hsl(180, 100%, 44%)", /* This is the focus color */
       weight: 0, /* Weight gets toggled to focus a particular region */
       opacity: 1,
       fillOpacity: 0.9
