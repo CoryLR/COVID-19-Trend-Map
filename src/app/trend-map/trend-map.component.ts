@@ -91,23 +91,6 @@ export class TrendMapComponent implements OnInit {
     this.map = this.initializeMap();
     this.getData();
 
-    // setTimeout(() => {
-    //   this.route.queryParams
-    //     .subscribe(params => {
-    //       console.log("URL params", params); // { key: "value" }
-    //     }
-    //   );
-    // }, 0);
-
-
-
-    /* TODO: Animation
-      - Use setInterval
-      - Possible time-range options: Previous month, 3 months, all data
-      - Idea for smooth animations: Do it The Prestige style with 2 layers fading back and forth
-
-    */
-
 
     /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
 
@@ -240,7 +223,7 @@ export class TrendMapComponent implements OnInit {
     const secondLevelLocation = locationInfo.slice(-2)[0];
     try {
       this.map.closePopup();
-      this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
+      this.closePanel();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
       if (locationInfo.length > 2) {
