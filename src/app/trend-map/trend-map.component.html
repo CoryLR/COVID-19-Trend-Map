@@ -2,7 +2,7 @@
 
   <div class="header">
     <h3>COVID-19 Trend Map</h3>
-    <h5> ALPHA // WORK IN PROGRESS</h5>
+    <h5> ALPHA 2 // WORK IN PROGRESS</h5>
   </div>
 
   <div class="map-wrapper">
@@ -83,13 +83,28 @@
     <div>Placeholder: Historical Data & Animation Controls</div>
   </div>
 
-  <div class="placeholder-box" style="z-index: 1000; position: absolute; right: 20px; bottom: 20px; width: 240px; height: 180px;">
+  <!-- <div class="placeholder-box" style="z-index: 1000; position: absolute; right: 20px; bottom: 20px; width: 240px; height: 180px;">
     <div>Placeholder: Legend
       <br>
       <br> COVID-19 Cases 
       <br> Red = Acceleration
       <br> Blue = Deceleration
     </div>
+  </div> -->
+  
+  <div class="map-legend">
+    <h5>Map Legend</h5>
+    <p
+    ngbPopover="Number of new COVID-19 Cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+    triggers="mouseenter:mouseleave"
+    container="body"
+    >New Cases (Weekly)</p>
+    <div class="color-scheme">
+      <div *ngFor="let item of legendColorSchemeData" class="color-set">
+        <div [ngStyle]="{'background-color': item.color}" class="box"></div>{{item.label}}
+      </div>
+    </div>
+
   </div>
 
 

@@ -54,6 +54,7 @@ export class TrendMapComponent implements OnInit {
   panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+  legendColorSchemeData: any = this.getLegendColorSchemeData();
 
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
@@ -567,6 +568,17 @@ export class TrendMapComponent implements OnInit {
       case (value <= 0): return { fillColor: "hsl(0, 0%, 95%)" };
       default: return {};
     }
+  }
+
+  getLegendColorSchemeData() {
+    return [
+      {label: "> 400", color: "hsl(0, 100%, 17%)"},
+      {label: "200-400", color: "hsl(0, 64%, 34%)"},
+      {label: "100-200", color: "hsl(0, 43%, 52%)"},
+      {label: "50-100", color: "hsl(15, 57%, 75%)"},
+      {label: "0-50", color: "hsl(30, 62%, 93%)"},
+      // {label: "No Data", color: "hsl(0, 0%, 95%)"},
+    ]
   }
 
   copyText(text) {
