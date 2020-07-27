@@ -103,35 +103,12 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 - **Scope Creep**
   - [x] Teach Diego to differentiate "zero" (`0`) values between "has never had a new case", "back to no new cases", and the magnitude of "back to no new cases" (e.g. "no new cases in x weeks")
   - [ ] Automatically acquire the user's location using their device's GPS
+  - [ ] Add death and recovery statistics
+  - [ ] Add state-level aggregations and borders
+  - [ ] Add national aggregation
   - [ ] Make the app accessible so people with disabilities can find out the same information.
   - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
   - [ ] Add lazy loading for historical COVID-19 data, load on opening of the historical data section
 
 ## Triage
 
-2020-07-18 Most important -> least important
-
-  - [x] Move normalized attributes out of GeoJSON and into the county data lookup
-  - [x] Update "nodata" values out to new weekly "streak" attribute to differentiate zero values for no new cases
-  - [x] Re-route data pulls to come from the database
-  - [x] Automate data calls to update the database daily
-  - [x] If data errors from database, run an analysis call to pull the data directly from JHU
-  - [x] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
-    - [x] Be able to search for locations
-    - [x] Add chart graphics
-    - [x] Build URL scheme & add share sheet
-  - [ ] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
-    - [x] Display COVID-19 data
-    - [ ] Historical data with time-slider
-    - [ ] Animation controls for historical data
-  - [ ] Update application to address feedback from Beta #1
-    - [ ] Review all feedback received, pick feedback to address, create actionable tasks, triage
-    - [ ] (triaged feedback)
-  - [x] Conduct bug review
-
-  - [ ] Conduct UX, UI, & responsive design review
-  - [ ] Conduct cross-browser compatibility review
-  - [ ] Add "about", tutorial, data source, and disclaimer information
-  - [ ] Publish Beta #2
-  - [ ] Solicit feedback for Beta #2 from mentors, peers, and additional testers
-  - [ ] [Deliverable] Write and deliver Status Report #3

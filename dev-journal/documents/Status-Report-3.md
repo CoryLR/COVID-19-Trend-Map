@@ -1,5 +1,5 @@
 
-# Status Report 2 - COVID-19 Trend Map
+# Status Report 3 - COVID-19 Trend Map
 
 Cory Leigh Rahman • 2020-07-27 • GEOG 778: Practicum in GIS Development
 
@@ -19,10 +19,10 @@ This is the third of four status reports on the development progress of the COVI
 Tasks Completed:
 
 - **Week 3** (6/29 - 7/5)
-  - [x] [60%] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
+  - [x] Write front-end code to display COVID-19 data [<-Done] using a time-slider and animation controls
 
 - **Week 4** (7/6 - 7/12)
-  - [x] [30%] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
+  - [x] Build functionality for location search [<-Done], share sheet / URL scheme, and chart graphics
   - [x] Update application to address feedback from Beta #1
 
 - **Week 5** (7/13 - 7/19)
@@ -39,13 +39,15 @@ Tasks Completed:
 
 ## Skills & Strategies
 
-
+Similar to last week, a range of full-stack skills were necessary including back-end server and database design, data analysis, and heavy front-end UI design. The application is much more feature-rich now, including filled-out status reports, personalized graphs, and temporal control to step through time and animate change over time. Angular's 2-way binding makes it easier to coordinate all these different parts of the application, paving the way for a cohesive final product.
 
 ## Processes & Steps
 
+In order to progress to the current state, some aspects of the application were prerequisite for others. First I had to ensure all the necessary data was available in as small a format as possible for performance. Then I had to ingest the data and make it available to all the necessary app components; for example, both the map and the legend need to know what the current time-stop is to stay coordinated.
 
 ## Challenges & Contingencies
 
+The biggest challenge will be finding time to include the stretch goals (scope creep tasks). In order for this application to be the best that it can be, and be as useful to as many people as possible, I'd like to include at least several (if not all) of the stretch-goals prior to public launch. My contingency plan will be to simply focus on the primary tasks for each week before moving on to working on any stretch goals.
 
 ## Next Steps
 
@@ -70,6 +72,9 @@ I will also try to include as many additional tasks as possible:
 
 - **Scope Creep**
   - [ ] Automatically acquire the user's location using their device's GPS
+  - [ ] Add death and recovery statistics
+  - [ ] Add state-level aggregations and borders
+  - [ ] Add national aggregation
   - [ ] Make the app accessible so people with disabilities can find out the same information.
   - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
   - [ ] Add lazy loading for historical COVID-19 data, load on opening of the historical data section
