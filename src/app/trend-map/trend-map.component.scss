@@ -73,6 +73,11 @@
       font-weight: 800;
       margin-top: 15px;
     }
+    .status-report-link-text {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
 
 
     .table {

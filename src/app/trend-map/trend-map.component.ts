@@ -2,6 +2,10 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, } from '@angular/animations';
+import { ActivatedRoute } from '@angular/router';
+// import { DOCUMENT } from '@angular/common';
+// import {PlatformLocation } from '@angular/common';
+
 
 import { faInfoCircle, faFileMedicalAlt } from '@fortawesome/free-solid-svg-icons';
 import * as L from 'leaflet';
@@ -59,15 +63,20 @@ export class TrendMapComponent implements OnInit {
   infoPanelOpen: boolean = false;
   initialLoadDone: boolean = false;
 
-
-  /* Chart Testing */
+  /* Chart */
   statusReportChartConfig: any = {};
   verticalLinePlugin: any = this.getVerticalLinePlugin();
 
-  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef) { }
+  /* URL Scheme */
+  window = window;
+  // origin:string = "";
+
+
+  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, /* private document: Document */) { }
 
   ngOnInit(): void {
     this.titleService.setTitle("COVID-19 Trend Map");
+    // const origin = this.document.location.origin;
     this.metaService.addTags([
       { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
       { name: 'description', content: 'See COVID-19 trends where you live.' },
@@ -76,6 +85,15 @@ export class TrendMapComponent implements OnInit {
     ]);
     this.map = this.initializeMap();
     this.getData();
+
+    // setTimeout(() => {
+    //   this.route.queryParams
+    //     .subscribe(params => {
+    //       console.log("URL params", params); // { key: "value" }
+    //     }
+    //   );
+    // }, 0);
+
 
 
     /* TODO: Animation
@@ -117,6 +135,20 @@ export class TrendMapComponent implements OnInit {
 
   }
 
+  actOnUrlScheme() {
+    this.route.queryParams
+      .subscribe(params => {
+        console.log("URL params", params); // e.g. { fips: "51059" }
+        if(params.fips) {
+          const selectedLayer = this.countyLayerLookup[params.fips];
+          if (selectedLayer) {
+            this.map.fitBounds(selectedLayer.getBounds().pad(1));
+            this.openStatusReport(selectedLayer);  
+          }
+        }
+      });
+  }
+
   getData() {
     const url = '/api/getData';
     const body = {};
@@ -138,6 +170,8 @@ export class TrendMapComponent implements OnInit {
       // Good FIPS test-cases to log: 31041, 08009
 
       this.initMapData(response.geojson);
+
+      this.actOnUrlScheme();
 
     });
 
@@ -242,8 +276,6 @@ export class TrendMapComponent implements OnInit {
           }, 250);
         });
 
-
-
       } else {
         this.map.flyToBounds(place.location.bounds);
       }
@@ -292,6 +324,7 @@ export class TrendMapComponent implements OnInit {
     const acceleration: number = countyData[2];
     const accelerationNorm: number = countyData[4];
 
+    this.panelContent.fips = layer.feature.properties.FIPS;
     this.panelContent.title = countyName;
     this.panelContent.subtitle = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name;
     this.panelContent.rate = this.styleNum(rate);
@@ -345,8 +378,8 @@ export class TrendMapComponent implements OnInit {
         yAxes: [{
           // type: 'time',
           ticks: {
-            // autoSkip: true,
             maxTicksLimit: 5,
+            suggestedMin: 0,
           }
         }]
       },
@@ -535,6 +568,35 @@ export class TrendMapComponent implements OnInit {
       default: return {};
     }
   }
+
+  copyText(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+  
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+  
+    try {
+      var successful = document.execCommand('copy');
+      var msg = successful ? 'Copied!' : 'Auto-copy failed, please try copying from the text box.';
+      alert(msg);
+    } catch (err) {
+      alert("Auto-copy failed, please try copying from the text box.");
+    }
+  
+    document.body.removeChild(textArea);
+
+  }
+
+  // function fallbackCopyTextToClipboard(text) {
+  // }
+  
 
   getStateFipsLookup() {
     return { "01": { "name": "Alabama", "abbr": "AL" }, "02": { "name": "Alaska", "abbr": "AK" }, "03": { "name": "American Samoa", "abbr": "AS" }, "04": { "name": "Arizona", "abbr": "AZ" }, "05": { "name": "Arkansas", "abbr": "AR" }, "06": { "name": "California", "abbr": "CA" }, "07": { "name": "Canal Zone", "abbr": "CZ" }, "08": { "name": "Colorado", "abbr": "CO" }, "09": { "name": "Connecticut", "abbr": "CT" }, "10": { "name": "Delaware", "abbr": "DE" }, "11": { "name": "District of Columbia", "abbr": "DC" }, "12": { "name": "Florida", "abbr": "FL" }, "13": { "name": "Georgia", "abbr": "GA" }, "14": { "name": "Guam", "abbr": "GU" }, "15": { "name": "Hawaii", "abbr": "HI" }, "16": { "name": "Idaho", "abbr": "ID" }, "17": { "name": "Illinois", "abbr": "IL" }, "18": { "name": "Indiana", "abbr": "IN" }, "19": { "name": "Iowa", "abbr": "IA" }, "20": { "name": "Kansas", "abbr": "KS" }, "21": { "name": "Kentucky", "abbr": "KY" }, "22": { "name": "Louisiana", "abbr": "LA" }, "23": { "name": "Maine", "abbr": "ME" }, "24": { "name": "Maryland", "abbr": "MD" }, "25": { "name": "Massachusetts", "abbr": "MA" }, "26": { "name": "Michigan", "abbr": "MI" }, "27": { "name": "Minnesota", "abbr": "MN" }, "28": { "name": "Mississippi", "abbr": "MS" }, "29": { "name": "Missouri", "abbr": "MO" }, "30": { "name": "Montana", "abbr": "MT" }, "31": { "name": "Nebraska", "abbr": "NE" }, "32": { "name": "Nevada", "abbr": "NV" }, "33": { "name": "New Hampshire", "abbr": "NH" }, "34": { "name": "New Jersey", "abbr": "NJ" }, "35": { "name": "New Mexico", "abbr": "NM" }, "36": { "name": "New York", "abbr": "NY" }, "37": { "name": "North Carolina", "abbr": "NC" }, "38": { "name": "North Dakota", "abbr": "ND" }, "39": { "name": "Ohio", "abbr": "OH" }, "40": { "name": "Oklahoma", "abbr": "OK" }, "41": { "name": "Oregon", "abbr": "OR" }, "42": { "name": "Pennsylvania", "abbr": "PA" }, "43": { "name": "Puerto Rico", "abbr": "PR" }, "44": { "name": "Rhode Island", "abbr": "RI" }, "45": { "name": "South Carolina", "abbr": "SC" }, "46": { "name": "South Dakota", "abbr": "SD" }, "47": { "name": "Tennessee", "abbr": "TN" }, "48": { "name": "Texas", "abbr": "TX" }, "49": { "name": "Utah", "abbr": "UT" }, "50": { "name": "Vermont", "abbr": "VT" }, "51": { "name": "Virginia", "abbr": "VA" }, "52": { "name": "Virgin Islands", "abbr": "VI" }, "53": { "name": "Washington", "abbr": "WA" }, "54": { "name": "West Virginia", "abbr": "WV" }, "55": { "name": "Wisconsin", "abbr": "WI" }, "56": { "name": "Wyoming", "abbr": "WY" }, "72": { "name": "Puerto Rico", "abbr": "PR" } }
