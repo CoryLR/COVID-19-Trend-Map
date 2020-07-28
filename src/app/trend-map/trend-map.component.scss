@@ -1,3 +1,13 @@
+
+// /* Colors */
+// $focus-cyan: hsl(180, 100%, 44%);
+// $thumb-color: darken($focus-cyan, 10%);
+// $thumb-border-width: 0;
+// // $track-width: 80%;
+// @import '~input-range-scss/inputrange';
+@use '../../sass/time-slider';
+
+
 .trend-map-container {
   $header-height: 40px;
   width: 100vw;
@@ -144,26 +154,35 @@
     bottom: 25px;
     left: calc( 50% - 150px );
     width: 300px;
-    height: auto;
+    height: 40px;
     background-color: rgba(240,240,240, 0.8);
     padding: 15px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
     overflow-y: auto;
     border-radius: 10px;
 
-    .time-slider-wrapper {
-      display: inline-block;
-      width: 190px;
-      height: 5px;
-    }
     .animation-play-pause-button-wrapper {
+      position: absolute;
+      left: 15px;
+      top: 8px;
       cursor: pointer;
-      width: 30px;
-      display: inline-block;
+      width: 25px;
+      height: 20px
+    }
+    .time-slider-wrapper {
+      position: absolute;
+      left: 50px;
+      top: 9px;
+      width: 190px;
+      height: 20px;
     }
     .animation-date {
-      display: inline-block;
+      position: absolute;
+      left: 245px;
+      top: 8px;
       margin-left: 10px;
+      height: 20px;
+      width: 30px;
     }
 
   }

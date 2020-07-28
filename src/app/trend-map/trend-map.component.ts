@@ -415,7 +415,7 @@ export class TrendMapComponent implements OnInit {
     const countyStyle = {
       // radius: 8,
       fillColor: "transparent",
-      color: "hsl(180, 100%, 44%)", /* This is the focus color */
+      color: "hsl(180, 100%, 44%)", /* This is the cyan focus color */
       weight: 0, /* Weight gets toggled to focus a particular region */
       opacity: 1,
       fillOpacity: 0.9

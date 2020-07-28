@@ -87,7 +87,7 @@
       <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
     </div>
     <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
-      <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
+      <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
     </div>
     <div class="animation-date">
       {{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}
