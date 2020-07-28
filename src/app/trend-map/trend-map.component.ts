@@ -206,7 +206,7 @@ export class TrendMapComponent implements OnInit {
       .addEventListener('click', (e) => {
         if (e.target.classList.contains("popup-status-report-btn")) {
           const popupFips = e.target.getAttribute('popup-fips');
-          if (this.panelContent.fips !== popupFips) {
+          if (this.panelContent.fips !== popupFips || !this.infoPanelOpen) {
             const selectedLayer = this.countyLayerLookup[popupFips];
             this.openStatusReport(selectedLayer);
           }
