@@ -38,6 +38,7 @@ export class TrendMapComponent implements OnInit {
   countyLayerLookup: { [FIPS_00000: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
+  mapZoomedIn: boolean = false;
 
   /* Component Coordination */
   countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
@@ -176,11 +177,13 @@ export class TrendMapComponent implements OnInit {
         if (!this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.addLayer(Stamen_TonerHybrid);
           this.countyGeoJSON.setStyle({ fillOpacity: 0.5 });
+          this.mapZoomedIn = true;
         }
       } else {
         if (this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.removeLayer(Stamen_TonerHybrid)
-          this.countyGeoJSON.setStyle({ fillOpacity: 0.9 });
+          this.countyGeoJSON.setStyle({ fillOpacity: 1 });
+          this.mapZoomedIn = false;
         }
       }
     });
@@ -298,7 +301,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
-    this.statusReportChartConfig = this.getStatusReportChartConfig(layer.feature.properties.FIPS, 1/* 1=Rate */);
+    this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
 
     /* Open the Status Report */
     this.infoPanelOpen = true;
@@ -418,7 +421,7 @@ export class TrendMapComponent implements OnInit {
       color: "hsl(180, 100%, 44%)", /* This is the cyan focus color */
       weight: 0, /* Weight gets toggled to focus a particular region */
       opacity: 1,
-      fillOpacity: 0.9
+      fillOpacity: 1
     };
 
     const countyGeoJsonOptions: CustomGeoJSONOptions = {
@@ -515,6 +518,10 @@ export class TrendMapComponent implements OnInit {
       this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
       workingTimeStop++;
       this.updateMapDisplay();
+
+      /* TODO:? Update sidebar along with map animation maybe */
+      // this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
+
       if(this.currentTimeStop.num === this.latestTimeStop.num) {
         this.pauseAnimation();
       }
@@ -562,12 +569,12 @@ export class TrendMapComponent implements OnInit {
 
   getLegendColorSchemeData() {
     return [
-      {label: "> 400", color: "hsl(-20, 100%, 17%)"},
-      {label: "200-400", color: "hsl(-10, 64%, 34%)"},
-      {label: "100-200", color: "hsl(0, 43%, 52%)"},
-      {label: "50-100", color: "hsl(10, 57%, 75%)"},
-      {label: "1-50", color: "hsl(20, 62%, 91%)"},
-      {label: "0", color: "hsl(0, 0%, 97%)"},
+      {label: "> 400", color: "hsl(-20, 100%, 17%)", colorFaded: "hsla(-20, 100%, 17%, 0.6)"},
+      {label: "200-400", color: "hsl(-10, 64%, 34%)", colorFaded: "hsla(-10, 64%, 34%, 0.6)"},
+      {label: "100-200", color: "hsl(0, 43%, 52%)", colorFaded: "hsla(0, 43%, 52%, 0.6)"},
+      {label: "50-100", color: "hsl(10, 57%, 75%)", colorFaded: "hsla(10, 57%, 75%, 0.6)"},
+      {label: "1-50", color: "hsl(20, 62%, 91%)", colorFaded: "hsla(20, 62%, 91%, 0.6)"},
+      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
     ]
   }
 
