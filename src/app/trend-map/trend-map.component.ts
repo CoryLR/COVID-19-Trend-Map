@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
-import { trigger, state, style, animate, transition, } from '@angular/animations';
+import { trigger, state, style, animate, transition, keyframes, } from '@angular/animations';
 import { ActivatedRoute } from '@angular/router';
 
 import * as L from 'leaflet';
@@ -10,6 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
+import * as stateGeoJsonContent from '../../assets/us_states.json';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -17,6 +18,7 @@ export interface CustomTileLayerOptions extends L.TileLayerOptions {
 }
 export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   smoothFactor?: number;
+  interactive?: boolean;
 }
 
 @Component({
@@ -35,6 +37,8 @@ export class TrendMapComponent implements OnInit {
   /* Map Data Control */
   map: any;
   countyGeoJSON: any; /* GeoJSON Object format,  */
+  stateGeoJSON: any; /* GeoJSON Object format,  */
+  stateGeoJsonObject: any = stateGeoJsonContent;
   countyLayerLookup: { [FIPS_00000: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
@@ -54,6 +58,7 @@ export class TrendMapComponent implements OnInit {
   panelContent: any = {};// panelContent: { title?: string, subtitle?: string, rate?: number, acceleration?: number, cumulative?: number, accWordMoreLess?: string, accWordAccelDecel?: string, accWordAndBut?: string, } = { };
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
+  stateNameList: string[] = [];
   legendColorSchemeData: any = this.getLegendColorSchemeData();
 
   /* Font Awesome Icons */
@@ -86,8 +91,15 @@ export class TrendMapComponent implements OnInit {
       // {name: 'robots', content: 'index, follow'},
       { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
     ]);
+
     this.map = this.initializeMap();
     this.getData();
+
+    for (let key in this.stateFipsLookup) {
+      if (key in this.stateFipsLookup) {
+        this.stateNameList.push(this.stateFipsLookup[key].name);
+      }
+    }
 
 
     /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
@@ -228,7 +240,10 @@ export class TrendMapComponent implements OnInit {
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
-      if (locationInfo.length > 2) {
+      // console.log("locationInfo", locationInfo);
+      // console.log("place", place);
+      const localityException = place.location.raw.place_id == 234930245 /* NYC */ ? true : false;
+      if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
 
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
@@ -241,12 +256,20 @@ export class TrendMapComponent implements OnInit {
             this.openStatusReport(matchedLayer);
           }, 250);
         });
-
-      } else {
+      } else if (this.stateNameList.includes(secondLevelLocation)) {
+        // console.log("US State Detected: ", secondLevelLocation);
         this.map.flyToBounds(place.location.bounds);
+      } else {
+        const currentView = this.map.getBounds();
+        alert("Location not found in the U.S.");
+        setTimeout(() => {
+          this.map.fitBounds(currentView);
+        }, 50);  
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
-      this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
+      setTimeout(() => {
+        this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
+      }, 50);
     } else {
       const currentView = this.map.getBounds();
       alert("Location not found in the U.S.");
@@ -423,6 +446,12 @@ export class TrendMapComponent implements OnInit {
       opacity: 1,
       fillOpacity: 1
     };
+    const stateStyle = {
+      color: "rgb(50, 50, 50)",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0
+    }
 
     const countyGeoJsonOptions: CustomGeoJSONOptions = {
       smoothFactor: 0.6,
@@ -432,9 +461,16 @@ export class TrendMapComponent implements OnInit {
         this.countyLayerLookup[feature.properties.FIPS] = layer;
       }
     }
+    const stateGeoJsonOptions: CustomGeoJSONOptions = {
+      smoothFactor: 1,
+      style: stateStyle,
+      interactive: false
+    }
     this.countyGeoJSON = L.geoJSON(geojson, countyGeoJsonOptions);
+    this.stateGeoJSON = L.geoJSON(this.stateGeoJsonObject.default, stateGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
+    this.map.addLayer(this.stateGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     this.initialLoadDone = true;
 
