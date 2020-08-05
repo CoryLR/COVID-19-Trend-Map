@@ -2,9 +2,9 @@
 /* Hello, I am Diego the Data Broker. */
 /*                                    */
 
-const { Client, CronJob, Got, PapaParse, fs, path } = getDependencies();
+const { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path } = getDependencies();
 
-const productionMode = true;
+const productionMode = false;
 
 module.exports = {
   start: () => {
@@ -28,7 +28,7 @@ async function runStartupTasks() {
   }
   
   /* Useful for testing backend */
-  // await updateDatabaseWithCovidDataPackage();
+  await updateDatabaseWithCovidDataPackage();
 
   await cleanUpDatabase();
 }
@@ -53,7 +53,6 @@ function initDataCollectionSchedule() {
 /* 
   TODO:
   - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
-  - Fix bug causing some Rate values to be negative
 
 */
 
@@ -77,7 +76,12 @@ async function retrieveCovidDataPackage() {
 
 async function updateDatabaseWithCovidDataPackage() {
   const source = "0 - Database";
-  const dataPackage = await generateCovidDataPackage(source);
+  let dataPackage;
+  if(productionMode) {
+    dataPackage = await generateCovidDataPackage(source);
+  } else {
+    dataPackage = await generateCovidDataPackage_dev(source);
+  }
   queryPrimaryDatabase(`
     INSERT INTO covid_19 (
       label,
@@ -114,29 +118,136 @@ async function generateCovidDataPackage(source = "unknown") {
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
   const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
 
-  return getCovidResults(csvContent, geoJsonContent, source);
+  const data = [[csvContent, geoJsonContent]];
+  // return getCovidResults(csvContent, geoJsonContent, source);
+  return getCovidDataPackage(data, source);
 
 }
 
 async function generateCovidDataPackage_dev() {
 
+  /* Get County CSV */
   let filePath = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
   let data = fs.readFileSync(filePath, "utf8");
-  const csvContent = data;
+  const countyCsvContent = data;
 
-  const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
-  const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
+  /* Get State CSV */
+  const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
+  
+  /* Get National CSV */
+  const nationalCsvContent = dissolveCsv(countyCsvContent, "Country_Region");
 
+  /* Get County GeoJSON */
+  const filePath_countyGeoJson = path.join(__dirname, './data/us_counties.geojson');
+  const countyGeoJsonContent = fs.readFileSync(filePath_countyGeoJson, "utf8");
+
+  /* Get State GeoJSON */
+  const filePath_stateGeoJson = path.join(__dirname, './data/us_states.geojson');
+  const stateGeoJsonContent = fs.readFileSync(filePath_stateGeoJson, "utf8");
+  
+  /* Get National GeoJSON */
+  const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
+  const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
+  
   const source = "2 - Local (Diego is in 'dev' mode)";
-  return getCovidResults(csvContent, geoJsonContent, source);
+
+  // const data = [[countyCsvContent, countyGeoJsonContent], [stateCsvContent, stateGeoJsonContent], [nationalCsvContent, nationalGeoJsonContent]];
+  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+  // return getCovidResults(csvContent, geoJsonContent, source);
+  return getCovidDataPackage(freshData, source);
 
 }
 
-function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
+function dissolveCsv(csvContent, dissolveField) {
+  const csv2dArray = PapaParse(csvContent).data;
+  headerRow = csv2dArray[0];
+  dissolveIndex = headerRow.indexOf(dissolveField);
+  dataRows = {};
+
+  /* Each Row */
+  for(let i = 1; i < csv2dArray.length; i++) {
+    currentRow = csv2dArray[i];
+    groupName = currentRow[dissolveIndex];
+    if (dataRows[groupName] === undefined) {
+      dataRows[groupName] = currentRow;
+    } else {
+      /* Each Cell */
+      for (let ii = 0; ii < currentRow.length; ii++) {
+        cellValue = currentRow[ii]
+        if (typeof cellValue === "number" && headerRow[ii] !== "no") {
+          dataRows[groupName][ii] = dataRows[groupName][ii] += cellValue;
+        }
+      }
+    }
+  }
+
+  output2dArray = []
+  for (groupName in dataRows) {
+    if (groupName in dataRows) {
+      output2dArray.push(dataRows[groupName]);
+    }
+  }
+
+  return PapaUnparse(output2dArray);
+
+}
+
+function getCovidDataPackage(data, source = "unknown") {
+
+  console.log("Starting Data Package...");
+
+  const {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
+
+  const {
+    geoJson: countyGeojson,
+    dataLookup: countyDatalookup,
+    weekDefinitionsList: countyWeekDefinitionsList,
+    weekDefinitionsLookup: countyWeekDefinitionsLookup,
+  } = getCovidResults(countyCsvContent, countyGeoJsonContent);
+  // const {
+  //   geojson: stateGeoJson,
+  //   datalookup: stateDataLookup,
+  //   weekDefinitionsList: stateWeekDefinitionsList,
+  //   weekDefinitionsLookup: stateWeekDefinitionsLookup,
+  // } = getCovidResults(stateCsvContent, stateGeoJsonContent);
+  // const {
+  //   geojson: nationalGeoJson,
+  //   datalookup: nationalDataLookup,
+  //   weekDefinitionsList: nationalWeekDefinitionsList,
+  //   weekDefinitionsLookup: nationalWeekDefinitionsLookup,
+  // } = getCovidResults(nationalCsvContent, nationalGeoJsonContent);
+  
+  const dataPackage = {
+    "county": {
+      "geoJson": countyGeojson,
+      "dataLookup": countyDatalookup,
+    },
+    // "state": {
+    //   "geoJson": stateGeoJson,
+    //   "dataLookup": stateDataLookup,
+    // },
+    // "national": {
+    //   "geoJson": nationalGeoJson,
+    //   "dataLookup": nationalDataLookup,
+    // },
+    "weekDefinitions": {
+      "list": countyWeekDefinitionsList,
+      "lookup": countyWeekDefinitionsLookup,
+    },
+    "source": source,
+  }
+
+  console.log("...Finished generating Data Package!");
+  return dataPackage
+
+}
+
+function getCovidResults(csvContent, geoJsonContent) {
+  console.log("Getting Covid Results...");
 
   /* Parse inputs into usable data structures */
   const usDailyConfirmedArray2d = PapaParse(csvContent).data;
-  const countiesGeoJson = JSON.parse(geoJsonContent); // "Object.keys(countiesGeoJson)" => [ 'type', 'name', 'crs', 'features' ]
+  const geoJson = JSON.parse(geoJsonContent); // "Object.keys(geoJson)" => [ 'type', 'name', 'crs', 'features' ]
 
   /** Data diagnostics **/
 
@@ -238,9 +349,9 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
 
   /* Add data to County Data Lookup for every feature in the geojson */
 
-  let countyCovidDataLookup = {};
+  let covidDataLookup = {};
 
-  for (let county of countiesGeoJson.features) {
+  for (let feature of geoJson.features) {
 
     weeklyCovidDataArray = []
 
@@ -248,13 +359,13 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
       - Match FIPS to calculate normalized rate and acceleration
       - Create new "week" key (t1 - tN) for each week going back to total-2 (same as acc length)
       - Assign each week array of data values: [normalized rate, normalized acceleration]
-      - Add to countyCovidDataLookup where key=FIPS, value=[cumulative, rate, acceleration]
+      - Add to covidDataLookup where key=FIPS, value=[cumulative, rate, acceleration]
       - delete POPULATION from county 
     */
 
-   const fips = county.properties.FIPS;
-   const name = county.properties.NAME;
-   const pop = county.properties.POPULATION <= 0 ? 0.0001 : county.properties.POPULATION;
+   const fips = feature.properties.FIPS;
+   const name = feature.properties.NAME;
+   const pop = feature.properties.POPULATION <= 0 ? 0.0001 : feature.properties.POPULATION;
 
     try {
       /* Initialize "i" at 2 to skip first 2 weeks where we do not have acceleration data */
@@ -268,20 +379,20 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
         const accelerationNormalized = Math.round(acceleration / pop * 100000);
         const recoveryStreak = covid19WeeklyRecoveryStreakLookup[fips][i_wk - 1];
 
-        // county.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
+        // feature.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
         weeklyCovidDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, recoveryStreak])
       }
     } catch (err) {
-      console.log("County Data Processing Error at ", fips, county.properties.NAME);
+      console.log("County Data Processing Error at ", fips, feature.properties.NAME);
       console.log("Error: ", err);
     }
 
-    countyCovidDataLookup[fips] = {
+    covidDataLookup[fips] = {
       name: name,
       data: weeklyCovidDataArray,
     };
-    delete county.properties.NAME;
-    delete county.properties.POPULATION;
+    delete feature.properties.NAME;
+    delete feature.properties.POPULATION;
   }
 
   /* Make date lookup for each "week" (t1 - tN in GeoJSON) */
@@ -294,14 +405,13 @@ function getCovidResults(csvContent, geoJsonContent, source = "unknown") {
   }
 
   let dataPackage = {
-    "geojson": countiesGeoJson,
-    "datalookup": countyCovidDataLookup,
-    "weekdefinitions": {
-      "list": weekDefinitionsList,
-      "lookup": weekDefinitionsLookup,
-    },
-    "source": source,
+    "geoJson": geoJson,
+    "dataLookup": covidDataLookup,
+    "weekDefinitionsList": weekDefinitionsList,
+    "weekDefinitionsLookup": weekDefinitionsLookup,
   }
+  console.log("Object.keys(geoJson)", Object.keys(geoJson));
+  console.log("Object.keys(covidDataLookup).length", Object.keys(covidDataLookup).length);
 
   return dataPackage
 }
@@ -353,8 +463,9 @@ function getDependencies() {
   const CronJob = require('cron').CronJob;
   const Got = require('got');
   const PapaParse = require('papaparse').parse;
+  const PapaUnparse = require('papaparse').unparse;
   const fs = require("fs");
   const path = require('path');
 
-  return { Client, CronJob, Got, PapaParse, fs, path };
+  return { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path };
 }

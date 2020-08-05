@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
-import * as stateGeoJsonContent from '../../assets/us_states.json';
+// import * as stateGeoJsonContent from '../../assets/us_states.json';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -19,6 +19,7 @@ export interface CustomTileLayerOptions extends L.TileLayerOptions {
 export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   smoothFactor?: number;
   interactive?: boolean;
+  dashArray?: string;
 }
 
 @Component({
@@ -38,7 +39,6 @@ export class TrendMapComponent implements OnInit {
   map: any;
   countyGeoJSON: any; /* GeoJSON Object format,  */
   stateGeoJSON: any; /* GeoJSON Object format,  */
-  stateGeoJsonObject: any = stateGeoJsonContent;
   countyLayerLookup: { [FIPS_00000: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
@@ -126,8 +126,9 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      this.weekDefinitions = response.weekdefinitions;
-      this.countyDataLookup = response.datalookup;
+      console.log("Data Package:\n", response);
+      this.weekDefinitions = response.weekDefinitions;
+      this.countyDataLookup = response.county.dataLookup;
       this.latestTimeStop = {
         name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
         num: this.weekDefinitions.list.length - 1
@@ -143,7 +144,7 @@ export class TrendMapComponent implements OnInit {
       // console.log("Data Package:", response);
       // Good FIPS test-cases to log: 31041, 08009
 
-      this.initMapData(response.geojson);
+      this.initMapData(response.county.geoJson/* , response.statesGeoJson */);
 
       this.actOnUrlScheme();
 
@@ -185,6 +186,22 @@ export class TrendMapComponent implements OnInit {
 
     map.on('zoomend', () => {
       const zoomLevel = this.map.getZoom();
+      // if (zoomLevel >= 11) {
+      //   this.stateGeoJSON.setStyle({
+      //     weight: 0,
+      //   })
+      // } else if (zoomLevel >= 7) {
+      //   this.stateGeoJSON.setStyle({
+      //     color: "rgb(100, 100, 100)",
+      //     weight: 4,
+      //     dasharray: "2",
+      //   })
+      // } else {
+      //     this.stateGeoJSON.setStyle({
+      //       color: "rgb(50, 50, 50)",
+      //       weight: 1,    
+      //     })
+      // }
       if (zoomLevel >= 6) {
         if (!this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.addLayer(Stamen_TonerHybrid);
@@ -436,7 +453,7 @@ export class TrendMapComponent implements OnInit {
     };
   }
 
-  initMapData(geojson) {
+  initMapData(countiesGeoJson/* , statesGeoJson */) {
 
     const countyStyle = {
       // radius: 8,
@@ -464,13 +481,14 @@ export class TrendMapComponent implements OnInit {
     const stateGeoJsonOptions: CustomGeoJSONOptions = {
       smoothFactor: 1,
       style: stateStyle,
-      interactive: false
+      interactive: false,
+      dashArray: "10"
     }
-    this.countyGeoJSON = L.geoJSON(geojson, countyGeoJsonOptions);
-    this.stateGeoJSON = L.geoJSON(this.stateGeoJsonObject.default, stateGeoJsonOptions);
+    this.countyGeoJSON = L.geoJSON(countiesGeoJson, countyGeoJsonOptions);
+    // this.stateGeoJSON = L.geoJSON(statesGeoJson, stateGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
-    this.map.addLayer(this.stateGeoJSON);
+    // this.map.addLayer(this.stateGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     this.initialLoadDone = true;
 
