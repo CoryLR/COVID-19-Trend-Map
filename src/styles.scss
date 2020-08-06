@@ -17,13 +17,26 @@ html {
   .popup-place-title {
     font-size: 16px;
   }
+  .status-report-label {
+    margin: 10px 0 10px 0;
+  }
   .popup-status-report-btn-wrapper {
-    margin-top: 10px;
     width: 100%;
-    .popup-status-report-btn {
-      width: 100%;
+    display: flex;
+    justify-content: center;
+    
+    @mixin popup-status-report-btn {
+      width: 80px;
       border: 1px solid rgb(200, 200, 200);
       color: rgb(90, 90, 90);
+      display: inline-block;
+    }
+    .popup-status-report-btn-local {
+      @include popup-status-report-btn();
+    }
+    .popup-status-report-btn-state {
+      @include popup-status-report-btn();
+      margin-left: 5px;
     }
   }
   .popup-fips-label {

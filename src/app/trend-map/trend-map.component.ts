@@ -40,12 +40,14 @@ export class TrendMapComponent implements OnInit {
   countyGeoJSON: any; /* GeoJSON Object format,  */
   stateGeoJSON: any; /* GeoJSON Object format,  */
   countyLayerLookup: { [FIPS_00000: string]: any } = {};
+  stateLayerLookup: { [FIPS_00: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
   mapZoomedIn: boolean = false;
 
   /* Component Coordination */
   countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
+  stateDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
   geoJsonCountyLookup: { [FIPS_00000: string]: any }; /* Contains references to each county in the GeoJSON layer */
 
   /* Temporal Coordination */
@@ -113,7 +115,7 @@ export class TrendMapComponent implements OnInit {
       .subscribe(params => {
         console.log("URL params", params); // e.g. { fips: "51059" }
         if(params.fips) {
-          const selectedLayer = this.countyLayerLookup[params.fips];
+          const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
             this.map.fitBounds(selectedLayer.getBounds().pad(1));
             this.openStatusReport(selectedLayer);  
@@ -129,6 +131,7 @@ export class TrendMapComponent implements OnInit {
       console.log("Data Package:\n", response);
       this.weekDefinitions = response.weekDefinitions;
       this.countyDataLookup = response.county.dataLookup;
+      this.stateDataLookup = response.state.dataLookup;
       this.latestTimeStop = {
         name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
         num: this.weekDefinitions.list.length - 1
@@ -144,7 +147,7 @@ export class TrendMapComponent implements OnInit {
       // console.log("Data Package:", response);
       // Good FIPS test-cases to log: 31041, 08009
 
-      this.initMapData(response.county.geoJson/* , response.statesGeoJson */);
+      this.initMapData(response.county.geoJson, response.state.geoJson);
 
       this.actOnUrlScheme();
 
@@ -236,10 +239,16 @@ export class TrendMapComponent implements OnInit {
     /* Add popup click listener(s) */
     this.elementRef.nativeElement.querySelector('.leaflet-popup-pane')
       .addEventListener('click', (e) => {
-        if (e.target.classList.contains("popup-status-report-btn")) {
+        if (e.target.classList.contains("popup-status-report-btn-local")) {
           const popupFips = e.target.getAttribute('popup-fips');
           if (this.panelContent.fips !== popupFips || !this.infoPanelOpen) {
             const selectedLayer = this.countyLayerLookup[popupFips];
+            this.openStatusReport(selectedLayer);
+          }
+        } else if (e.target.classList.contains("popup-status-report-btn-state")) {
+          const popupFips = e.target.getAttribute('popup-fips').slice(0,2);
+          if (this.panelContent.fips !== popupFips || !this.infoPanelOpen) {
+            const selectedLayer = this.stateLayerLookup[popupFips];
             this.openStatusReport(selectedLayer);
           }
         }
@@ -304,7 +313,7 @@ export class TrendMapComponent implements OnInit {
 
     /* Update map feature */
     layer.bringToFront();
-    layer.setStyle({ weight: 5/* , color: "black" */ });
+    layer.setStyle({ weight: 5, color: "hsl(180, 100%, 44%)" });
 
     /* Open the Status Report panel */
     if (this.infoPanelOpen) {
@@ -320,7 +329,8 @@ export class TrendMapComponent implements OnInit {
   openPanel(layer) {
 
     /* Update Status Report */
-    const countyInfo = this.countyDataLookup[`${layer.feature.properties.FIPS}`];
+    const fips = layer.feature.properties.FIPS;
+    const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : this.countyDataLookup[fips];
     const countyName = countyInfo.name;
     const countyData = countyInfo.data[this.latestTimeStop.num];
 
@@ -332,7 +342,7 @@ export class TrendMapComponent implements OnInit {
 
     this.panelContent.fips = layer.feature.properties.FIPS;
     this.panelContent.title = countyName;
-    this.panelContent.subtitle = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name;
+    this.panelContent.subtitle = fips.length === 2 ? "USA" : this.stateFipsLookup[fips.substr(0, 2)].name;
     this.panelContent.rate = this.styleNum(rate);
     this.panelContent.rateNorm = this.styleNum(rateNorm);
     this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
@@ -354,7 +364,7 @@ export class TrendMapComponent implements OnInit {
   getStatusReportChartConfig(fips, attributeIndex) {
 
     /* TODO: if latestTimeStop is first, second, second to last, or last... Right now this assumes it's last */
-    const dataRange = this.countyDataLookup[fips].data.slice(-5);
+    const dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(-5) : this.countyDataLookup[fips].data.slice(-5);
     const dateRange = this.weekDefinitions.list.slice(-5);
 
     /* Loop through the last 5 time-stops and get an array of rates */
@@ -453,7 +463,7 @@ export class TrendMapComponent implements OnInit {
     };
   }
 
-  initMapData(countiesGeoJson/* , statesGeoJson */) {
+  initMapData(countiesGeoJson, statesGeoJson) {
 
     const countyStyle = {
       // radius: 8,
@@ -482,13 +492,17 @@ export class TrendMapComponent implements OnInit {
       smoothFactor: 1,
       style: stateStyle,
       interactive: false,
-      dashArray: "10"
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup("");
+        this.stateLayerLookup[feature.properties.FIPS] = layer;
+      }
+      // dashArray: "10"
     }
     this.countyGeoJSON = L.geoJSON(countiesGeoJson, countyGeoJsonOptions);
-    // this.stateGeoJSON = L.geoJSON(statesGeoJson, stateGeoJsonOptions);
+    this.stateGeoJSON = L.geoJSON(statesGeoJson, stateGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
-    // this.map.addLayer(this.stateGeoJSON);
+    this.map.addLayer(this.stateGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     this.initialLoadDone = true;
 
@@ -536,8 +550,10 @@ export class TrendMapComponent implements OnInit {
           <strong>${countyName}</strong>, ${stateName}
         </div>
         ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
+        <p class="status-report-label"><em>See Status Report:</em></p>
         <div class="popup-status-report-btn-wrapper">
-          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn btn btn-secondary btn-sm btn-light">See Status Report</button>
+          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
+          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-state btn btn-secondary btn-sm btn-light">State</button>
         <div>
       `);
       /* Invisible FIPS */
@@ -553,7 +569,7 @@ export class TrendMapComponent implements OnInit {
   closePanel() {
     if (this.infoPanelOpen) {
       this.infoPanelOpen = false;
-      this.lastSelectedLayer.setStyle({ weight: 0/* , color: "white" */ });
+      this.lastSelectedLayer.setStyle({ weight: 0, color: "black" });
     }
   }
 

@@ -4,7 +4,7 @@
 
 const { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path } = getDependencies();
 
-const productionMode = false;
+const productionMode = true;
 
 module.exports = {
   start: () => {
@@ -25,10 +25,13 @@ module.exports = {
 async function runStartupTasks() {  
   if (productionMode === true) {
     await updateDatabaseWithCovidDataPackage();
+  } else {
+
+    /* Useful for testing backend */
+    // await updateDatabaseWithCovidDataPackage();
+
   }
   
-  /* Useful for testing backend */
-  await updateDatabaseWithCovidDataPackage();
 
   await cleanUpDatabase();
 }
@@ -82,24 +85,26 @@ async function updateDatabaseWithCovidDataPackage() {
   } else {
     dataPackage = await generateCovidDataPackage_dev(source);
   }
-  queryPrimaryDatabase(`
-    INSERT INTO covid_19 (
-      label,
-      data
-    ) VALUES (
-      'latest',
-      $1
-    );
-  `, [dataPackage], (err, res) => {
-    if (err) {
-      console.log("[Diego]: Error adding data to database:\n", err);
-      return false;
-      /* TODO: Add "data upload failure" entry to Diego's Journal, get rid of "err" in console.log*/
-    } else {
-      console.log("[Diego]: Success adding COVID-19 data to database.");
-      return true;
-    }
-  });
+  if(productionMode) {
+    queryPrimaryDatabase(`
+      INSERT INTO covid_19 (
+        label,
+        data
+      ) VALUES (
+        'latest',
+        $1
+      );
+    `, [dataPackage], (err, res) => {
+      if (err) {
+        console.log("[Diego]: Error adding data to database:\n", err);
+        return false;
+        /* TODO: Add "data upload failure" entry to Diego's Journal, get rid of "err" in console.log*/
+      } else {
+        console.log("[Diego]: Success adding COVID-19 data to database.");
+        return true;
+      }
+    });
+  }
 }
 
 async function cleanUpDatabase() {
@@ -112,15 +117,34 @@ async function cleanUpDatabase() {
 
 async function generateCovidDataPackage(source = "unknown") {
 
+  /*** Get CSVs ***/
+  
+  /* County */
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
-  const csvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
-
+  const countyCsvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
+  
+  /* State */
+  const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
+  
+  /* National */
+  const nationalCsvContent = dissolveCsv(countyCsvContent, "Country_Region");
+  
+  /*** Get GeoJSONs ***/
+  
+  /* County */
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
-  const geoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
+  const countyGeoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
 
-  const data = [[csvContent, geoJsonContent]];
-  // return getCovidResults(csvContent, geoJsonContent, source);
-  return getCovidDataPackage(data, source);
+  /* State */
+  const filePath_stateGeoJson = path.join(__dirname, './data/us_states.geojson');
+  const stateGeoJsonContent = fs.readFileSync(filePath_stateGeoJson, "utf8");
+  
+  /* National */
+  const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
+  const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
+
+  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+  return getCovidDataPackage(freshData, source);
 
 }
 
@@ -173,15 +197,19 @@ function dissolveCsv(csvContent, dissolveField) {
     } else {
       /* Each Cell */
       for (let ii = 0; ii < currentRow.length; ii++) {
-        cellValue = currentRow[ii]
-        if (typeof cellValue === "number" && headerRow[ii] !== "no") {
-          dataRows[groupName][ii] = dataRows[groupName][ii] += cellValue;
+        const cellValue = currentRow[ii];
+        const currentHeader = headerRow[ii];
+
+        /* If this cell is COVID data that we want to aggregate */
+        if ((currentHeader.length === 6 || currentHeader.length === 7 || currentHeader.length === 8) && currentHeader.match(/\//g) && currentHeader.match(/\//g).length == 2) {
+          dataRows[groupName][ii] = parseInt(dataRows[groupName][ii], 10) + parseInt(cellValue, 10);
         }
       }
     }
   }
 
-  output2dArray = []
+  output2dArray = [];
+  output2dArray.push(headerRow);
   for (groupName in dataRows) {
     if (groupName in dataRows) {
       output2dArray.push(dataRows[groupName]);
@@ -199,33 +227,33 @@ function getCovidDataPackage(data, source = "unknown") {
   const {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
 
   const {
-    geoJson: countyGeojson,
-    dataLookup: countyDatalookup,
+    geoJson: countyGeoJson,
+    dataLookup: countyDataLookup,
     weekDefinitionsList: countyWeekDefinitionsList,
     weekDefinitionsLookup: countyWeekDefinitionsLookup,
   } = getCovidResults(countyCsvContent, countyGeoJsonContent);
+  const {
+    geoJson: stateGeoJson,
+    dataLookup: stateDataLookup,
+    weekDefinitionsList: stateWeekDefinitionsList,
+    weekDefinitionsLookup: stateWeekDefinitionsLookup,
+  } = getCovidResults(stateCsvContent, stateGeoJsonContent);
   // const {
-  //   geojson: stateGeoJson,
-  //   datalookup: stateDataLookup,
-  //   weekDefinitionsList: stateWeekDefinitionsList,
-  //   weekDefinitionsLookup: stateWeekDefinitionsLookup,
-  // } = getCovidResults(stateCsvContent, stateGeoJsonContent);
-  // const {
-  //   geojson: nationalGeoJson,
-  //   datalookup: nationalDataLookup,
+  //   geoJson: nationalGeoJson,
+  //   dataLookup: nationalDataLookup,
   //   weekDefinitionsList: nationalWeekDefinitionsList,
   //   weekDefinitionsLookup: nationalWeekDefinitionsLookup,
   // } = getCovidResults(nationalCsvContent, nationalGeoJsonContent);
   
   const dataPackage = {
     "county": {
-      "geoJson": countyGeojson,
-      "dataLookup": countyDatalookup,
+      "geoJson": countyGeoJson,
+      "dataLookup": countyDataLookup,
     },
-    // "state": {
-    //   "geoJson": stateGeoJson,
-    //   "dataLookup": stateDataLookup,
-    // },
+    "state": {
+      "geoJson": stateGeoJson,
+      "dataLookup": stateDataLookup,
+    },
     // "national": {
     //   "geoJson": nationalGeoJson,
     //   "dataLookup": nationalDataLookup,
@@ -254,7 +282,8 @@ function getCovidResults(csvContent, geoJsonContent) {
   let dataStartColumnIndex;
   let headers = usDailyConfirmedArray2d[0];
   for (let i_header = 0; i_header < headers.length; i_header++) {
-    if ((headers[i_header].length === 7 || headers[i_header].length === 8) && headers[i_header].match(/\//g).length == 2) {
+    const currentHeader = headers[i_header];
+    if ((currentHeader.length === 6 || currentHeader.length === 7 || currentHeader.length === 8) && currentHeader.match(/\//g) && currentHeader.match(/\//g).length == 2) {
       dataStartColumnIndex = i_header;
       break;
     }
@@ -274,9 +303,21 @@ function getCovidResults(csvContent, geoJsonContent) {
     weeklyDataHeaders.push(dataHeaders[i_header]);
   }
 
-  /* Loop through each county */
+  /* Loop through each feature */
   for (let i_county = 1; i_county < usDailyConfirmedArray2d.length - 1; i_county++) {
-    let currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
+
+    let currentFips
+    if (geoJson.name === "us_counties" || geoJson.features.length > 3000) {
+      /* Assume FIPS should be 5 digits ("00000") */
+      currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
+    } else if (geoJson.name === "us_states" || geoJson.features.length >= 50) {
+      /* Assume FIPS should be 2 digits ("00") */
+      currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0').slice(0,2);
+    } else {
+      /* Assume FIPS should be 1 digit (`0` hard-coded) */
+      currentFips = "0";
+    }
+
     let currentDailyDataArray = usDailyConfirmedArray2d[i_county].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_county].length);
     covid19DailyCountLookup[currentFips] = currentDailyDataArray;
 
@@ -372,6 +413,7 @@ function getCovidResults(csvContent, geoJsonContent) {
       for (let i_wk = 2; i_wk < weeklyDataHeaders.length; i_wk++) {
         let tN = i_wk - 1;
         const count = covid19WeeklyCountLookup[fips][i_wk];
+        /* TODO:1 ^ Cannot read i_wk=2 of undefined, so "covid19WeeklyCountLookup[fips]" is undefined. Why?*/
         let calculatedRate = covid19WeeklyRateLookup[fips][i_wk - 1];
         const rate = calculatedRate >= 0 ? calculatedRate : 0;
         const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - 2]
@@ -383,8 +425,8 @@ function getCovidResults(csvContent, geoJsonContent) {
         weeklyCovidDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, recoveryStreak])
       }
     } catch (err) {
-      console.log("County Data Processing Error at ", fips, feature.properties.NAME);
-      console.log("Error: ", err);
+      console.log("Feature Data Processing Error at ", fips, feature.properties.NAME);
+      console.log("Error:\n", err);
     }
 
     covidDataLookup[fips] = {
@@ -410,8 +452,6 @@ function getCovidResults(csvContent, geoJsonContent) {
     "weekDefinitionsList": weekDefinitionsList,
     "weekDefinitionsLookup": weekDefinitionsLookup,
   }
-  console.log("Object.keys(geoJson)", Object.keys(geoJson));
-  console.log("Object.keys(covidDataLookup).length", Object.keys(covidDataLookup).length);
 
   return dataPackage
 }
