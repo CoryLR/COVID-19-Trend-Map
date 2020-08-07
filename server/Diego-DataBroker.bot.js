@@ -238,12 +238,12 @@ function getCovidDataPackage(data, source = "unknown") {
     weekDefinitionsList: stateWeekDefinitionsList,
     weekDefinitionsLookup: stateWeekDefinitionsLookup,
   } = getCovidResults(stateCsvContent, stateGeoJsonContent);
-  // const {
-  //   geoJson: nationalGeoJson,
-  //   dataLookup: nationalDataLookup,
-  //   weekDefinitionsList: nationalWeekDefinitionsList,
-  //   weekDefinitionsLookup: nationalWeekDefinitionsLookup,
-  // } = getCovidResults(nationalCsvContent, nationalGeoJsonContent);
+  const {
+    geoJson: nationalGeoJson,
+    dataLookup: nationalDataLookup,
+    weekDefinitionsList: nationalWeekDefinitionsList,
+    weekDefinitionsLookup: nationalWeekDefinitionsLookup,
+  } = getCovidResults(nationalCsvContent, nationalGeoJsonContent);
   
   const dataPackage = {
     "county": {
@@ -254,10 +254,10 @@ function getCovidDataPackage(data, source = "unknown") {
       "geoJson": stateGeoJson,
       "dataLookup": stateDataLookup,
     },
-    // "national": {
-    //   "geoJson": nationalGeoJson,
-    //   "dataLookup": nationalDataLookup,
-    // },
+    "national": {
+      "geoJson": nationalGeoJson,
+      "dataLookup": nationalDataLookup,
+    },
     "weekDefinitions": {
       "list": countyWeekDefinitionsList,
       "lookup": countyWeekDefinitionsLookup,

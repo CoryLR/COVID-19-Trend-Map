@@ -39,15 +39,18 @@ export class TrendMapComponent implements OnInit {
   map: any;
   countyGeoJSON: any; /* GeoJSON Object format,  */
   stateGeoJSON: any; /* GeoJSON Object format,  */
+  nationalGeoJSON: any; /* GeoJSON Object format,  */
   countyLayerLookup: { [FIPS_00000: string]: any } = {};
   stateLayerLookup: { [FIPS_00: string]: any } = {};
+  nationalLayerLookup: { [FIPS_0: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
   mapZoomedIn: boolean = false;
 
   /* Component Coordination */
   countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
-  stateDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
+  stateDataLookup: { [FIPS_00: string]: { name: string, data: number[][] } };
+  nationalDataLookup: { [FIPS_0: string]: { name: string, data: number[][] } };
   geoJsonCountyLookup: { [FIPS_00000: string]: any }; /* Contains references to each county in the GeoJSON layer */
 
   /* Temporal Coordination */
@@ -115,7 +118,7 @@ export class TrendMapComponent implements OnInit {
       .subscribe(params => {
         console.log("URL params: ", params); // e.g. { fips: "51059" }
         if(params.fips) {
-          const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
+          const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : params.fips.length === 1 ? this.nationalLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
             this.map.fitBounds(selectedLayer.getBounds().pad(1));
             this.openStatusReport(selectedLayer);  
@@ -128,10 +131,11 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      // console.log("Data Package:\n", response);
+      console.log("Data Package:\n", response);
       this.weekDefinitions = response.weekDefinitions;
       this.countyDataLookup = response.county.dataLookup;
       this.stateDataLookup = response.state.dataLookup;
+      this.nationalDataLookup = response.national.dataLookup;
       this.latestTimeStop = {
         name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
         num: this.weekDefinitions.list.length - 1
@@ -147,7 +151,7 @@ export class TrendMapComponent implements OnInit {
       // console.log("Data Package:", response);
       // Good FIPS test-cases to log: 31041, 08009
 
-      this.initMapData(response.county.geoJson, response.state.geoJson);
+      this.initMapData(response.county.geoJson, response.state.geoJson, response.national.geoJson);
 
       this.actOnUrlScheme();
 
@@ -268,8 +272,8 @@ export class TrendMapComponent implements OnInit {
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
-      // console.log("locationInfo", locationInfo);
-      // console.log("place", place);
+      console.log("locationInfo", locationInfo);
+      console.log("place", place);
       const localityException = place.location.raw.place_id == 234930245 /* NYC */ ? true : false;
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
@@ -290,7 +294,7 @@ export class TrendMapComponent implements OnInit {
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
         this.map.flyToBounds(matchedLayer.getBounds().pad(0.5)/* , { duration: 1.5 } */);
         this.map.once('zoomend', () => {
-          const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+          const popupText = `<strong>${locationInfo[0]}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
           setTimeout(() => {
@@ -305,9 +309,22 @@ export class TrendMapComponent implements OnInit {
         }, 50);  
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
-      setTimeout(() => {
-        this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
-      }, 50);
+      let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.nationalGeoJSON, true)[0];
+      // let matchedLayer = this.nationalGeoJSON.features[0];
+      // this.map.flyToBounds(matchedLayer.getBounds().pad(0.2)/* , { duration: 1.5 } */);
+      this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
+      this.map.once('zoomend', () => {
+        // const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+        // this.map.openPopup(popupText, [place.location.y, place.location.x])
+        // matchedLayer.openPopup(); // This is for opening the normal click-popup
+        this.openStatusReport(matchedLayer);
+        // setTimeout(() => {
+        // }, 250);
+      });
+      
+      // setTimeout(() => {
+        //   this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
+      // }, 50);
     } else {
       const currentView = this.map.getBounds();
       alert("Location not found in the U.S.");
@@ -340,9 +357,13 @@ export class TrendMapComponent implements OnInit {
 
   openPanel(layer) {
 
+    console.log("opening Panel on layer:\n", layer);
+
     /* Update Status Report */
     const fips = layer.feature.properties.FIPS;
-    const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : this.countyDataLookup[fips];
+    const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : fips.length === 1 ? this.nationalDataLookup[fips] : this.countyDataLookup[fips];
+    console.log("this.nationalDataLookup", this.nationalDataLookup);
+    console.log("countyInfo", countyInfo);
     const countyName = countyInfo.name;
     const countyData = countyInfo.data[this.latestTimeStop.num];
 
@@ -354,7 +375,7 @@ export class TrendMapComponent implements OnInit {
 
     this.panelContent.fips = layer.feature.properties.FIPS;
     this.panelContent.title = countyName;
-    this.panelContent.subtitle = fips.length === 2 ? "USA" : this.stateFipsLookup[fips.substr(0, 2)].name;
+    this.panelContent.subtitle = fips.length === 2 ? "USA" : fips.length === 1 ? "" : this.stateFipsLookup[fips.substr(0, 2)].name;
     this.panelContent.rate = this.styleNum(rate);
     this.panelContent.rateNorm = this.styleNum(rateNorm);
     this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
@@ -376,7 +397,7 @@ export class TrendMapComponent implements OnInit {
   getStatusReportChartConfig(fips, attributeIndex) {
 
     /* TODO: if latestTimeStop is first, second, second to last, or last... Right now this assumes it's last */
-    const dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(-5) : this.countyDataLookup[fips].data.slice(-5);
+    const dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(-5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(-5) : this.countyDataLookup[fips].data.slice(-5);
     const dateRange = this.weekDefinitions.list.slice(-5);
 
     /* Loop through the last 5 time-stops and get an array of rates */
@@ -387,7 +408,7 @@ export class TrendMapComponent implements OnInit {
       }
     }
     const lineChartData: ChartDataSets[] = [
-      { data: data, label: 'New Cases' },
+      { data: data, label: 'Weekly New Cases' },
     ];
 
     let dates = [];
@@ -475,7 +496,7 @@ export class TrendMapComponent implements OnInit {
     };
   }
 
-  initMapData(countiesGeoJson, statesGeoJson) {
+  initMapData(countiesGeoJson, statesGeoJson, nationalGeoJson) {
 
     const countyStyle = {
       // radius: 8,
@@ -510,11 +531,23 @@ export class TrendMapComponent implements OnInit {
       }
       // dashArray: "10"
     }
+    const nationalGeoJsonOptions: CustomGeoJSONOptions = {
+      smoothFactor: 1,
+      style: countyStyle,
+      interactive: false,
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup("");
+        this.nationalLayerLookup[feature.properties.FIPS] = layer;
+      }
+      // dashArray: "10"
+    }
     this.countyGeoJSON = L.geoJSON(countiesGeoJson, countyGeoJsonOptions);
     this.stateGeoJSON = L.geoJSON(statesGeoJson, stateGeoJsonOptions);
+    this.nationalGeoJSON = L.geoJSON(nationalGeoJson, nationalGeoJsonOptions);
 
     this.map.addLayer(this.countyGeoJSON);
     this.map.addLayer(this.stateGeoJSON);
+    this.map.addLayer(this.nationalGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     this.initialLoadDone = true;
 
