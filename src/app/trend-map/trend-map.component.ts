@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, keyframes, } from '@angular/animations';
@@ -10,7 +10,6 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
-// import * as stateGeoJsonContent from '../../assets/us_states.json';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -26,6 +25,7 @@ export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   selector: 'app-trend-map',
   templateUrl: './trend-map.component.html',
   styleUrls: ['./trend-map.component.scss'],
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('panelOpenClosed', getPanelTransitions()),
     trigger('mapMinMax', getMapTransitions())
@@ -113,7 +113,7 @@ export class TrendMapComponent implements OnInit {
   actOnUrlScheme() {
     this.route.queryParams
       .subscribe(params => {
-        console.log("URL params", params); // e.g. { fips: "51059" }
+        console.log("URL params: ", params); // e.g. { fips: "51059" }
         if(params.fips) {
           const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
@@ -128,7 +128,7 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      console.log("Data Package:\n", response);
+      // console.log("Data Package:\n", response);
       this.weekDefinitions = response.weekDefinitions;
       this.countyDataLookup = response.county.dataLookup;
       this.stateDataLookup = response.state.dataLookup;
@@ -189,6 +189,7 @@ export class TrendMapComponent implements OnInit {
 
     map.on('zoomend', () => {
       const zoomLevel = this.map.getZoom();
+      /* TODO: Figure out how to efficiently deconflict state boundaries zoom change with cyan highlight */
       // if (zoomLevel >= 11) {
       //   this.stateGeoJSON.setStyle({
       //     weight: 0,
@@ -258,6 +259,7 @@ export class TrendMapComponent implements OnInit {
   }
 
   locationSearched(place) {
+    /* TODO: Add State support */
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
@@ -284,7 +286,17 @@ export class TrendMapComponent implements OnInit {
         });
       } else if (this.stateNameList.includes(secondLevelLocation)) {
         // console.log("US State Detected: ", secondLevelLocation);
-        this.map.flyToBounds(place.location.bounds);
+        // this.map.flyToBounds(place.location.bounds);
+        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
+        this.map.flyToBounds(matchedLayer.getBounds().pad(0.5)/* , { duration: 1.5 } */);
+        this.map.once('zoomend', () => {
+          const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+          this.map.openPopup(popupText, [place.location.y, place.location.x])
+          // matchedLayer.openPopup(); // This is for opening the normal click-popup
+          setTimeout(() => {
+            this.openStatusReport(matchedLayer);
+          }, 250);
+        });
       } else {
         const currentView = this.map.getBounds();
         alert("Location not found in the U.S.");
@@ -414,7 +426,7 @@ export class TrendMapComponent implements OnInit {
     ];
 
     const lineChartLegend = true;
-    const lineChartPlugins = [this.verticalLinePlugin];
+    const lineChartPlugins = [/* this.verticalLinePlugin */];
     const lineChartType = 'line';
 
     return {
@@ -481,7 +493,7 @@ export class TrendMapComponent implements OnInit {
     }
 
     const countyGeoJsonOptions: CustomGeoJSONOptions = {
-      smoothFactor: 0.6,
+      smoothFactor: 0.7,
       style: countyStyle,
       onEachFeature: (feature, layer) => {
         layer.bindPopup("");
@@ -569,7 +581,11 @@ export class TrendMapComponent implements OnInit {
   closePanel() {
     if (this.infoPanelOpen) {
       this.infoPanelOpen = false;
-      this.lastSelectedLayer.setStyle({ weight: 0, color: "black" });
+      if (this.lastSelectedLayer.feature.properties.FIPS.length === 2) {
+        this.lastSelectedLayer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
+      } else {
+        this.lastSelectedLayer.setStyle({ weight: 0 });
+      }
     }
   }
 
@@ -601,6 +617,10 @@ export class TrendMapComponent implements OnInit {
   pauseAnimation() {
     this.animationPaused = true;
     clearInterval(this.animationInterval);
+  }
+
+  replaceSpaces(string = "", symbol = "+") {
+    return string.replace(/ /g, symbol);
   }
 
   /**

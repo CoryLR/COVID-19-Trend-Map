@@ -9,7 +9,7 @@
     <div id="map"></div>
   </div>
 
-  <div class="info-panel" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
+  <div class="info-panel" *ngIf="panelContent" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
 
     <div class="close-panel" (click)="closePanel()">x</div>
 
@@ -71,11 +71,11 @@
     <div class="form-group">
       <label for="exampleInputEmail1">Share link to this status report:</label>
       <input readonly class="form-control status-report-link-text"
-      value="{{window.location.origin}}?fips={{panelContent.fips}}">
+      value="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}">
     </div>
-    <button (click)="copyText(window.location.origin + '?fips=' + panelContent.fips)" class="btn btn-secondary">Copy</button>
+    <button (click)="copyText(window.location.origin + '?fips=' + panelContent.fips + '&name=' + replaceSpaces(panelContent.title, '+'))" class="btn btn-secondary">Copy</button>
     &nbsp;
-    <a href="{{window.location.origin}}?fips={{panelContent.fips}}" target="_blank"><button class="btn btn-secondary">Open (New Tab)</button></a>
+    <a href="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}" target="_blank"><button class="btn btn-secondary">Open (New Tab)</button></a>
     
   </div>
 
