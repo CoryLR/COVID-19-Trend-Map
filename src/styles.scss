@@ -53,6 +53,15 @@ html {
     border-top-right-radius: 9px;
   }
 }
+.dropdown-layer-label {
+  font-weight: 800;
+  &:hover {
+    background-color: transparent;
+  }
+}
+.dropdown-layer-option {
+  cursor: pointer !important;
+}
 
 .stat-chart {
   width: 100%;

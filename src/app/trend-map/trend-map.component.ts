@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
 import * as leafletPip from '@mapbox/leaflet-pip'
+/* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
@@ -46,6 +47,10 @@ export class TrendMapComponent implements OnInit {
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
   mapZoomedIn: boolean = false;
+  layerSelection: any = {
+    layer: "ccr",
+    alias: "County Case Rate"
+  }
 
   /* Component Coordination */
   countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
@@ -64,7 +69,7 @@ export class TrendMapComponent implements OnInit {
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   stateNameList: string[] = [];
-  legendColorSchemeData: any = this.getLegendColorSchemeData();
+  legendColorSchemeData: any = this.getLegendColorSchemeRateData();
 
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
@@ -213,7 +218,7 @@ export class TrendMapComponent implements OnInit {
       if (zoomLevel >= 6) {
         if (!this.map.hasLayer(Stamen_TonerHybrid)) {
           this.map.addLayer(Stamen_TonerHybrid);
-          this.countyGeoJSON.setStyle({ fillOpacity: 0.5 });
+          this.countyGeoJSON.setStyle({ fillOpacity: 0.6 });
           this.mapZoomedIn = true;
         }
       } else {
@@ -279,7 +284,7 @@ export class TrendMapComponent implements OnInit {
         /* TODO: Exception for Alaska and places within */
 
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
-        this.map.flyToBounds(matchedLayer.getBounds().pad(1)/* , { duration: 1.5 } */);
+        this.map.flyToBounds(matchedLayer.getBounds().pad(1), { duration: 0.6 });
         this.map.once('zoomend', () => {
           const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
@@ -292,7 +297,7 @@ export class TrendMapComponent implements OnInit {
         // console.log("US State Detected: ", secondLevelLocation);
         // this.map.flyToBounds(place.location.bounds);
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
-        this.map.flyToBounds(matchedLayer.getBounds().pad(0.5)/* , { duration: 1.5 } */);
+        this.map.flyToBounds(matchedLayer.getBounds().pad(0.5), { duration: 0.6 });
         this.map.once('zoomend', () => {
           const popupText = `<strong>${locationInfo[0]}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
@@ -310,21 +315,10 @@ export class TrendMapComponent implements OnInit {
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
       let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.nationalGeoJSON, true)[0];
-      // let matchedLayer = this.nationalGeoJSON.features[0];
-      // this.map.flyToBounds(matchedLayer.getBounds().pad(0.2)/* , { duration: 1.5 } */);
-      this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
+      this.map.flyTo([40, -98.5], 4, { duration: 0.6 });
       this.map.once('zoomend', () => {
-        // const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
-        // this.map.openPopup(popupText, [place.location.y, place.location.x])
-        // matchedLayer.openPopup(); // This is for opening the normal click-popup
         this.openStatusReport(matchedLayer);
-        // setTimeout(() => {
-        // }, 250);
       });
-      
-      // setTimeout(() => {
-        //   this.map.flyTo([40, -98.5], 4/* , { duration: 1.5 } */);
-      // }, 50);
     } else {
       const currentView = this.map.getBounds();
       alert("Location not found in the U.S.");
@@ -555,7 +549,9 @@ export class TrendMapComponent implements OnInit {
 
   updateMapDisplay(attribute = undefined) {
 
-    this.choroplethDisplayAttribute = attribute ? attribute : this.choroplethDisplayAttribute;
+    if (attribute !== undefined) {
+      this.choroplethDisplayAttribute = attribute;
+    }
 
     /* Set configurations */
     let getStyle: Function;
@@ -636,7 +632,7 @@ export class TrendMapComponent implements OnInit {
     this.animationInterval = setInterval(() => {
       this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
       workingTimeStop++;
-      this.updateMapDisplay();
+      this.updateMapDisplay(this.choroplethDisplayAttribute);
 
       /* TODO:? Update sidebar along with map animation maybe */
       // this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
@@ -656,6 +652,40 @@ export class TrendMapComponent implements OnInit {
     return string.replace(/ /g, symbol);
   }
 
+  changeLayerSelection(layerCode) {
+    switch(layerCode) {
+      case("ccr"):
+        this.layerSelection.layer = "ccr";
+        this.layerSelection.alias = "County Case Rate";
+        this.updateMapDisplay(3);
+        break;
+        case("cca"):
+        this.layerSelection.layer = "cca";
+        this.layerSelection.alias = "County Case Acceleration";
+        this.updateMapDisplay(4);
+        break;
+      case("cdr"):
+        this.layerSelection.layer = "cdr";
+        this.layerSelection.alias = "County Death Rate";
+        break;
+      case("cr"):
+        this.layerSelection.layer = "cr";
+        this.layerSelection.alias = "County Recovery";
+        break;
+      case("scr"):
+        this.layerSelection.layer = "scr";
+        this.layerSelection.alias = "State Case Rate";
+        break;
+      case("sca"):
+        this.layerSelection.layer = "sca";
+        this.layerSelection.alias = "State Case Acceleration";
+        break;
+      case("sdr"):
+        this.layerSelection.layer = "sdr";
+        this.layerSelection.alias = "State Death Rate";
+    }
+  }
+
   /**
    * Converts number to string and adds commas to thousands places
    * @param number int
@@ -666,14 +696,14 @@ export class TrendMapComponent implements OnInit {
 
   getAccelerationStyleFunction(value) {
     switch (true) {
-      case (value > 200): return { fillColor: "#5e0000" };
-      case (value > 50): return { fillColor: "#990000" };
-      case (value > 25): return { fillColor: "#d4644d" };
+      // case (value > 200): return { fillColor: "#5e0000" };
+      case (value > 60): return { fillColor: "#990000" };
+      case (value > 30): return { fillColor: "#d4644d" };
       case (value > 0): return { fillColor: "#fef0d9" };
-      case (value == 0): return { fillColor: "lightgray" };
-      case (value >= -25): return { fillColor: "#cddcea" };
-      case (value >= -50): return { fillColor: "#90a1ad" };
-      case (value < -50): return { fillColor: "#434d5b" };
+      case (value == 0): return { fillColor: "hsl(0, 0%, 97%)" };
+      case (value >= -30): return { fillColor: "#cddcea" };
+      case (value >= -60): return { fillColor: "#90a1ad" };
+      case (value < -60): return { fillColor: "#434d5b" };
       default: return {};
     }
   }
@@ -685,12 +715,11 @@ export class TrendMapComponent implements OnInit {
       case (value > 50): return { fillColor: "hsl(10, 57%, 75%)" };
       case (value > 0): return { fillColor: "hsl(20, 62%, 91%)" };
       case (value <= 0): return { fillColor: "hsl(0, 0%, 97%)" };
-
       default: return {};
     }
   }
 
-  getLegendColorSchemeData() {
+  getLegendColorSchemeRateData() {
     return [
       {label: "> 400", color: "hsl(-20, 100%, 17%)", colorFaded: "hsla(-20, 100%, 17%, 0.6)"},
       {label: "200-400", color: "hsl(-10, 64%, 34%)", colorFaded: "hsla(-10, 64%, 34%, 0.6)"},

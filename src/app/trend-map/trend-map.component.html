@@ -110,10 +110,27 @@
   
   <div *ngIf="weekDefinitions && legendColorSchemeData" class="map-legend">
     <h5>Map Legend</h5> &nbsp;&nbsp; <span 
-      ngbPopover="Current map data is for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num] + 20}}"
+      ngbPopover="Current map data is for the week ending in {{weekDefinitions.list[currentTimeStop.num] + 20}} {{weekDefinitions.list[currentTimeStop.num - 1] ? '(' + weekDefinitions.list[currentTimeStop.num - 1] + '20 through ' + weekDefinitions.list[currentTimeStop.num] + '20)' : ''}}"
       triggers="mouseenter:mouseleave"
       container="body"
-      class="legend-date">{{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}</span>
+      class="legend-date">{{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}*</span>
+
+    <div ngbDropdown container="body" class="layer-picker-wrapper">
+      <button type="button" id="layer-picker" class="layer-picker btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
+        {{layerSelection.alias}}
+      </button>
+      <div ngbDropdownMenu aria-labelledby="layer-picker">
+        <a ngbDropdownItem class="dropdown-layer-label">Select a map layer:</a>
+        <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option">County Case Rate</a>
+        <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option">County Case Acceleration</a>
+        <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option">County Death Rate</a> -->
+        <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option">County Recovery</a>
+        <a ngbDropdownItem (click)="changeLayerSelection('scr')" class="dropdown-layer-option">State Case Rate</a>
+        <a ngbDropdownItem (click)="changeLayerSelection('sca')" class="dropdown-layer-option">State Case Acceleration</a>
+        <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->
+      </div>
+    </div>    
+
     <p
       ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
       triggers="mouseenter:mouseleave"

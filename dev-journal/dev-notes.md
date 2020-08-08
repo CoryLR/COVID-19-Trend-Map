@@ -114,7 +114,7 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
 Crunch time 2020-08-06 - 2020-08-09
 
-- [ ] [functional] State & National data integrated
+- [x] [functional] State & National data integrated
 - [ ] [functional] Death & Recovery integrated
 - [ ] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
 - [ ] [follow-through] Get mentor/peer feedback

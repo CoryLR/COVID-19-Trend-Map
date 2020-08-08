@@ -303,6 +303,9 @@ function getCovidResults(csvContent, geoJsonContent) {
     weeklyDataHeaders.push(dataHeaders[i_header]);
   }
 
+  /* Set acceleration range (how many weeks back to compare) */
+  const accelerationRange = 2;
+
   /* Loop through each feature */
   for (let i_county = 1; i_county < usDailyConfirmedArray2d.length - 1; i_county++) {
 
@@ -344,15 +347,16 @@ function getCovidResults(csvContent, geoJsonContent) {
     }
 
     /* Calculate county acceleration for all time-stops */
+
     let lastRate = undefined;
     let currentRate;
     for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
-      currentRate = currentWeeklyRateArray[i_rate];
-      if (lastRate !== undefined) {
-        let currentAcceleration = lastRate - currentRate;
+      futureRate = currentWeeklyRateArray[i_rate - accelerationRange];
+      if (futureRate !== undefined) {
+        currentRate = currentWeeklyRateArray[i_rate];
+        let currentAcceleration = futureRate - currentRate;
         currentWeeklyAccelerationArray.push(currentAcceleration);
       }
-      lastRate = currentWeeklyRateArray[i_rate];
     }
 
     /* Reverse arrays to order time-stops chronologically */
@@ -410,18 +414,15 @@ function getCovidResults(csvContent, geoJsonContent) {
 
     try {
       /* Initialize "i" at 2 to skip first 2 weeks where we do not have acceleration data */
-      for (let i_wk = 2; i_wk < weeklyDataHeaders.length; i_wk++) {
+      for (let i_wk = accelerationRange + 1; i_wk < weeklyDataHeaders.length; i_wk++) {
         let tN = i_wk - 1;
         const count = covid19WeeklyCountLookup[fips][i_wk];
-        /* TODO:1 ^ Cannot read i_wk=2 of undefined, so "covid19WeeklyCountLookup[fips]" is undefined. Why?*/
         let calculatedRate = covid19WeeklyRateLookup[fips][i_wk - 1];
         const rate = calculatedRate >= 0 ? calculatedRate : 0;
-        const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - 2]
+        const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - accelerationRange - 1]
         const rateNormalized = Math.round(rate / pop * 100000);
         const accelerationNormalized = Math.round(acceleration / pop * 100000);
         const recoveryStreak = covid19WeeklyRecoveryStreakLookup[fips][i_wk - 1];
-
-        // feature.properties[`t${tN}`] = [rateNormalized, accelerationNormalized];
         weeklyCovidDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, recoveryStreak])
       }
     } catch (err) {
@@ -441,7 +442,7 @@ function getCovidResults(csvContent, geoJsonContent) {
   let weekDefinitionsList = [];
   let weekDefinitionsLookup = {};
   weeklyDataHeaders.reverse();
-  for (let i_wk = 2; i_wk < weeklyDataHeaders.length; i_wk++) {
+  for (let i_wk = accelerationRange + 1; i_wk < weeklyDataHeaders.length; i_wk++) {
     weekDefinitionsList.push(weeklyDataHeaders[i_wk]);
     weekDefinitionsLookup[`t${i_wk-1}`] = weeklyDataHeaders[i_wk];
   }
