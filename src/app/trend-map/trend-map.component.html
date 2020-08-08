@@ -48,7 +48,7 @@
       <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
         [icon]="faInfoCircle"
         popoverTitle="2-Week COVID-19 Case Acceleration"
-        ngbPopover="The number of more new cases this week compared to the previous week, i.e. the difference in weekly rate from {{weekDefinitions.list[currentTimeStop.num-2]}} to {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
+        ngbPopover="The number of more new cases this week compared to 2 weeks ago. Specifically, the difference in weekly rate between the weeks of {{weekDefinitions.list[currentTimeStop.num-2]}} and {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
         triggers="mouseenter:mouseleave"
         placement="right"
         container="body"
@@ -79,22 +79,6 @@
     
   </div>
 
-  <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box">
-    <!-- <button class="btn btn-secondary">Copy</button>
-    <button class="btn btn-secondary">Copy</button> -->
-    <div class="animation-play-pause-button-wrapper">
-      <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
-      <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
-    </div>
-    <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
-      <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
-    </div>
-    <div class="animation-date">
-      {{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}
-    </div>
-
-  </div>
-
   <!-- <div class="placeholder-box" style="z-index: 1000; position: absolute; left: 30%; bottom: 20px; width: 40%; height: 60px;">
     <div>Placeholder: Historical Data & Animation Controls</div>
   </div> -->
@@ -109,39 +93,64 @@
   </div> -->
   
   <div *ngIf="weekDefinitions && legendColorSchemeData" class="map-legend">
-    <h5>Map Legend</h5> &nbsp;&nbsp; <span 
+    <h5>Map Legend</h5> &nbsp;&nbsp;
+    <!-- <span 
       ngbPopover="Current map data is for the week ending in {{weekDefinitions.list[currentTimeStop.num] + 20}} {{weekDefinitions.list[currentTimeStop.num - 1] ? '(' + weekDefinitions.list[currentTimeStop.num - 1] + '20 through ' + weekDefinitions.list[currentTimeStop.num] + '20)' : ''}}"
       triggers="mouseenter:mouseleave"
       container="body"
-      class="legend-date">{{weekDefinitions.list[currentTimeStop.num].slice(0, -3)}}*</span>
+      class="legend-date">{{weekDefinitions.list[currentTimeStop.num]}}20</span> -->
 
-    <div ngbDropdown container="body" class="layer-picker-wrapper">
-      <button type="button" id="layer-picker" class="layer-picker btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
-        {{layerSelection.alias}}
-      </button>
-      <div ngbDropdownMenu aria-labelledby="layer-picker">
-        <a ngbDropdownItem class="dropdown-layer-label">Select a map layer:</a>
-        <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option">County Case Rate</a>
-        <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option">County Case Acceleration</a>
-        <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option">County Death Rate</a> -->
-        <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option">County Recovery</a>
-        <a ngbDropdownItem (click)="changeLayerSelection('scr')" class="dropdown-layer-option">State Case Rate</a>
-        <a ngbDropdownItem (click)="changeLayerSelection('sca')" class="dropdown-layer-option">State Case Acceleration</a>
-        <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->
+      <div class="btn-group layer-picker-wrapper">
+        <div ngbDropdown container="body" class="layer-picker-part-dropdown">
+          <button type="button" id="layer-picker" class="layer-picker layer-picker-button btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
+            {{layerSelection.alias}}
+          </button>
+          <div ngbDropdownMenu aria-labelledby="layer-picker">
+            <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
+            <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faPlusSquare"></fa-icon></div> County Case Rate</a>
+            <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
+            <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option">County Death Rate</a> -->
+            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('cr')" class="disabled dropdown-layer-option">County Recovery</a> -->
+            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('scr')" class="disabled dropdown-layer-option">State Case Rate</a> -->
+            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('sca')" class="disabled dropdown-layer-option">State Case Acceleration</a> -->
+            <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->
+          </div>
+        </div>    
+        <button type="button"
+        class="layer-picker-part-collapse layer-picker-button btn btn-secondary btn-sm btn-light"
+        (click)="legendLayerInfoOpen = !legendLayerInfoOpen"
+        title="{{legendLayerInfoOpen ? 'Collapse layer info' : 'Show layer info'}}">
+        <fa-icon *ngIf="legendLayerInfoOpen" [icon]="faCompressAlt"></fa-icon>
+        <fa-icon *ngIf="!legendLayerInfoOpen" [icon]="faExpandAlt"></fa-icon>
+        </button>
       </div>
-    </div>    
 
-    <p
-      ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
-      triggers="mouseenter:mouseleave"
-      container="body"
-    >New COVID-19 Cases <br>(Weekly per 100k)</p>
-    <div class="color-scheme">
-      <div *ngFor="let item of legendColorSchemeData" class="color-set">
-        <div [ngStyle]="mapZoomedIn ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}
+    <!-- ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
+    triggers="mouseenter:mouseleave"
+    container="body" -->
+    <div class="layer-info" *ngIf="legendLayerInfoOpen">
+      <div class="layer-color-scheme">
+        <div *ngFor="let item of legendContent.colorSchemeData" class="color-set">
+          <div [ngStyle]="mapZoomedIn ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}
+        </div>
+      </div>
+      <div class="layer-description">
+        <p><strong>Description</strong><br>{{legendContent.layerDescription}}</p>
       </div>
     </div>
 
+    <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box">
+      <div class="animation-play-pause-button-wrapper">
+        <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
+        <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
+      </div>
+      <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
+        <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
+      </div>
+      <div class="animation-date">
+        {{weekDefinitions.list[currentTimeStop.num]}}
+      </div>
+    </div>  
   </div>
 
 

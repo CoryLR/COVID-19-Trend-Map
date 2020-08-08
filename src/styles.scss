@@ -53,6 +53,10 @@ html {
     border-top-right-radius: 9px;
   }
 }
+.dropdown-menu {
+  // box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  border: 1px solid rgb(120, 120, 120);
+}
 .dropdown-layer-label {
   font-weight: 800;
   &:hover {
@@ -60,7 +64,16 @@ html {
   }
 }
 .dropdown-layer-option {
+  border-top: 1px solid rgb(200, 200, 200);
   cursor: pointer !important;
+  &.disabled {
+    background-color: rgb(240, 240, 240);
+    font-style: italic;
+  }
+  .fa-inline {
+    display: inline-block;
+    width: 20px;
+  }
 }
 
 .stat-chart {

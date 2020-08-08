@@ -22,6 +22,36 @@ $acc-blue2: #90a1ad;
 $acc-blue3: #434d5b;
 $null: lightgray;
 
+/* Acceleration Revision 2a */
+$acc-red4: #b35806;
+$acc-red3: #f1a340;
+$acc-red2: #fee0b6;
+$acc-red1: #f7f7f7;
+$acc-blue1: #c7eae5;
+$acc-blue2: #5ab4ac;
+$acc-blue3: #01665e;
+$null: lightgray;
+
+/* Acceleration Revision 2b */
+$acc-red4: hsl(28, 94%, 36%);
+$acc-red3: hsl(34, 86%, 60%);
+$acc-red2: hsl(35, 97%, 85%);
+$acc-red1: hsl(0, 0%, 97%);
+$acc-blue1: hsl(171, 45%, 85%);
+$acc-blue2: hsl(175, 38%, 53%);
+$acc-blue3: hsl(175, 98%, 20%);
+$null: lightgray;
+
+/* Acceleration Revision 2c (favorite so far) */
+$acc-red4: hsl(28, 94%, 36%);
+$acc-red3: hsl(34, 86%, 60%);
+$acc-red2: hsl(35, 97%, 85%);
+$acc-red1: hsl(0, 0%, 97%);
+$acc-blue1: hsl(200, 45%, 85%);
+$acc-blue2: hsl(200, 40%, 55%);
+$acc-blue3: hsl(200, 30%, 40%);
+$null: lightgray;
+
 /* Rate */
 $rate-red-5: hsl(0, 100%, 17%);
 $rate-red-4: hsl(0, 64%, 34%);
@@ -29,3 +59,11 @@ $rate-red-3: hsl(0, 43%, 52%);
 $rate-red-2: hsl(25, 57%, 75%);
 $rate-red-1: hsl(51, 62%, 92%);
 $rate-red-0: hsl(0, 0%, 95%);
+
+/* Rate Revision 2*/
+$rate-red-5: hsl(-20, 100%, 14%);
+$rate-red-4: hsl(-10, 70%, 34%);
+$rate-red-3: hsl(0, 43%, 52%);
+$rate-red-2: hsl(10, 57%, 75%);
+$rate-red-1: hsl(20, 62%, 91%);
+$rate-red-0: hsl(0, 0%, 97%);

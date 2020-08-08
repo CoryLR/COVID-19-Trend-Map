@@ -10,7 +10,8 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faFileMedicalAlt, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faFileMedicalAlt, faPlay, faPause, faCompressAlt, faExpandAlt, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
 export interface CustomTileLayerOptions extends L.TileLayerOptions {
@@ -69,13 +70,22 @@ export class TrendMapComponent implements OnInit {
   weekDefinitions: { list: string[], lookup: { [timeStop_tN: string]: string } };
   stateFipsLookup: { [StateFips_00: string]: { name: string, abbr: string } } = this.getStateFipsLookup();
   stateNameList: string[] = [];
+  legendContent: any = {
+    colorSchemeData: this.getLegendColorSchemeRateData(),
+    layerDescription: "New COVID-19 Cases (7-day total per 100k people)"
+  }
   legendColorSchemeData: any = this.getLegendColorSchemeRateData();
+  legendLayerInfoOpen = true;
 
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
   faFileMedicalAlt = faFileMedicalAlt;
   faPlay = faPlay;
   faPause = faPause;
+  faCompressAlt = faCompressAlt;
+  faExpandAlt = faExpandAlt;
+  faPlusSquare = faPlusSquare;
+  faChartLine = faChartLine;
 
   /* State Control */
   infoPanelOpen: boolean = false;
@@ -168,11 +178,11 @@ export class TrendMapComponent implements OnInit {
     const map = L.map('map', {
       maxZoom: 14,
       minZoom: 3,
-      maxBounds: L.latLngBounds([[80, -230], [-15, 15]]),
+      maxBounds: L.latLngBounds([[80, -230], [-30, 15]]),
       zoomControl: false,
     })
 
-    map.setView([40, -98.5], 4); /* TODO: Maybe use fitBounds with padding to account for panel size */
+    map.setView([30, -98.5], 4); /* TODO: Maybe use fitBounds with padding to account for panel size */
 
     L.control.zoom({
       position: 'topright'
@@ -315,7 +325,7 @@ export class TrendMapComponent implements OnInit {
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
       let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.nationalGeoJSON, true)[0];
-      this.map.flyTo([40, -98.5], 4, { duration: 0.6 });
+      this.map.flyTo([30, -98.5], 4, { duration: 0.6 });
       this.map.once('zoomend', () => {
         this.openStatusReport(matchedLayer);
       });
@@ -658,11 +668,15 @@ export class TrendMapComponent implements OnInit {
         this.layerSelection.layer = "ccr";
         this.layerSelection.alias = "County Case Rate";
         this.updateMapDisplay(3);
+        this.legendContent.colorSchemeData = this.getLegendColorSchemeRateData();
+        this.legendContent.layerDescription = "New COVID-19 Cases (7-day total per 100k people)";
         break;
         case("cca"):
         this.layerSelection.layer = "cca";
         this.layerSelection.alias = "County Case Acceleration";
         this.updateMapDisplay(4);
+        this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
+        this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people)";
         break;
       case("cdr"):
         this.layerSelection.layer = "cdr";
@@ -694,23 +708,10 @@ export class TrendMapComponent implements OnInit {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
-  getAccelerationStyleFunction(value) {
-    switch (true) {
-      // case (value > 200): return { fillColor: "#5e0000" };
-      case (value > 60): return { fillColor: "#990000" };
-      case (value > 30): return { fillColor: "#d4644d" };
-      case (value > 0): return { fillColor: "#fef0d9" };
-      case (value == 0): return { fillColor: "hsl(0, 0%, 97%)" };
-      case (value >= -30): return { fillColor: "#cddcea" };
-      case (value >= -60): return { fillColor: "#90a1ad" };
-      case (value < -60): return { fillColor: "#434d5b" };
-      default: return {};
-    }
-  }
   getRateStyleFunction(value) {
     switch (true) {
-      case (value > 400): return { fillColor: "hsl(-20, 100%, 17%)" };
-      case (value > 200): return { fillColor: "hsl(-10, 64%, 34%)" };
+      case (value > 400): return { fillColor: "hsl(-20, 100%, 14%)" };
+      case (value > 200): return { fillColor: "hsl(-10, 70%, 34%)" };
       case (value > 100): return { fillColor: "hsl(0, 43%, 52%)" };
       case (value > 50): return { fillColor: "hsl(10, 57%, 75%)" };
       case (value > 0): return { fillColor: "hsl(20, 62%, 91%)" };
@@ -718,17 +719,42 @@ export class TrendMapComponent implements OnInit {
       default: return {};
     }
   }
-
   getLegendColorSchemeRateData() {
     return [
-      {label: "> 400", color: "hsl(-20, 100%, 17%)", colorFaded: "hsla(-20, 100%, 17%, 0.6)"},
-      {label: "200-400", color: "hsl(-10, 64%, 34%)", colorFaded: "hsla(-10, 64%, 34%, 0.6)"},
-      {label: "100-200", color: "hsl(0, 43%, 52%)", colorFaded: "hsla(0, 43%, 52%, 0.6)"},
-      {label: "50-100", color: "hsl(10, 57%, 75%)", colorFaded: "hsla(10, 57%, 75%, 0.6)"},
-      {label: "1-50", color: "hsl(20, 62%, 91%)", colorFaded: "hsla(20, 62%, 91%, 0.6)"},
+      {label: "> 400", color: "hsl(-20, 100%, 14%)", colorFaded: "hsla(-20, 100%, 14%, 0.6)"},
+      {label: "200 - 400", color: "hsl(-10, 70%, 34%)", colorFaded: "hsla(-10, 70%, 34%, 0.6)"},
+      {label: "100 - 200", color: "hsl(0, 43%, 52%)", colorFaded: "hsla(0, 43%, 52%, 0.6)"},
+      {label: "50 - 100", color: "hsl(10, 57%, 75%)", colorFaded: "hsla(10, 57%, 75%, 0.6)"},
+      {label: "1 - 50", color: "hsl(20, 62%, 91%)", colorFaded: "hsla(20, 62%, 91%, 0.6)"},
       {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
     ]
   }
+
+  getAccelerationStyleFunction(value) {
+    switch (true) {
+      // case (value > 200): return { fillColor: "#5e0000" };
+      case (value > 80): return { fillColor: "hsl(28, 94%, 36%)" };
+      case (value > 40): return { fillColor: "hsl(34, 86%, 60%)" };
+      case (value > 0): return { fillColor: "hsl(35, 97%, 85%)" };
+      case (value == 0): return { fillColor: "hsl(0, 0%, 97%)" };
+      case (value >= -40): return { fillColor: "hsl(200, 45%, 85%)" };
+      case (value >= -80): return { fillColor: "hsl(200, 40%, 55%)" };
+      case (value < -80): return { fillColor: "hsl(200, 30%, 40%)" };
+      default: return {};
+    }
+  }
+  getLegendColorSchemeAccelerationData() {
+    return [
+      {label: "> 80", color: "hsl(28, 94%, 36%)", colorFaded: "hsla(28, 94%, 36%, 0.6)"},
+      {label: "40 - 80", color: "hsl(34, 86%, 60%)", colorFaded: "hsla(34, 86%, 60%, 0.6)"},
+      {label: "0 - 40", color: "hsl(35, 97%, 85%)", colorFaded: "hsla(35, 97%, 85%, 0.6)"},
+      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
+      {label: "-40 - 0", color: "hsl(200, 45%, 85%)", colorFaded: "hsla(200, 45%, 85%, 0.6)"},
+      {label: "-80 - -40", color: "hsl(200, 40%, 55%)", colorFaded: "hsla(200, 40%, 55%, 0.6)"},
+      {label: "< -80", color: "hsl(200, 30%, 40%)", colorFaded: "hsla(200, 30%, 40%, 0.6)"},
+    ]
+  }
+
 
   copyText(text) {
     var textArea = document.createElement("textarea");
