@@ -115,12 +115,14 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 Crunch time 2020-08-06 - 2020-08-09
 
 - [x] [functional] State & National data integrated
-- [ ] [functional] Death & Recovery integrated
+- [ ] [functional] Time-enable status reports, make animation more efficient by only updating popups on pause, only update status report if it's already open, and add time-stop parameter to URL scheme (will need radio button for "latest data available" vs "this date")
+- [ ] [design] Improve UI (organize UI, add a "find a status report" type section)
+- [ ] [functional] Automatically acquire user's location on "find me" click
+- [ ] [functional] Death & Recovery integration
 - [ ] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
 - [ ] [follow-through] Get mentor/peer feedback
-- [ ] [design] Improve UI (organize UI, maybe add a "find a status report" type section)
 - [ ] [design/debugging] Ensure mobile-friendliness
 - [ ] [debugging] Ensure cross-browser compatibility & stress testing
 - [ ] [follow-through] In-app documentation (about, data source, disclaimers, resources, etc)
-- [ ] [functional] Automatically acquire user's location on "find me" click
+- [ ] [functional] Lazy-load historic data
 - [ ] [functional] Add Puerto Rico
