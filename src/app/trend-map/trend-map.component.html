@@ -9,7 +9,7 @@
   <!-- this element gets initialized here and moved on initial load -->
   <div *ngIf="windowWidth" class="search-text">
     <fa-icon [icon]="faSearch"></fa-icon>
-    {{windowWidth > 384 ? "Find a Status Report:" : "Status Reports:"}}
+    {{windowWidth > 384 ? "Find a Status Report" : "Status Reports"}}
   </div>
 
   <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">

@@ -249,7 +249,7 @@ export class TrendMapComponent implements OnInit {
       showMarker: false,
       showPopup: false,
       autoClose: true,
-      searchLabel: 'Search the U.S. | Local, State, USA',
+      searchLabel: 'Search the U.S. | Local, State, or USA',
       classNames: { container: "geosearch-container", button: "geosearch-button", /* resetButton: "geosearch-resetButton", */ msgbox: "geosearch-msgbox", form: "geosearch-form", input: "geosearch-input" },
       retainZoomLevel: true,
       autoCompleteDelay: 500,

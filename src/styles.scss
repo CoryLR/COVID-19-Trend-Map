@@ -71,15 +71,22 @@ $leaflet-geosearch-label-width-mobile: 105px;
   // border-right: 2px solid rgb(120, 120, 120);
   // border-left: 2px solid rgb(120, 120, 120);
 }
-.leaflet-geosearch-bar form input {
-  display: inline-block;
-  width: calc( 100% - #{$leaflet-geosearch-label-width-standard} );
-  min-width: calc( 100% - #{$leaflet-geosearch-label-width-standard} );
-  @media (max-width: 384px) {
-    width: calc( 100% - #{$leaflet-geosearch-label-width-mobile} );
-    min-width: calc( 100% - #{$leaflet-geosearch-label-width-mobile} );
+.leaflet-geosearch-bar form {
+  input {
+    display: inline-block;
+    margin: 4px 0 4px 0;
+    background-color: rgb(240, 240, 240);
+    width: calc( 100% - #{$leaflet-geosearch-label-width-standard + 15px } );
+    min-width: calc( 100% - #{$leaflet-geosearch-label-width-standard + 15px} );
+    @media (max-width: 384px) {
+      width: calc( 100% - #{$leaflet-geosearch-label-width-mobile + 15px } );
+      min-width: calc( 100% - #{$leaflet-geosearch-label-width-mobile + 15px } );
+    }
   }
-
+  .reset {
+    background-color: initial;
+    margin-top: 4px;
+  }
 }
 // .geosearch-form {
 //   border-top-left-radius: 0;
