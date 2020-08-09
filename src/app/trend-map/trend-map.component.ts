@@ -195,7 +195,7 @@ export class TrendMapComponent implements OnInit {
     // const Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', { ext: 'png' });
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
-    map.attributionControl.setPrefix('https://www.covid-19-map.com');
+    map.attributionControl.setPrefix('https://www.covid-19-watch.com');
     map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: Johns Hopkins CSSE");
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
@@ -378,6 +378,8 @@ export class TrendMapComponent implements OnInit {
     const acceleration: number = countyData[2];
     const accelerationNorm: number = countyData[4];
 
+    const current = this.currentTimeStop.num === this.latestTimeStop.num ? true : false;
+
     this.panelContent.fips = layer.feature.properties.FIPS;
     this.panelContent.title = countyName;
     this.panelContent.subtitle = fips.length === 2 ? "USA" : fips.length === 1 ? "" : this.stateFipsLookup[fips.substr(0, 2)].name;
@@ -387,7 +389,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.accelerationNorm = accelerationNorm < 0 ? `-${this.styleNum(Math.abs(accelerationNorm))}` : this.styleNum(Math.abs(accelerationNorm));
     this.panelContent.cumulative = this.styleNum(cumulative);
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
-    this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+    this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
     if (!this.statusReportChartConfig.lineChartType || layer.feature.properties.FIPS !== this.lastSelectedLayer.feature.properties.FIPS) {
       this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);

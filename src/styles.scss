@@ -58,7 +58,8 @@ html {
   border: 1px solid rgb(120, 120, 120);
 }
 .dropdown-layer-label {
-  font-weight: 600;
+  // font-weight: 600;
+  font-style: italic;
   &:hover {
     background-color: transparent;
   }
@@ -66,6 +67,7 @@ html {
 .dropdown-layer-option {
   border-top: 1px solid rgb(200, 200, 200);
   cursor: pointer !important;
+  font-weight: 600;
   &.disabled {
     background-color: rgb(240, 240, 240);
     font-style: italic;
