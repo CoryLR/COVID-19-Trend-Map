@@ -116,7 +116,7 @@ export class TrendMapComponent implements OnInit {
   ngOnInit(): void {
     setTimeout(() => {
       
-      this.windowWidth = window.innerWidth;
+      window.dispatchEvent(new Event('resize'));
       this.titleService.setTitle("COVID-19-Watch");
       
       this.metaService.addTags([
