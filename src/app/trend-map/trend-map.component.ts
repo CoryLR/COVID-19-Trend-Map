@@ -108,19 +108,17 @@ export class TrendMapComponent implements OnInit {
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
-    if (this.initialLoadingDone) {
-      this.windowWidth = event.target.innerWidth;
-    }
+    this.windowWidth = event.target.innerWidth;
   }
-
+  
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */) { }
-
+  
   ngOnInit(): void {
     setTimeout(() => {
-
-      this.windowWidth = this.window.innerWidth;
+      
+      this.windowWidth = window.innerWidth;
       this.titleService.setTitle("COVID-19-Watch");
-
+      
       this.metaService.addTags([
         { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
         { name: 'description', content: 'See COVID-19 trends where you live.' },
@@ -175,7 +173,6 @@ export class TrendMapComponent implements OnInit {
         name: this.latestTimeStop.name,
         num: this.latestTimeStop.num
       }
-      // console.log("this.currentTimeStop", this.currentTimeStop);
 
       /* Useful for debugging */
       console.log("Data Source:", response.source);
@@ -307,8 +304,6 @@ export class TrendMapComponent implements OnInit {
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
-      // console.log("locationInfo", locationInfo);
-      // console.log("place", place);
       const localityException = place.location.raw.place_id == 234930245 /* NYC */ ? true : false;
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
@@ -381,13 +376,9 @@ export class TrendMapComponent implements OnInit {
 
   updatePanel(layer) {
 
-    // console.log("opening Panel on layer:\n", layer);
-
     /* Update Status Report */
     const fips = layer.feature.properties.FIPS;
     const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : fips.length === 1 ? this.nationalDataLookup[fips] : this.countyDataLookup[fips];
-    // console.log("this.nationalDataLookup", this.nationalDataLookup);
-    // console.log("countyInfo", countyInfo);
     const countyName = countyInfo.name;
     const countyData = countyInfo.data[this.currentTimeStop.num];
 
