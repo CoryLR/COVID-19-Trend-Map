@@ -117,6 +117,10 @@ export class TrendMapComponent implements OnInit {
     setTimeout(() => {
       
       window.dispatchEvent(new Event('resize'));
+      const screenWidth = window.screen.width;
+      const innerWidth = window.innerWidth;
+      this.windowWidth = screenWidth < innerWidth ? screenWidth : innerWidth;
+
       this.titleService.setTitle("COVID-19-Watch");
       
       this.metaService.addTags([
