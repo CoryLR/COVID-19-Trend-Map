@@ -6,13 +6,19 @@
     <!-- <h5> BETA 3 // WORK IN PROGRESS</h5> -->
   </div>
 
+  <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">
+    <p class="loading-text">Loading...</p>
+    <img src="assets/img/covid-watch-256px.png">
+  </div>
+
   <div class="map-wrapper">
     <div id="map"></div>
   </div>
 
   <div class="info-panel" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
 
-    <div class="close-panel" (click)="closePanel()">x</div>
+    <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelOpen"><fa-icon [icon]="faCircle"></fa-icon></div>
+    <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelOpen"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
 
     <div><em>{{currentTimeStop.num === latestTimeStop.num ? '' : 'Historic '}}Status Report for:</em></div>
     <h3>{{panelContent.title}}</h3> <!-- County or State -->
@@ -36,7 +42,7 @@
         </canvas>
     </div>
 
-    <div *ngIf="initialLoadDone" class="panel-stats-section">
+    <div *ngIf="initialLoadingDone" class="panel-stats-section">
       <div class="stat-title">New Cases This Week</div>&nbsp;&nbsp;<fa-icon
         [icon]="faInfoCircle"
         popoverTitle="1-Week COVID-19 Case Rate"
@@ -131,7 +137,7 @@
     <!-- ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
     triggers="mouseenter:mouseleave"
     container="body" -->
-    <div class="layer-info" *ngIf="legendLayerInfoOpen">
+    <div class="layer-info" *ngIf="legendLayerInfoOpen"><!-- [@layerInfoCollapseAnimation] -->
       <div class="layer-color-scheme">
         <div *ngFor="let item of legendContent.colorSchemeData" class="color-set">
           <div [ngStyle]="mapZoomedIn ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}

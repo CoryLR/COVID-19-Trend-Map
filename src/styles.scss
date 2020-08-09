@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles & overrides */
 
 /* Imports */
 @import "~leaflet/dist/leaflet.css";
@@ -43,6 +43,11 @@ html {
     color: white;
   }
 }
+.leaflet-control-attribution {
+  @media (max-width: 450px) {
+    display: none;
+  }
+}
 
 /* Bootstreap modifications */
 .popover {
@@ -78,7 +83,29 @@ html {
   }
 }
 
+/* Chart js modifications */
 .stat-chart {
   width: 100%;
   height: 150px;
 }
+
+/* CSS Animations */
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+/* Scroll Bar */
+// ::-webkit-scrollbar {
+//   -webkit-appearance: auto;
+//   width: 10px;
+// }
+// ::-webkit-scrollbar-thumb {
+//   border-radius: 4px;
+//   background-color: rgba(0, 0, 0, .5);
+//   box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+// }

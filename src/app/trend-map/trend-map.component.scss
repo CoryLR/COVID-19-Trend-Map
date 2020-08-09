@@ -14,6 +14,30 @@
   height: 100vh;
   min-height: -webkit-fill-available; // Fix for weird iOS height issues
   overflow-x: hide;
+
+  .loading-splash {
+    z-index: 100000;
+    position: absolute;
+    top: $header-height;
+    left: 0;
+    height: calc( 100% - #{$header-height} );
+    width: 100%;
+    background-color: rgba(160, 160, 160, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    p {
+      font-size: 40px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    img {
+      height: 256px;
+      animation: rotation 30s infinite linear;
+    }
+  }
   
   .header {
     position: absolute;
@@ -74,10 +98,17 @@
     height: calc( 100% - #{$header-height} );
     background-color: white;
     padding: 20px;
-    // border-right: 1.5px solid rgb(100, 100, 100);
     box-shadow: 0px 0 20px 5px rgba(0,0,0,0.35), 0px 0 5px 5px rgba(0,0,0,0.1);
     opacity: 1;
     overflow-y: auto;
+
+    @media (max-width: 630px) {
+      height: calc( 100% - #{$header-height + 75px} );
+    }
+    @media (max-width: 450px) {
+      height: calc( 100% - #{$header-height + 50px} );
+      width: 100%;
+    }
 
     .panel-stats-list {
       padding-left: 18px;
@@ -117,18 +148,32 @@
       // }
     }
 
-    .close-panel {
-      position: absolute;
-      top: 0px;
-      right: 8px;
+    @mixin close-panel-styles {
+      position: fixed;
+      top: $header-height + 13px;
+      left: 245px;
       cursor: pointer;
       font-size: 20px;
+      
+      @media (max-width: 450px) {
+        left: initial;
+        right: 15px;
+      }
+    }
+    
+    .close-panel {
+      color: rgb(120, 120, 120);
+      @include close-panel-styles();
+    }
+    .close-panel-background {
+      color: white;
+      @include close-panel-styles();
     }
   }
 
   .map-legend {
     position: absolute;
-    z-index: 1000;
+    z-index: 900;
     bottom: 25px;
     right: 15px;
     width: 320px;
@@ -136,9 +181,16 @@
     background-color: rgb(235,235,235);
     padding: 15px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-
     overflow-y: auto;
     border-radius: 10px;
+    
+    @media (max-width: 450px) {
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      border-radius: 0;
+    }
+    
 
     h5 {
       display: inline-block;

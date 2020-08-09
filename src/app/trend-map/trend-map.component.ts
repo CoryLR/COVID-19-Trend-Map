@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -30,7 +30,9 @@ export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   // changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('panelOpenClosed', getPanelTransitions()),
-    trigger('mapMinMax', getMapTransitions())
+    // trigger('mapMinMax', getMapTransitions()),
+    trigger('ngIfAnimation', getNgIfAnimation()),
+    // trigger('layerInfoCollapseAnimation', getLayerInfoCollapseAnimation()),
   ]
 })
 export class TrendMapComponent implements OnInit {
@@ -87,10 +89,12 @@ export class TrendMapComponent implements OnInit {
   faArrowDown = faArrowDown;
   faPlusSquare = faPlusSquare;
   faChartLine = faChartLine;
+  faTimesCircle = faTimesCircle;
+  faCircle = faCircle;
 
   /* State Control */
   infoPanelOpen: boolean = false;
-  initialLoadDone: boolean = false;
+  initialLoadingDone: boolean = false;
 
   /* Chart */
   statusReportChartConfig: any = {};
@@ -179,7 +183,7 @@ export class TrendMapComponent implements OnInit {
     const map = L.map('map', {
       maxZoom: 14,
       minZoom: 3,
-      maxBounds: L.latLngBounds([[80, -230], [-30, 15]]),
+      maxBounds: L.latLngBounds([[80, -230], [-50, 15]]),
       zoomControl: false,
     })
 
@@ -599,7 +603,7 @@ export class TrendMapComponent implements OnInit {
     this.map.addLayer(this.stateGeoJSON);
     this.map.addLayer(this.nationalGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
-    this.initialLoadDone = true;
+    this.initialLoadingDone = true;
 
   }
 
@@ -858,7 +862,7 @@ function getPanelTransitions() {
       left: '0',
     })),
     state('closed', style({
-      left: '-300px',
+      left: '-450px',
     })),
     transition('open => closed', [
       animate('0.25s')
@@ -869,21 +873,64 @@ function getPanelTransitions() {
   ]
 }
 
-function getMapTransitions() {
+// function getMapTransitions() {
+//   return [
+//     state('max', style({
+//       left: '0',
+//       width: '100%',
+//     })),
+//     state('min', style({
+//       left: '280px',
+//       width: 'calc( 100% - 280px )',
+//     })),
+//     transition('max => min', [
+//       animate('0.25s')
+//     ]),
+//     transition('min => max', [
+//       animate('0.25s')
+//     ]),
+//   ]
+// }
+
+function getNgIfAnimation() {
   return [
-    state('max', style({
-      left: '0',
-      width: '100%',
-    })),
-    state('min', style({
-      left: '280px',
-      width: 'calc( 100% - 280px )',
-    })),
-    transition('max => min', [
-      animate('0.25s')
-    ]),
-    transition('min => max', [
-      animate('0.25s')
-    ]),
+      // transition(
+      //   ':enter', 
+      //   [
+      //     style({ opacity: 0 }),
+      //     animate('0.25s ease-out', 
+      //             style({ opacity: 1 }))
+      //   ]
+      // ),
+      transition(
+        ':leave', 
+        [
+          style({ opacity: 1 }),
+          animate('0.25s ease-in', 
+                  style({ opacity: 0 }))
+        ]
+      )
+    ]
+}
+
+function getLayerInfoCollapseAnimation() {
+  /* TODO: Height isn't working */
+  return [
+    transition(
+      ':enter', 
+      [
+        // style({ height: 0 }),
+        animate('0.5s ease-out', 
+                style({ height: "auto" }))
+      ]
+    ),
+    transition(
+      ':leave', 
+      [
+        // style({ height: 1 }),
+        animate('0.5s ease-in', 
+                style({ height: 0 }))
+      ]
+    )
   ]
 }
