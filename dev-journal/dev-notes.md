@@ -117,6 +117,7 @@ Crunch time 2020-08-06 - 2020-08-09
 - [x] [functional] State & National data integrated
 - [x] [functional] Time-enable status reports
 - [ ] [design] Improve UI (organize UI, add a "find a status report" type section)
+- [ ] [functional] Add zoom-to-original-extent button
 - [ ] [functional] Automatically acquire user's location on "find me" click
 - [ ] [functional] Death & Recovery integration
 - [ ] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)

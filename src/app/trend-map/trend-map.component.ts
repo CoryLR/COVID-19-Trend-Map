@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faFileMedicalAlt, faPlay, faPause, faCompressAlt, faExpandAlt, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -79,11 +79,12 @@ export class TrendMapComponent implements OnInit {
 
   /* Font Awesome Icons */
   faInfoCircle = faInfoCircle;
+  faInfo = faInfo;
   faFileMedicalAlt = faFileMedicalAlt;
   faPlay = faPlay;
   faPause = faPause;
-  faCompressAlt = faCompressAlt;
-  faExpandAlt = faExpandAlt;
+  faArrowUp = faArrowUp;
+  faArrowDown = faArrowDown;
   faPlusSquare = faPlusSquare;
   faChartLine = faChartLine;
 
@@ -195,7 +196,7 @@ export class TrendMapComponent implements OnInit {
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('https://www.covid-19-map.com');
-    map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: John's Hopkins CSSE");
+    map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: Johns Hopkins CSSE");
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

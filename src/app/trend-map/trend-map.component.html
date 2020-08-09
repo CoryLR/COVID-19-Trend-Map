@@ -120,8 +120,10 @@
         class="layer-picker-part-collapse layer-picker-button btn btn-secondary btn-sm btn-light"
         (click)="legendLayerInfoOpen = !legendLayerInfoOpen"
         title="{{legendLayerInfoOpen ? 'Collapse layer info' : 'Show layer info'}}">
-        <fa-icon *ngIf="legendLayerInfoOpen" [icon]="faCompressAlt"></fa-icon>
-        <fa-icon *ngIf="!legendLayerInfoOpen" [icon]="faExpandAlt"></fa-icon>
+        <span class="layer-picker-fa-icon">
+          <fa-icon *ngIf="legendLayerInfoOpen" [icon]="faArrowDown"></fa-icon>
+          <fa-icon *ngIf="!legendLayerInfoOpen" [icon]="faInfo"></fa-icon>
+        </span>
         </button>
       </div>
 
