@@ -120,10 +120,10 @@
           </button>
           <div ngbDropdownMenu aria-labelledby="layer-picker">
             <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
-            <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faPlusSquare"></fa-icon></div> County Case Rate</a>
+            <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Case Rate</a>
             <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
             <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option">County Death Rate</a> -->
-            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('cr')" class="disabled dropdown-layer-option">County Recovery</a> -->
+            <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faShieldAlt"></fa-icon></div> County Recovery</a>
             <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('scr')" class="disabled dropdown-layer-option">State Case Rate</a> -->
             <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('sca')" class="disabled dropdown-layer-option">State Case Acceleration</a> -->
             <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->

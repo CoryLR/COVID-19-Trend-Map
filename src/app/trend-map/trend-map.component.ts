@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -92,6 +92,10 @@ export class TrendMapComponent implements OnInit {
   faTimesCircle = faTimesCircle;
   faCircle = faCircle;
   faSearch = faSearch;
+  faVirus = faVirus;
+  faVirusSlash = faVirusSlash;
+  faShieldAlt = faShieldAlt;
+  faShieldVirus = faShieldVirus;
 
   /* State Control */
   infoPanelOpen: boolean = false;
@@ -165,7 +169,7 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      // console.log("Data Package:\n", response);
+      console.log("Data Package:\n", response);
       this.weekDefinitions = response.weekDefinitions;
       this.countyDataLookup = response.county.dataLookup;
       this.stateDataLookup = response.state.dataLookup;
@@ -372,6 +376,7 @@ export class TrendMapComponent implements OnInit {
     const rateNorm: number = countyData[3];
     const acceleration: number = countyData[2];
     const accelerationNorm: number = countyData[4];
+    const recoveryStreak: number = countyData[5];
 
     const current = this.currentTimeStop.num === this.latestTimeStop.num ? true : false;
 
@@ -384,7 +389,13 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.accelerationNorm = accelerationNorm < 0 ? `-${this.styleNum(Math.abs(accelerationNorm))}` : this.styleNum(Math.abs(accelerationNorm));
     this.panelContent.cumulative = this.styleNum(cumulative);
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
-    this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+    if (recoveryStreak === 0 && cumulative > 0) {
+      this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+    } else if (recoveryStreak > 0 &&  cumulative > 0) {
+      this.panelContent.summary = `${this.panelContent.title} ${current ? "has" : "had"} not reported a new case of COVID-19 in ${recoveryStreak} week${recoveryStreak === 1 ? "" : "s"}.`
+    } else if (cumulative === 0) {
+      this.panelContent.summary = current ? `${this.panelContent.title} has never reported a case of COVID-19.` : `${this.panelContent.title} had not reported any cases of COVID-19.`;
+    }
 
     if (!this.statusReportChartConfig.lineChartType || layer.feature.properties.FIPS !== this.lastSelectedLayer.feature.properties.FIPS) {
       this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
@@ -560,7 +571,7 @@ export class TrendMapComponent implements OnInit {
     }
 
     const popupOptions: L.PopupOptions = {
-      autoPanPaddingTopLeft: [5, 50],
+      autoPanPaddingTopLeft: [5, 60],
       autoPanPaddingBottomRight: [50, 5]
     };
 
@@ -630,7 +641,8 @@ export class TrendMapComponent implements OnInit {
     let getStyle: Function;
     let attributeLabel: string;
     let rawCountId: number;
-    let normalizedId: number;
+    let normalizedId: number | undefined;
+    let cumulativeId = 0;
     if (attribute === 3) {
       getStyle = this.getRateStyleFunction;
       attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
@@ -641,6 +653,11 @@ export class TrendMapComponent implements OnInit {
       attributeLabel = "Acceleration";
       rawCountId = 2;
       normalizedId = 4;
+    } else if (attribute === 5) {
+      getStyle = this.getRecoveryStyleFunction;
+      attributeLabel = "Weeks case-free";
+      rawCountId = 5;
+      // normalizedId = 4;
     } else {
       getStyle = this.getRateStyleFunction;
       attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
@@ -663,7 +680,7 @@ export class TrendMapComponent implements OnInit {
         <div class="popup-place-title">
           <strong>${countyName}</strong>, ${stateName}
         </div>
-        ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> (${this.styleNum(countyData[normalizedId])} per 100k)
+        ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> ${normalizedId ? "(" + this.styleNum(countyData[normalizedId]) + " per 100k)" : ""}
         <p class="status-report-label"><em>See Status Report:</em></p>
         <div class="popup-status-report-btn-wrapper">
           <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
@@ -674,7 +691,12 @@ export class TrendMapComponent implements OnInit {
       // <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
 
       /* Update color */
-      layer.setStyle(getStyle(countyData[normalizedId]));
+      console.log();
+      if(attribute === 5) {
+        layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
+      } else {
+        layer.setStyle(getStyle(countyData[normalizedId]));
+      }
 
     });
 
@@ -740,7 +762,7 @@ export class TrendMapComponent implements OnInit {
         this.legendContent.colorSchemeData = this.getLegendColorSchemeRateData();
         this.legendContent.layerDescription = "New COVID-19 Cases (7-day total per 100k people)";
         break;
-        case("cca"):
+      case("cca"):
         this.layerSelection.layer = "cca";
         this.layerSelection.alias = "County Case Acceleration";
         this.updateMapDisplay(4);
@@ -754,6 +776,9 @@ export class TrendMapComponent implements OnInit {
       case("cr"):
         this.layerSelection.layer = "cr";
         this.layerSelection.alias = "County Recovery";
+        this.updateMapDisplay(5);
+        this.legendContent.colorSchemeData = this.getLegendColorSchemeRecoveryData();
+        this.legendContent.layerDescription = "Number of weeks without any confirmed cases; n/a means no cases reported yet";
         break;
       case("scr"):
         this.layerSelection.layer = "scr";
@@ -821,6 +846,26 @@ export class TrendMapComponent implements OnInit {
       {label: "-40 - 0", color: "hsl(190, 35%, 85%)", colorFaded: "hsla(190, 35%, 85%, 0.6)"},
       {label: "-80 - -40", color: "hsl(190, 25%, 55%)", colorFaded: "hsla(190, 25%, 55%, 0.6)"},
       {label: "< -80", color: "hsl(190, 15%, 40%)", colorFaded: "hsla(190, 15%, 40%, 0.6)"},
+    ]
+  }
+  getRecoveryStyleFunction(streak, cumulative) {
+    switch (true) {
+      case (streak >= 4 && cumulative != 0): return { fillColor: "hsl(144, 100%, 21%)" };
+      case (streak >= 3 && cumulative != 0): return { fillColor: "hsl(146, 57%, 40%)" };
+      case (streak >= 2 && cumulative != 0): return { fillColor: "hsl(160, 43%, 58%)" };
+      case (streak >= 1 && cumulative != 0): return { fillColor: "hsl(180, 45%, 79%)" };
+      case (streak >= 0 && cumulative != 0): return { fillColor: "hsl(0, 0%, 97%)" };
+      default: return { fillColor: "hsl(0, 0%, 85%)" };
+    }
+  }
+  getLegendColorSchemeRecoveryData() {
+    return [
+      {label: "4+", color: "hsl(144, 100%, 21%)", colorFaded: "hsla(144, 100%, 21%, 0.6)"},
+      {label: "3", color: "hsl(146, 57%, 40%)", colorFaded: "hsla(146, 57%, 40%, 0.6)"},
+      {label: "2", color: "hsl(160, 43%, 58%)", colorFaded: "hsla(160, 43%, 58%, 0.6)"},
+      {label: "1", color: "hsl(180, 45%, 79%)", colorFaded: "hsla(180, 45%, 79%, 0.6)"},
+      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
+      {label: "n/a", color: "hsl(0, 0%, 85%)", colorFaded: "hsla(0, 0%, 85%, 0.6)"},
     ]
   }
 
