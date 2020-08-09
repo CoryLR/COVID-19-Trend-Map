@@ -788,25 +788,25 @@ export class TrendMapComponent implements OnInit {
   getAccelerationStyleFunction(value) {
     switch (true) {
       // case (value > 200): return { fillColor: "#5e0000" };
-      case (value > 80): return { fillColor: "hsl(28, 94%, 36%)" };
-      case (value > 40): return { fillColor: "hsl(34, 86%, 60%)" };
-      case (value > 0): return { fillColor: "hsl(35, 97%, 85%)" };
+      case (value > 80): return { fillColor: "hsl(28, 90%, 37%)" };
+      case (value > 40): return { fillColor: "hsl(28, 80%, 60%)" };
+      case (value > 0): return { fillColor: "hsl(28, 70%, 85%)" };
       case (value == 0): return { fillColor: "hsl(0, 0%, 97%)" };
-      case (value >= -40): return { fillColor: "hsl(200, 45%, 85%)" };
-      case (value >= -80): return { fillColor: "hsl(200, 40%, 55%)" };
-      case (value < -80): return { fillColor: "hsl(200, 30%, 40%)" };
+      case (value >= -40): return { fillColor: "hsl(190, 35%, 85%)" };
+      case (value >= -80): return { fillColor: "hsl(190, 25%, 55%)" };
+      case (value < -80): return { fillColor: "hsl(190, 15%, 40%)" };
       default: return {};
     }
   }
   getLegendColorSchemeAccelerationData() {
     return [
-      {label: "> 80", color: "hsl(28, 94%, 36%)", colorFaded: "hsla(28, 94%, 36%, 0.6)"},
-      {label: "40 - 80", color: "hsl(34, 86%, 60%)", colorFaded: "hsla(34, 86%, 60%, 0.6)"},
-      {label: "0 - 40", color: "hsl(35, 97%, 85%)", colorFaded: "hsla(35, 97%, 85%, 0.6)"},
+      {label: "> 80", color: "hsl(28, 90%, 37%)", colorFaded: "hsla(28, 90%, 37%, 0.6)"},
+      {label: "40 - 80", color: "hsl(28, 80%, 60%)", colorFaded: "hsla(28, 80%, 60%, 0.6)"},
+      {label: "0 - 40", color: "hsl(28, 70%, 85%)", colorFaded: "hsla(28, 70%, 85%, 0.6)"},
       {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
-      {label: "-40 - 0", color: "hsl(200, 45%, 85%)", colorFaded: "hsla(200, 45%, 85%, 0.6)"},
-      {label: "-80 - -40", color: "hsl(200, 40%, 55%)", colorFaded: "hsla(200, 40%, 55%, 0.6)"},
-      {label: "< -80", color: "hsl(200, 30%, 40%)", colorFaded: "hsla(200, 30%, 40%, 0.6)"},
+      {label: "-40 - 0", color: "hsl(190, 35%, 85%)", colorFaded: "hsla(190, 35%, 85%, 0.6)"},
+      {label: "-80 - -40", color: "hsl(190, 25%, 55%)", colorFaded: "hsla(190, 25%, 55%, 0.6)"},
+      {label: "< -80", color: "hsl(190, 15%, 40%)", colorFaded: "hsla(190, 15%, 40%, 0.6)"},
     ]
   }
 
