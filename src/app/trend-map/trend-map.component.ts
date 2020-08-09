@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, keyframes, } from '@angular/animations';
@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -91,6 +91,7 @@ export class TrendMapComponent implements OnInit {
   faChartLine = faChartLine;
   faTimesCircle = faTimesCircle;
   faCircle = faCircle;
+  faSearch = faSearch;
 
   /* State Control */
   infoPanelOpen: boolean = false;
@@ -100,37 +101,43 @@ export class TrendMapComponent implements OnInit {
   statusReportChartConfig: any = {};
   verticalLinePlugin: any = this.getVerticalLinePlugin();
 
-  /* URL Scheme */
+  /* Misc */
   window = window;
-  // origin:string = "";
+  windowWidth: any;
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event) {
+    this.windowWidth = event.target.innerWidth;
+  }    
 
-  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, /* private document: Document */) { }
+  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */) { }
 
   ngOnInit(): void {
-    this.titleService.setTitle("COVID-19 Trend Map");
-    // const origin = this.document.location.origin;
-    this.metaService.addTags([
-      { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
-      { name: 'description', content: 'See COVID-19 trends where you live.' },
-      // {name: 'robots', content: 'index, follow'},
-      { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
-    ]);
+    setTimeout(() => {
 
-    this.map = this.initializeMap();
-    this.getData();
+      this.titleService.setTitle("COVID-19-Watch");
 
-    for (let key in this.stateFipsLookup) {
-      if (key in this.stateFipsLookup) {
-        this.stateNameList.push(this.stateFipsLookup[key].name);
+      this.metaService.addTags([
+        { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
+        { name: 'description', content: 'See COVID-19 trends where you live.' },
+        // {name: 'robots', content: 'index, follow'},
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
+      ]);
+
+      this.map = this.initializeMap();
+      this.getData();
+
+      for (let key in this.stateFipsLookup) {
+        if (key in this.stateFipsLookup) {
+          this.stateNameList.push(this.stateFipsLookup[key].name);
+        }
       }
-    }
 
 
-    /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
+      /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
 
-    /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
-
+      /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
+    }, 0);
   }
 
   actOnUrlScheme() {
@@ -187,7 +194,13 @@ export class TrendMapComponent implements OnInit {
       zoomControl: false,
     })
 
-    map.setView([30, -98.5], 4); /* TODO: Maybe use fitBounds with padding to account for panel size */
+    if (this.windowWidth < 750) {
+      map.setView([30, -98.5], 4);
+    } else {
+      map.setView([30, -96], 3);
+    }
+
+
 
     L.control.zoom({
       position: 'topright'
@@ -253,7 +266,7 @@ export class TrendMapComponent implements OnInit {
       showMarker: false,
       showPopup: false,
       autoClose: true,
-      searchLabel: "Search for a County, Town, or City",
+      searchLabel: 'Search the U.S. | Local, State, USA',
       classNames: { container: "geosearch-container", button: "geosearch-button", /* resetButton: "geosearch-resetButton", */ msgbox: "geosearch-msgbox", form: "geosearch-form", input: "geosearch-input" },
       retainZoomLevel: true,
       autoCompleteDelay: 500,
@@ -567,11 +580,16 @@ export class TrendMapComponent implements OnInit {
       fillOpacity: 0
     }
 
+    const popupOptions: L.PopupOptions = {
+      autoPanPaddingTopLeft: [5, 50],
+      autoPanPaddingBottomRight: [50, 5]
+    };
+
     const countyGeoJsonOptions: CustomGeoJSONOptions = {
       smoothFactor: 0.7,
       style: countyStyle,
       onEachFeature: (feature, layer) => {
-        layer.bindPopup("");
+        layer.bindPopup("", popupOptions);
         this.countyLayerLookup[feature.properties.FIPS] = layer;
       }
     }
@@ -580,7 +598,7 @@ export class TrendMapComponent implements OnInit {
       style: stateStyle,
       interactive: false,
       onEachFeature: (feature, layer) => {
-        layer.bindPopup("");
+        layer.bindPopup("", popupOptions);
         this.stateLayerLookup[feature.properties.FIPS] = layer;
       }
       // dashArray: "10"
@@ -590,7 +608,7 @@ export class TrendMapComponent implements OnInit {
       style: countyStyle,
       interactive: false,
       onEachFeature: (feature, layer) => {
-        layer.bindPopup("");
+        layer.bindPopup("", popupOptions);
         this.nationalLayerLookup[feature.properties.FIPS] = layer;
       }
       // dashArray: "10"
@@ -603,6 +621,17 @@ export class TrendMapComponent implements OnInit {
     this.map.addLayer(this.stateGeoJSON);
     this.map.addLayer(this.nationalGeoJSON);
     this.updateMapDisplay(this.choroplethDisplayAttribute);
+
+    /* Add search text */
+    let domElement = this.elementRef.nativeElement.querySelector('.search-text');
+    // this.elementRef.nativeElement.querySelector('.leaflet-control-geosearch').prepend(domElement);
+    this.elementRef.nativeElement.querySelector('.geosearch-form').prepend(domElement);
+
+    /* Do initial changes based on window width */
+    if (this.windowWidth < 451) {
+      this.legendLayerInfoOpen = false;
+    }
+
     this.initialLoadingDone = true;
 
   }
@@ -731,7 +760,7 @@ export class TrendMapComponent implements OnInit {
         this.layerSelection.alias = "County Case Acceleration";
         this.updateMapDisplay(4);
         this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
-        this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people)";
+        this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people); negative means deceleration";
         break;
       case("cdr"):
         this.layerSelection.layer = "cdr";

@@ -6,6 +6,12 @@
     <!-- <h5> BETA 3 // WORK IN PROGRESS</h5> -->
   </div>
 
+  <!-- this element gets initialized here and moved on initial load -->
+  <div *ngIf="windowWidth" class="search-text">
+    <fa-icon [icon]="faSearch"></fa-icon>
+    {{windowWidth > 384 ? "Find a Status Report:" : "Status Reports:"}}
+  </div>
+
   <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">
     <p class="loading-text">Loading...</p>
     <img src="assets/img/covid-watch-256px.png">

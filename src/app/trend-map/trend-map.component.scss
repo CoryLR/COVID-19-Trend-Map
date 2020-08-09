@@ -220,7 +220,7 @@
         width: 29px;
       }
       .layer-picker-fa-icon {
-        color: rgb(120, 120, 120);
+        color: rgb(80, 80, 80);
       }
     }
 
@@ -237,7 +237,7 @@
       }
       
       .layer-color-scheme {
-        margin-right: 10px;
+        margin-right: 5px;
         min-width: 110px;
         .color-set {
           .box {
@@ -276,6 +276,9 @@
         top: $temporal-content-top + 1px;
         width: 185px;
         height: 20px;
+        @media (max-width: 450px) {
+          width: calc( 100% - 100px );
+        }    
       }
       .animation-date {
         position: absolute;

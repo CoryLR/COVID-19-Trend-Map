@@ -50,6 +50,42 @@ html, body {
   }
 }
 
+$leaflet-geosearch-label-width-standard: 140px;
+$leaflet-geosearch-label-width-mobile: 105px;
+
+.search-text {
+  /* This element gets moved, best to scope it globally */
+  font-weight: 600;
+  // padding: 5px;
+  // background-color: rgba(255, 255, 255, 0.7);
+  // border-top-left-radius: 4px;
+  // border-top-right-radius: 4px;
+  display: inline-block;
+  width: $leaflet-geosearch-label-width-standard;
+  @media (max-width: 384px) {
+    width: $leaflet-geosearch-label-width-mobile;
+  }
+  
+  // box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.65);
+  // border-top: 2px solid rgb(120, 120, 120);
+  // border-right: 2px solid rgb(120, 120, 120);
+  // border-left: 2px solid rgb(120, 120, 120);
+}
+.leaflet-geosearch-bar form input {
+  display: inline-block;
+  width: calc( 100% - #{$leaflet-geosearch-label-width-standard} );
+  min-width: calc( 100% - #{$leaflet-geosearch-label-width-standard} );
+  @media (max-width: 384px) {
+    width: calc( 100% - #{$leaflet-geosearch-label-width-mobile} );
+    min-width: calc( 100% - #{$leaflet-geosearch-label-width-mobile} );
+  }
+
+}
+// .geosearch-form {
+//   border-top-left-radius: 0;
+//   border-top-right-radius: 0;
+// }
+
 /* Bootstreap modifications */
 .popover {
   z-index: 10000;
