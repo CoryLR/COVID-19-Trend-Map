@@ -194,8 +194,8 @@ export class TrendMapComponent implements OnInit {
     // const Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', { ext: 'png' });
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
-    map.attributionControl.setPrefix('');
-    map.attributionControl.addAttribution('Cartographer: Cory Leigh Rahman');
+    map.attributionControl.setPrefix('https://www.covid-19-map.com');
+    map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: John's Hopkins CSSE");
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -287,8 +287,8 @@ export class TrendMapComponent implements OnInit {
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
-      console.log("locationInfo", locationInfo);
-      console.log("place", place);
+      // console.log("locationInfo", locationInfo);
+      // console.log("place", place);
       const localityException = place.location.raw.place_id == 234930245 /* NYC */ ? true : false;
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
@@ -352,24 +352,24 @@ export class TrendMapComponent implements OnInit {
     if (this.infoPanelOpen) {
       this.closePanel();
       setTimeout(() => {
-        this.openPanel(layer);
+        this.updatePanel(layer);
       }, 500);
     } else {
-      this.openPanel(layer);
+      this.updatePanel(layer);
     }
   }
 
-  openPanel(layer) {
+  updatePanel(layer) {
 
-    console.log("opening Panel on layer:\n", layer);
+    // console.log("opening Panel on layer:\n", layer);
 
     /* Update Status Report */
     const fips = layer.feature.properties.FIPS;
     const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : fips.length === 1 ? this.nationalDataLookup[fips] : this.countyDataLookup[fips];
-    console.log("this.nationalDataLookup", this.nationalDataLookup);
-    console.log("countyInfo", countyInfo);
+    // console.log("this.nationalDataLookup", this.nationalDataLookup);
+    // console.log("countyInfo", countyInfo);
     const countyName = countyInfo.name;
-    const countyData = countyInfo.data[this.latestTimeStop.num];
+    const countyData = countyInfo.data[this.currentTimeStop.num];
 
     const cumulative: number = countyData[0];
     const rate: number = countyData[1];
@@ -388,7 +388,14 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     this.panelContent.summary = `${this.panelContent.title} is reporting <strong>${this.panelContent.rate} new cases</strong> of COVID-19 over the past week ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
 
-    this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
+    if (!this.statusReportChartConfig.lineChartType || layer.feature.properties.FIPS !== this.lastSelectedLayer.feature.properties.FIPS) {
+      this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
+    } else {
+      const { lineChartData, lineChartLabels, lineChartOptions } = this.getStatusReportChartData(this.panelContent.fips, 1/* 1=Rate */, 0);
+      this.statusReportChartConfig.lineChartData = lineChartData;
+      this.statusReportChartConfig.lineChartLabels = lineChartLabels;
+      this.statusReportChartConfig.lineChartOptions = lineChartOptions;
+    }
 
     /* Open the Status Report */
     this.infoPanelOpen = true;
@@ -400,11 +407,63 @@ export class TrendMapComponent implements OnInit {
 
   getStatusReportChartConfig(fips, attributeIndex) {
 
-    /* TODO: if latestTimeStop is first, second, second to last, or last... Right now this assumes it's last */
-    const dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(-5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(-5) : this.countyDataLookup[fips].data.slice(-5);
-    const dateRange = this.weekDefinitions.list.slice(-5);
+    const { lineChartData, lineChartLabels, lineChartOptions } = this.getStatusReportChartData(fips, attributeIndex, 1000);
 
-    /* Loop through the last 5 time-stops and get an array of rates */
+    const lineChartColors: Color[] = [
+      {
+        borderColor: 'black',
+        pointBackgroundColor: 'black',
+        backgroundColor: 'hsl(0, 43%, 52%)',
+      },
+    ];
+
+    const lineChartLegend = true;
+    const lineChartPlugins = [this.verticalLinePlugin];
+    const lineChartType = 'line';
+
+    return {
+      lineChartData,
+      lineChartLabels,
+      lineChartOptions,
+      lineChartColors,
+      lineChartLegend,
+      lineChartPlugins,
+      lineChartType,
+    }
+
+  }
+
+  getStatusReportChartData(fips, attributeIndex, duration) {
+
+    let dataRange;
+    let temporalRange;
+    let lineAtIndex;
+    let maxTimeStop = this.weekDefinitions.list.length - 1;
+
+    /* Account for start and end of the possible data range */
+    if (this.currentTimeStop.num === 0) {
+      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(0, 5) : this.countyDataLookup[fips].data.slice(0, 5);
+      temporalRange = this.weekDefinitions.list.slice(0, 5);
+      lineAtIndex = [0];
+    } else if (this.currentTimeStop.num === 1) {
+      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(0, 5) : this.countyDataLookup[fips].data.slice(0, 5);
+      temporalRange = this.weekDefinitions.list.slice(0, 5);
+      lineAtIndex = [1];
+    } else if (this.currentTimeStop.num === maxTimeStop - 1) {
+      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
+      temporalRange = this.weekDefinitions.list.slice(maxTimeStop - 4, maxTimeStop + 1);
+      lineAtIndex = [3];
+    } else if (this.currentTimeStop.num === maxTimeStop) {
+      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
+      temporalRange = this.weekDefinitions.list.slice(maxTimeStop - 4, maxTimeStop + 1);
+      lineAtIndex = [4];
+    } else {
+      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : this.countyDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3);
+      temporalRange = this.weekDefinitions.list.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3);
+      lineAtIndex = [2];
+    }
+
+    /* Get an array of just rates */
     let data = [];
     for (let timeStop in dataRange) {
       if (timeStop in dataRange) {
@@ -416,9 +475,9 @@ export class TrendMapComponent implements OnInit {
     ];
 
     let dates = [];
-    for (let timeStop in dateRange) {
-      if (timeStop in dateRange) {
-        dates.push(dateRange[timeStop].slice(0, -3));
+    for (let timeStop in temporalRange) {
+      if (timeStop in temporalRange) {
+        dates.push(temporalRange[timeStop].slice(0, -3));
       }
     }
     const lineChartLabels: Label[] = dates;
@@ -426,7 +485,7 @@ export class TrendMapComponent implements OnInit {
     const lineChartOptions = {
       responsive: true,
       pointHitRadius: 3,
-      lineAtIndex: [4],
+      lineAtIndex: lineAtIndex,
       scales: {
         yAxes: [{
           // type: 'time',
@@ -439,30 +498,14 @@ export class TrendMapComponent implements OnInit {
       tooltips: {
         mode: 'index',
         intersect: false
-      }
+      },
+      animation: {
+        duration: duration
+      },
     };
 
-    const lineChartColors: Color[] = [
-      {
-        borderColor: 'black',
-        pointBackgroundColor: 'black',
-        backgroundColor: 'hsl(0, 43%, 52%)',
-      },
-    ];
 
-    const lineChartLegend = true;
-    const lineChartPlugins = [/* this.verticalLinePlugin */];
-    const lineChartType = 'line';
-
-    return {
-      lineChartData,
-      lineChartLabels,
-      lineChartOptions,
-      lineChartColors,
-      lineChartLegend,
-      lineChartPlugins,
-      lineChartType,
-    }
+    return { lineChartData, lineChartLabels, lineChartOptions }
 
   }
 
@@ -630,27 +673,32 @@ export class TrendMapComponent implements OnInit {
 
   timeSliderChange(timeStop) {
     this.updateMapDisplay(this.choroplethDisplayAttribute);
+    if (this.infoPanelOpen) {
+      this.updatePanel(this.lastSelectedLayer);
+    }
   }
 
-  playAnimation() {
-    this.closePanel();
-    // this.map.closePopup();
+  playAnimation(fps = 0.5) {
+    const milliseconds = fps * 1000;
+    // this.closePanel();
+    this.map.closePopup();
     this.animationPaused = false;
-    /* Working animation proof of concept: */
     let initialTimeStop = this.currentTimeStop.num === this.latestTimeStop.num ? 0 : this.currentTimeStop.num;
     let workingTimeStop = initialTimeStop;
     this.animationInterval = setInterval(() => {
       this.currentTimeStop = { name: `t${workingTimeStop}`, num: workingTimeStop };
       workingTimeStop++;
+
       this.updateMapDisplay(this.choroplethDisplayAttribute);
+      if (this.infoPanelOpen) {
+        this.updatePanel(this.lastSelectedLayer);
+      }
 
-      /* TODO:? Update sidebar along with map animation maybe */
-      // this.statusReportChartConfig = this.getStatusReportChartConfig(this.panelContent.fips, 1/* 1=Rate */);
-
+      /* Stop when the end is reached, may want to add a loop option later */
       if(this.currentTimeStop.num === this.latestTimeStop.num) {
         this.pauseAnimation();
       }
-    }, 500);
+    }, milliseconds);
   }
   
   pauseAnimation() {

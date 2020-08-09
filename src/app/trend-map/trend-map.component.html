@@ -9,14 +9,14 @@
     <div id="map"></div>
   </div>
 
-  <div class="info-panel" *ngIf="panelContent" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
+  <div class="info-panel" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
 
     <div class="close-panel" (click)="closePanel()">x</div>
 
-    <div><em>Status Report for:</em></div>
-    <h4>{{panelContent.title}}</h4> <!-- County or State -->
+    <div><em>{{currentTimeStop.num === latestTimeStop.num ? '' : 'Historic '}}Status Report for:</em></div>
+    <h3>{{panelContent.title}}</h3> <!-- County or State -->
     <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
-    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[latestTimeStop.num] + 20}} (Latest)</em></p>
+    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : ''}}</em></p>
     <!-- <p>{{panelContent.date}}20</p> -->
 
     <p innerHTML="{{panelContent.summary}}"></p>
@@ -150,7 +150,7 @@
       <div class="animation-date">
         {{weekDefinitions.list[currentTimeStop.num]}}
       </div>
-    </div>  
+    </div>
   </div>
 
 
