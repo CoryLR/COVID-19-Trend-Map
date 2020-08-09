@@ -95,6 +95,7 @@ export class TrendMapComponent implements OnInit {
 
   /* State Control */
   infoPanelOpen: boolean = false;
+  infoPanelCloseButton: boolean = false;
   initialLoadingDone: boolean = false;
 
   /* Chart */
@@ -396,6 +397,7 @@ export class TrendMapComponent implements OnInit {
 
     /* Open the Status Report */
     this.infoPanelOpen = true;
+    setTimeout(() => {this.infoPanelCloseButton = true;}, 250);
 
     /* Used to reset the feature style when the Status Report is closed. */
     this.lastSelectedLayer = layer;
@@ -681,6 +683,7 @@ export class TrendMapComponent implements OnInit {
   closePanel() {
     if (this.infoPanelOpen) {
       this.infoPanelOpen = false;
+      this.infoPanelCloseButton = false;
       if (this.lastSelectedLayer.feature.properties.FIPS.length === 2) {
         this.lastSelectedLayer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
       } else {

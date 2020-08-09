@@ -23,8 +23,8 @@
 
   <div class="info-panel" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
 
-    <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelOpen"><fa-icon [icon]="faCircle"></fa-icon></div>
-    <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelOpen"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
+    <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faCircle"></fa-icon></div>
+    <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
 
     <div><em>{{currentTimeStop.num === latestTimeStop.num ? '' : 'Historic '}}Status Report for:</em></div>
     <h3>{{panelContent.title}}</h3> <!-- County or State -->

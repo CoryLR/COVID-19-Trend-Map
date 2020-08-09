@@ -116,15 +116,16 @@ Crunch time 2020-08-06 - 2020-08-09
 
 - [x] [functional] State & National data integrated
 - [x] [functional] Time-enable status reports
-- [ ] [design] Improve UI (organize UI, add a "find a status report" type section)
+- [x] [design] Improve UI (organize UI, add a "find a status report" type section)
 - [ ] [functional] Add zoom-to-original-extent button
 - [ ] [functional] Automatically acquire user's location on "find me" click
 - [ ] [functional] Death & Recovery integration
 - [ ] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
 - [ ] [follow-through] Get mentor/peer feedback
-- [ ] [design/debugging] Ensure mobile-friendliness
+- [x] [design/debugging] Ensure mobile-friendliness
 - [ ] [debugging] Ensure cross-browser compatibility & stress testing
 - [ ] [follow-through] In-app documentation (about, data source, disclaimers, resources, etc)
 - [ ] [functional] Make animation more efficient by only updating popups on pause, only update status report if it's already open, and add time-stop parameter to URL scheme (will need radio button for "latest data available" vs "this date")
 - [ ] [functional] Add Puerto Rico
+- [ ] [design/debugging] Resolve Safari mobile hight issue, make content scrollable over the map for Mobile
 - [ ] [functional] Lazy-load historic data
