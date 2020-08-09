@@ -103,18 +103,22 @@ export class TrendMapComponent implements OnInit {
 
   /* Misc */
   window = window;
-  windowWidth: any;
+  windowWidth: number = 0;
+  // windowWidth: any;
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
-    this.windowWidth = event.target.innerWidth;
-  }    
+    if (this.initialLoadingDone) {
+      this.windowWidth = event.target.innerWidth;
+    }
+  }
 
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */) { }
 
   ngOnInit(): void {
     setTimeout(() => {
 
+      this.windowWidth = this.window.innerWidth;
       this.titleService.setTitle("COVID-19-Watch");
 
       this.metaService.addTags([
@@ -143,7 +147,7 @@ export class TrendMapComponent implements OnInit {
   actOnUrlScheme() {
     this.route.queryParams
       .subscribe(params => {
-        console.log("URL params: ", params); // e.g. { fips: "51059" }
+        // console.log("URL params: ", params); // e.g. { fips: "51059" }
         if(params.fips) {
           const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : params.fips.length === 1 ? this.nationalLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
@@ -158,7 +162,7 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      console.log("Data Package:\n", response);
+      // console.log("Data Package:\n", response);
       this.weekDefinitions = response.weekDefinitions;
       this.countyDataLookup = response.county.dataLookup;
       this.stateDataLookup = response.state.dataLookup;
@@ -194,13 +198,11 @@ export class TrendMapComponent implements OnInit {
       zoomControl: false,
     })
 
-    if (this.windowWidth < 750) {
+    if (this.windowWidth > 750) {
       map.setView([30, -98.5], 4);
     } else {
       map.setView([30, -96], 3);
     }
-
-
 
     L.control.zoom({
       position: 'topright'
@@ -627,7 +629,6 @@ export class TrendMapComponent implements OnInit {
     // this.elementRef.nativeElement.querySelector('.leaflet-control-geosearch').prepend(domElement);
     this.elementRef.nativeElement.querySelector('.geosearch-form').prepend(domElement);
 
-    /* Do initial changes based on window width */
     if (this.windowWidth < 451) {
       this.legendLayerInfoOpen = false;
     }
