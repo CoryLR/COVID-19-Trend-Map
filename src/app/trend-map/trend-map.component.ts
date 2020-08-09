@@ -195,12 +195,6 @@ export class TrendMapComponent implements OnInit {
       zoomControl: false,
     })
 
-    if (this.windowWidth > 750) {
-      map.setView([30, -98.5], 4);
-    } else {
-      map.setView([30, -96], 3);
-    }
-
     L.control.zoom({
       position: 'topright'
     }).addTo(map);
@@ -224,35 +218,21 @@ export class TrendMapComponent implements OnInit {
     var Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', Stamen_TonerHybrid_Options);
 
     map.on('zoomend', () => {
-      const zoomLevel = this.map.getZoom();
-      /* TODO: Figure out how to efficiently deconflict state boundaries zoom change with cyan highlight */
-      // if (zoomLevel >= 11) {
-      //   this.stateGeoJSON.setStyle({
-      //     weight: 0,
-      //   })
-      // } else if (zoomLevel >= 7) {
-      //   this.stateGeoJSON.setStyle({
-      //     color: "rgb(100, 100, 100)",
-      //     weight: 4,
-      //     dasharray: "2",
-      //   })
-      // } else {
-      //     this.stateGeoJSON.setStyle({
-      //       color: "rgb(50, 50, 50)",
-      //       weight: 1,    
-      //     })
-      // }
-      if (zoomLevel >= 6) {
-        if (!this.map.hasLayer(Stamen_TonerHybrid)) {
-          this.map.addLayer(Stamen_TonerHybrid);
-          this.countyGeoJSON.setStyle({ fillOpacity: 0.6 });
-          this.mapZoomedIn = true;
-        }
-      } else {
-        if (this.map.hasLayer(Stamen_TonerHybrid)) {
-          this.map.removeLayer(Stamen_TonerHybrid)
-          this.countyGeoJSON.setStyle({ fillOpacity: 1 });
-          this.mapZoomedIn = false;
+      if (this.map) {
+        const zoomLevel = this.map.getZoom();
+        /* TODO: Figure out how to efficiently deconflict state boundaries zoom change with cyan highlight */
+        if (zoomLevel >= 6) {
+          if (!this.map.hasLayer(Stamen_TonerHybrid)) {
+            this.map.addLayer(Stamen_TonerHybrid);
+            this.countyGeoJSON.setStyle({ fillOpacity: 0.6 });
+            this.mapZoomedIn = true;
+          }
+        } else {
+          if (this.map.hasLayer(Stamen_TonerHybrid)) {
+            this.map.removeLayer(Stamen_TonerHybrid)
+            this.countyGeoJSON.setStyle({ fillOpacity: 1 });
+            this.mapZoomedIn = false;
+          }
         }
       }
     });
@@ -290,7 +270,6 @@ export class TrendMapComponent implements OnInit {
           }
         }
       });
-
     return map;
   }
 
@@ -324,6 +303,7 @@ export class TrendMapComponent implements OnInit {
         let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
         this.map.flyToBounds(matchedLayer.getBounds().pad(0.5), { duration: 0.6 });
         this.map.once('zoomend', () => {
+          
           const popupText = `<strong>${locationInfo[0]}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
@@ -623,6 +603,12 @@ export class TrendMapComponent implements OnInit {
     if (this.windowWidth < 451) {
       this.legendLayerInfoOpen = false;
     }
+
+    if (this.windowWidth > 750) {
+      this.map.setView([30, -98.5], 4);
+    } else {
+      this.map.setView([30, -96], 3);
+    }  
 
     this.initialLoadingDone = true;
 
