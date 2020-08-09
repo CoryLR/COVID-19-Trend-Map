@@ -7,8 +7,9 @@
 
 /* Global Styles */
 
-html {
+html, body {
   background-color: darkgray;
+  overflow-y: hidden;
 }
 
 /* Leaflet modifications */
