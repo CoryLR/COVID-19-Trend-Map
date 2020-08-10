@@ -66,9 +66,9 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
     - [x] Be able to search for locations
     - [x] Build URL scheme & add share sheet
     - [x] Add chart graphics
-  - [ ] Update application to address feedback from Beta #1
+  - [x] Update application to address feedback from Beta #1
     - [x] Review all feedback received, pick feedback to address, create actionable tasks, triage
-    - [ ] (triaged feedback)
+    - [x] (triaged feedback)
   - [x] [Deliverable] Write and deliver Status Report #2
 
 - **Week 5** (7/13 - 7/19)
@@ -80,21 +80,21 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 - **Week 6** (7/20 - 7/26)
   - [x] Conduct UX, UI, & responsive design review
   - [x] Conduct cross-browser compatibility review
-  - [ ] Add "about", tutorial, data source, and disclaimer information
+  - [x] Add "about", tutorial, data source, and disclaimer information
   - [x] Publish Beta #2
-  - [ ] Solicit feedback for Beta #2 from mentors, peers, and additional testers
+  - [x] Solicit feedback for Beta #2 from mentors, peers, and additional testers
   - [x] [Deliverable] Write and deliver Status Report #3
 
 - **Week 7** (7/27 - 8/2)
-  - [ ] Update application to address feedback from Beta #2
-  - [ ] Conduct final UX, UI, & responsive design review
-  - [ ] Conduct final bug review
-  - [ ] Conduct final cross-browser compatibility review
+  - [x] Update application to address feedback from Beta #2
+  - [x] Conduct final UX, UI, & responsive design review
+  - [x] Conduct final bug review
+  - [x] Conduct final cross-browser compatibility review
 
 - **Week 8** (8/3 - 8/9)
-  - [ ] Launch final application with custom URL and paid Heroku tier for performance
-  - [ ] [Deliverable] Plan, record, post, and deliver final video demo & application URL
-  - [ ] [Deliverable] Write and deliver Status Report #4
+  - [x] Launch final application with custom URL and paid Heroku tier for performance
+  - [x] [Deliverable] Plan, record, post, and deliver final video demo & application URL
+  - [x] [Deliverable] Write and deliver Status Report #4
 
 - **Week 9** (8/10 - 8/16)
   - [ ] [Deliverable] Write & deliver executive report
@@ -102,30 +102,32 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
 - **Scope Creep**
   - [x] Teach Diego to differentiate "zero" (`0`) values between "has never had a new case", "back to no new cases", and the magnitude of "back to no new cases" (e.g. "no new cases in x weeks")
+  - [x] Add death and recovery statistics
+  - [x] Add state-level aggregations and borders
+  - [x] Add national aggregation
   - [ ] Automatically acquire the user's location using their device's GPS
-  - [ ] Add death and recovery statistics
-  - [ ] Add state-level aggregations and borders
-  - [ ] Add national aggregation
-  - [ ] Make the app accessible so people with disabilities can find out the same information.
   - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
   - [ ] Add lazy loading for historical COVID-19 data, load on opening of the historical data section
+  - [ ] Improve mobile design (especi)
+  - [ ] Make the app accessible so people with disabilities can find out the same information
 
 ## Triage
 
-Crunch time 2020-08-06 - 2020-08-09
+Crunch time + scope creep 2020-08-06 - 2020-08-09
 
 - [x] [functional] State & National data integrated
 - [x] [functional] Time-enable status reports
 - [x] [design] Improve UI (organize UI, add a "find a status report" type section)
 - [x] [follow-through] Get mentor/peer feedback
 - [x] [design/debugging] Ensure mobile-friendliness
-- [ ] [functional] Death & Recovery integration
-- [ ] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
-- [ ] [follow-through] In-app documentation (about, data source, disclaimers, resources, etc)
+- [x] [functional] Death & Recovery integration
+- [x] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
+- [ ] [follow-through] Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
 - [ ] [functional] Add zoom-to-original-extent button
 - [ ] [functional] Automatically acquire user's location on "find me" click
 - [ ] [debugging] Ensure cross-browser compatibility & stress testing
-- [ ] [functional] Make animation more efficient by only updating popups on pause, only update status report if it's already open, and add time-stop parameter to URL scheme (will need radio button for "latest data available" vs "this date")
+- [ ] [functional] Make temporal animation more efficient
 - [ ] [functional] Add Puerto Rico
 - [ ] [design/debugging] Resolve Safari mobile hight issue, make content scrollable over the map for Mobile
 - [ ] [functional] Lazy-load historic data
+- [ ] [functional] Explore options for further improving performance and load times
