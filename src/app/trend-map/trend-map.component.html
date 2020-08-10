@@ -39,9 +39,14 @@
     <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : ''}}</em></p>
     <!-- <p>{{panelContent.date}}20</p> -->
 
+    <div class="panel-separator"></div>
+
+    <div class="panel-subtitle">Summary</div>
     <p innerHTML="{{panelContent.summary}}"></p>
 
-    <div class="chart-title">New Cases Per Week</div>
+    <div class="panel-separator"></div>
+
+    <div class="panel-subtitle">New Cases</div>
     <div *ngIf="statusReportChartConfig.lineChartData">
       <canvas baseChart height="200" class="stat-chart"
           [datasets]="statusReportChartConfig.lineChartData" 
@@ -58,13 +63,13 @@
     <div *ngIf="initialLoadingDone" class="panel-stats-section">
       <div class="stat-title">New Cases This Week</div>&nbsp;&nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="1-Week COVID-19 Case Rate"
+        popoverTitle="7-Day COVID-19 New Cases"
         ngbPopover="Number of new COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
         triggers="mouseenter:mouseleave"
         placement="right"
         container="body"
         ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
+      <div class="stat-data"><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
       <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
         [icon]="faInfoCircle"
         popoverTitle="2-Week COVID-19 Case Acceleration"
@@ -73,8 +78,8 @@
         placement="right"
         container="body"
         ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
-      <div class="stat-title">Cumulative</div> &nbsp;<fa-icon
+      <div class="stat-data"><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
+      <div class="stat-title">Cumulative Cases</div> &nbsp;<fa-icon
         [icon]="faInfoCircle"
         popoverTitle="Cumulative COVID-19 Case Count"
         ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
@@ -82,14 +87,34 @@
         placement="right"
         container="body"
         ></fa-icon>
-      <div><span class="primary-stat">{{panelContent.cumulative}}</span></div>
+      <div class="stat-data"><span class="primary-stat">{{panelContent.cumulative}}</span></div>
+
+      <div class="panel-separator"></div>
+
+      <div class="stat-title">Deaths This Week</div> &nbsp;<fa-icon
+        [icon]="faInfoCircle"
+        popoverTitle="7-Day COVID-19 Death Count"
+        ngbPopover="Number of deaths due to COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+        triggers="mouseenter:mouseleave"
+        placement="right"
+        container="body"
+        ></fa-icon>
+      <div class="stat-data"><span class="primary-stat">{{panelContent.deathsRate}}</span> ({{panelContent.deathsRateNorm}} per 100k)</div>
+      <div class="stat-title">Cumulative Deaths</div> &nbsp;<fa-icon
+        [icon]="faInfoCircle"
+        popoverTitle="Cumulative COVID-19 Death Count"
+        ngbPopover="Total count of deaths due to COVID-19 since the beginning"
+        triggers="mouseenter:mouseleave"
+        placement="right"
+        container="body"
+        ></fa-icon>
+      <div class="stat-data"><span class="primary-stat">{{panelContent.deathsCumulative}}</span></div>
+      <div class="panel-separator"></div>
     </div>
 
-    <br>
-    <br>
-
-    <div class="form-group">
-      <label for="exampleInputEmail1">Share link to this status report:</label>
+    <div class="form-group" style="margin-top: 24px">
+      <div class="panel-subtitle">Share or Bookmark</div>
+      <p>Direct URL to the status report for {{panelContent.title}}{{panelContent.subtitle ? ", " + panelContent.subtitle : ""}}:</p>
       <input readonly class="form-control status-report-link-text"
       value="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}">
     </div>
@@ -123,14 +148,15 @@
       <div class="btn-group layer-picker-wrapper">
         <div ngbDropdown container="body" class="layer-picker-part-dropdown">
           <button type="button" id="layer-picker" class="layer-picker layer-picker-button btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
+            <!-- <div class="fa-inline layer-picker-fa-icon"><fa-icon [icon]="layerSelection.faIcon"></fa-icon></div> -->
             {{layerSelection.alias}}
           </button>
           <div ngbDropdownMenu aria-labelledby="layer-picker">
             <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
             <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Case Rate</a>
             <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
-            <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option">County Death Rate</a> -->
             <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faShieldAlt"></fa-icon></div> County Recovery</a>
+            <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Death Rate</a> -->
             <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('scr')" class="disabled dropdown-layer-option">State Case Rate</a> -->
             <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('sca')" class="disabled dropdown-layer-option">State Case Acceleration</a> -->
             <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->

@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -37,6 +37,25 @@ export class TrendMapComponent implements OnInit {
 
   /* * Component Pseudo-Global Variables * */
 
+  /* Font Awesome Icons */
+  faArrowDown = faArrowDown;
+  faArrowUp = faArrowUp;
+  faBars = faBars;
+  faChartLine = faChartLine;
+  faCircle = faCircle;
+  faFileMedicalAlt = faFileMedicalAlt;
+  faInfo = faInfo;
+  faInfoCircle = faInfoCircle;
+  faPause = faPause;
+  faPlay = faPlay;
+  faPlusSquare = faPlusSquare;
+  faSearch = faSearch;
+  faShieldAlt = faShieldAlt;
+  faShieldVirus = faShieldVirus;
+  faTimesCircle = faTimesCircle;
+  faVirus = faVirus;
+  faVirusSlash = faVirusSlash;
+
   /* Map Data Control */
   map: any;
   countyGeoJSON: any; /* GeoJSON Object format,  */
@@ -47,16 +66,21 @@ export class TrendMapComponent implements OnInit {
   nationalLayerLookup: { [FIPS_0: string]: any } = {};
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
+  choroplethDisplaySource = "cases";
   mapZoomedIn: boolean = false;
   layerSelection: any = {
     layer: "ccr",
-    alias: "County Case Rate"
+    alias: "County Case Rate",
+    faIcon: this.faVirus
   }
 
   /* Component Coordination */
-  countyDataLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
-  stateDataLookup: { [FIPS_00: string]: { name: string, data: number[][] } };
-  nationalDataLookup: { [FIPS_0: string]: { name: string, data: number[][] } };
+  countyCaseLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
+  stateCaseLookup: { [FIPS_00: string]: { name: string, data: number[][] } };
+  nationalCaseLookup: { [FIPS_0: string]: { name: string, data: number[][] } };
+  countyDeathsLookup: { [FIPS_00000: string]: { name: string, data: number[][] } };
+  stateDeathsLookup: { [FIPS_00: string]: { name: string, data: number[][] } };
+  nationalDeathsLookup: { [FIPS_0: string]: { name: string, data: number[][] } };
   geoJsonCountyLookup: { [FIPS_00000: string]: any }; /* Contains references to each county in the GeoJSON layer */
 
   /* Temporal Coordination */
@@ -76,24 +100,6 @@ export class TrendMapComponent implements OnInit {
   }
   legendColorSchemeData: any = this.getLegendColorSchemeRateData();
   legendLayerInfoOpen = true;
-
-  /* Font Awesome Icons */
-  faInfoCircle = faInfoCircle;
-  faInfo = faInfo;
-  faFileMedicalAlt = faFileMedicalAlt;
-  faPlay = faPlay;
-  faPause = faPause;
-  faArrowUp = faArrowUp;
-  faArrowDown = faArrowDown;
-  faPlusSquare = faPlusSquare;
-  faChartLine = faChartLine;
-  faTimesCircle = faTimesCircle;
-  faCircle = faCircle;
-  faSearch = faSearch;
-  faVirus = faVirus;
-  faVirusSlash = faVirusSlash;
-  faShieldAlt = faShieldAlt;
-  faShieldVirus = faShieldVirus;
 
   /* State Control */
   infoPanelOpen: boolean = false;
@@ -173,10 +179,17 @@ export class TrendMapComponent implements OnInit {
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
       console.log("Data Package:\n", response);
+
       this.weekDefinitions = response.weekDefinitions;
-      this.countyDataLookup = response.county.dataLookup;
-      this.stateDataLookup = response.state.dataLookup;
-      this.nationalDataLookup = response.national.dataLookup;
+
+      this.countyCaseLookup = response.county.caseLookup;
+      this.stateCaseLookup = response.state.caseLookup;
+      this.nationalCaseLookup = response.national.caseLookup;
+
+      this.countyDeathsLookup = response.county.deathsLookup;
+      this.stateDeathsLookup = response.state.deathsLookup;
+      this.nationalDeathsLookup = response.national.deathsLookup;
+
       this.latestTimeStop = {
         name: Object.keys(this.weekDefinitions.lookup).slice(-1)[0],
         num: this.weekDefinitions.list.length - 1
@@ -370,27 +383,37 @@ export class TrendMapComponent implements OnInit {
 
     /* Update Status Report */
     const fips = layer.feature.properties.FIPS;
-    const countyInfo = fips.length === 2 ? this.stateDataLookup[fips] : fips.length === 1 ? this.nationalDataLookup[fips] : this.countyDataLookup[fips];
-    const countyName = countyInfo.name;
-    const countyData = countyInfo.data[this.currentTimeStop.num];
+    const caseInfo = fips.length === 2 ? this.stateCaseLookup[fips] : fips.length === 1 ? this.nationalCaseLookup[fips] : this.countyCaseLookup[fips];
+    const deathsInfo = fips.length === 2 ? this.stateDeathsLookup[fips] : fips.length === 1 ? this.nationalDeathsLookup[fips] : this.countyDeathsLookup[fips];
+    
+    const placeName = caseInfo.name;
+    const caseData = caseInfo.data[this.currentTimeStop.num];
+    const deathsData = deathsInfo.data[this.currentTimeStop.num];
 
-    const cumulative: number = countyData[0];
-    const rate: number = countyData[1];
-    const rateNorm: number = countyData[3];
-    const acceleration: number = countyData[2];
-    const accelerationNorm: number = countyData[4];
-    const recoveryStreak: number = countyData[5];
+    const cumulative: number = caseData[0];
+    const rate: number = caseData[1];
+    const rateNorm: number = caseData[3];
+    const acceleration: number = caseData[2];
+    const accelerationNorm: number = caseData[4];
+    const recoveryStreak: number = caseData[5];
+    
+    const deathCumulative: number = deathsData[0];
+    const deathRate: number = deathsData[1];
+    const deathRateNorm: number = deathsData[3];
 
     const current = this.currentTimeStop.num === this.latestTimeStop.num ? true : false;
 
     this.panelContent.fips = layer.feature.properties.FIPS;
-    this.panelContent.title = countyName;
+    this.panelContent.title = placeName;
     this.panelContent.subtitle = fips.length === 2 ? "USA" : fips.length === 1 ? "" : this.stateFipsLookup[fips.substr(0, 2)].name;
     this.panelContent.rate = this.styleNum(rate);
     this.panelContent.rateNorm = this.styleNum(rateNorm);
     this.panelContent.acceleration = acceleration < 0 ? `-${this.styleNum(Math.abs(acceleration))}` : this.styleNum(Math.abs(acceleration));
     this.panelContent.accelerationNorm = accelerationNorm < 0 ? `-${this.styleNum(Math.abs(accelerationNorm))}` : this.styleNum(Math.abs(accelerationNorm));
     this.panelContent.cumulative = this.styleNum(cumulative);
+    this.panelContent.deathsCumulative = this.styleNum(deathCumulative);
+    this.panelContent.deathsRate = this.styleNum(deathRate);
+    this.panelContent.deathsRateNorm = this.styleNum(deathRateNorm);
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     if (recoveryStreak === 0 && cumulative > 0) {
       this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
@@ -455,23 +478,23 @@ export class TrendMapComponent implements OnInit {
 
     /* Account for start and end of the possible data range */
     if (this.currentTimeStop.num === 0) {
-      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(0, 5) : this.countyDataLookup[fips].data.slice(0, 5);
+      dataRange = fips.length === 2 ? this.stateCaseLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalCaseLookup[fips].data.slice(0, 5) : this.countyCaseLookup[fips].data.slice(0, 5);
       temporalRange = this.weekDefinitions.list.slice(0, 5);
       lineAtIndex = [0];
     } else if (this.currentTimeStop.num === 1) {
-      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(0, 5) : this.countyDataLookup[fips].data.slice(0, 5);
+      dataRange = fips.length === 2 ? this.stateCaseLookup[fips].data.slice(0, 5) : fips.length === 1 ? this.nationalCaseLookup[fips].data.slice(0, 5) : this.countyCaseLookup[fips].data.slice(0, 5);
       temporalRange = this.weekDefinitions.list.slice(0, 5);
       lineAtIndex = [1];
     } else if (this.currentTimeStop.num === maxTimeStop - 1) {
-      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
+      dataRange = fips.length === 2 ? this.stateCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
       temporalRange = this.weekDefinitions.list.slice(maxTimeStop - 4, maxTimeStop + 1);
       lineAtIndex = [3];
     } else if (this.currentTimeStop.num === maxTimeStop) {
-      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyDataLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
+      dataRange = fips.length === 2 ? this.stateCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : fips.length === 1 ? this.nationalCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1) : this.countyCaseLookup[fips].data.slice(maxTimeStop - 4, maxTimeStop + 1);
       temporalRange = this.weekDefinitions.list.slice(maxTimeStop - 4, maxTimeStop + 1);
       lineAtIndex = [4];
     } else {
-      dataRange = fips.length === 2 ? this.stateDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : fips.length === 1 ? this.nationalDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : this.countyDataLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3);
+      dataRange = fips.length === 2 ? this.stateCaseLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : fips.length === 1 ? this.nationalCaseLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3) : this.countyCaseLookup[fips].data.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3);
       temporalRange = this.weekDefinitions.list.slice(this.currentTimeStop.num - 2, this.currentTimeStop.num + 3);
       lineAtIndex = [2];
     }
@@ -632,7 +655,7 @@ export class TrendMapComponent implements OnInit {
 
     setTimeout(() => {
       this.initialLoadingDone = true;
-    }, 250);
+    }, 500);
 
   }
 
@@ -677,7 +700,7 @@ export class TrendMapComponent implements OnInit {
       // }
 
       /* Update popup */
-      const countyInfo = this.countyDataLookup[`${layer.feature.properties.FIPS}`];
+      const countyInfo = this.countyCaseLookup[`${layer.feature.properties.FIPS}`];
       const countyName = countyInfo.name;
       const countyData = countyInfo.data[this.currentTimeStop.num];
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
@@ -763,6 +786,7 @@ export class TrendMapComponent implements OnInit {
       case("ccr"):
         this.layerSelection.layer = "ccr";
         this.layerSelection.alias = "County Case Rate";
+        this.layerSelection.faIcon = this.faVirus;
         this.updateMapDisplay(3);
         this.legendContent.colorSchemeData = this.getLegendColorSchemeRateData();
         this.legendContent.layerDescription = "New COVID-19 Cases (7-day total per 100k people)";
@@ -770,17 +794,23 @@ export class TrendMapComponent implements OnInit {
       case("cca"):
         this.layerSelection.layer = "cca";
         this.layerSelection.alias = "County Case Acceleration";
+        this.layerSelection.faIcon = this.faChartLine;
         this.updateMapDisplay(4);
         this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
         this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people); negative means deceleration";
         break;
       case("cdr"):
-        this.layerSelection.layer = "cdr";
-        this.layerSelection.alias = "County Death Rate";
+        // this.layerSelection.layer = "cdr";
+        // this.layerSelection.alias = "County Death Rate";
+        // this.layerSelection.faIcon = this.faVirus;
+        // this.updateMapDisplay(4, "deaths");
+        // this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
+        // this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people); negative means deceleration";
         break;
       case("cr"):
         this.layerSelection.layer = "cr";
         this.layerSelection.alias = "County Recovery";
+        this.layerSelection.faIcon = faShieldAlt;
         this.updateMapDisplay(5);
         this.legendContent.colorSchemeData = this.getLegendColorSchemeRecoveryData();
         this.legendContent.layerDescription = "Number of weeks without any confirmed cases; n/a means no cases reported yet";

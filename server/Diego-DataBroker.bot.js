@@ -28,7 +28,7 @@ async function runStartupTasks() {
   } else {
 
     /* Useful for testing backend */
-    // await updateDatabaseWithCovidDataPackage();
+    await updateDatabaseWithCovidDataPackage();
 
   }
   
@@ -60,7 +60,7 @@ function initDataCollectionSchedule() {
 */
 
 async function retrieveCovidDataPackage() {
-  let result = await queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='latest' ORDER BY created_time_stamp DESC LIMIT 1;`);
+  let result = await queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='latest_full' ORDER BY created_time_stamp DESC LIMIT 1;`);
   if (result && result.rows.length && result.rows[0].data) {
     return result.rows[0].data;
   } else {
@@ -85,13 +85,13 @@ async function updateDatabaseWithCovidDataPackage() {
   } else {
     dataPackage = await generateCovidDataPackage_dev(source);
   }
-  if(productionMode) {
+  if(/* productionMode */true) {
     queryPrimaryDatabase(`
       INSERT INTO covid_19 (
         label,
         data
       ) VALUES (
-        'latest',
+        'latest_full',
         $1
       );
     `, [dataPackage], (err, res) => {
@@ -110,7 +110,7 @@ async function updateDatabaseWithCovidDataPackage() {
 async function cleanUpDatabase() {
   await queryPrimaryDatabase(`
     DELETE FROM covid_19 WHERE id IN (
-      SELECT id FROM covid_19 WHERE label = 'latest' ORDER BY created_time_stamp DESC OFFSET 1
+      SELECT id FROM covid_19 WHERE label = 'latest_full' ORDER BY created_time_stamp DESC OFFSET 1
     );
   `);
 }
@@ -119,15 +119,25 @@ async function generateCovidDataPackage(source = "unknown") {
 
   /*** Get CSVs ***/
   
-  /* County */
+  /* County Cases */
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const countyCsvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
   
-  /* State */
+  /* State Cases */
   const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
   
-  /* National */
+  /* National Cases */
   const nationalCsvContent = dissolveCsv(countyCsvContent, "Country_Region");
+
+  /* County Deaths */
+  const url_jhuUsDeathsCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv";
+  const countyDeathsCsvContent = await Got(url_jhuUsDeathsCsv).text();
+  
+  /* State Deaths */
+  const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
+  
+  /* National Deaths */
+  const nationalDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Country_Region");
   
   /*** Get GeoJSONs ***/
   
@@ -143,17 +153,28 @@ async function generateCovidDataPackage(source = "unknown") {
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
 
-  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
   return getCovidDataPackage(freshData, source);
 
 }
 
 async function generateCovidDataPackage_dev() {
 
+  /* Get County Deaths CSV */
+  let filePath_deaths = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv');
+  let data_deaths = fs.readFileSync(filePath_deaths, "utf8");
+  const countyDeathsCsvContent = data_deaths;
+
   /* Get County CSV */
-  let filePath = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
-  let data = fs.readFileSync(filePath, "utf8");
+  let filePath_cases = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
+  let data = fs.readFileSync(filePath_cases, "utf8");
   const countyCsvContent = data;
+
+  /* Get State Deaths CSV */
+  const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
+  
+  /* Get National Deaths CSV */
+  const nationalDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Country_Region");
 
   /* Get State CSV */
   const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
@@ -176,7 +197,7 @@ async function generateCovidDataPackage_dev() {
   const source = "2 - Local (Diego is in 'dev' mode)";
 
   // const data = [[countyCsvContent, countyGeoJsonContent], [stateCsvContent, stateGeoJsonContent], [nationalCsvContent, nationalGeoJsonContent]];
-  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
   // return getCovidResults(csvContent, geoJsonContent, source);
   return getCovidDataPackage(freshData, source);
 
@@ -224,39 +245,60 @@ function getCovidDataPackage(data, source = "unknown") {
 
   console.log("Starting Data Package...");
 
-  const {countyCsvContent, countyGeoJsonContent, stateCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
+  const {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
 
   const {
     geoJson: countyGeoJson,
-    dataLookup: countyDataLookup,
+    dataLookup: countyCaseLookup,
     weekDefinitionsList: countyWeekDefinitionsList,
     weekDefinitionsLookup: countyWeekDefinitionsLookup,
   } = getCovidResults(countyCsvContent, countyGeoJsonContent);
   const {
     geoJson: stateGeoJson,
-    dataLookup: stateDataLookup,
-    weekDefinitionsList: stateWeekDefinitionsList,
-    weekDefinitionsLookup: stateWeekDefinitionsLookup,
+    dataLookup: stateCaseLookup,
+    weekDefinitionsList: _01,
+    weekDefinitionsLookup: _02,
   } = getCovidResults(stateCsvContent, stateGeoJsonContent);
   const {
     geoJson: nationalGeoJson,
-    dataLookup: nationalDataLookup,
-    weekDefinitionsList: nationalWeekDefinitionsList,
-    weekDefinitionsLookup: nationalWeekDefinitionsLookup,
+    dataLookup: nationalCaseLookup,
+    weekDefinitionsList: _03,
+    weekDefinitionsLookup: _04,
   } = getCovidResults(nationalCsvContent, nationalGeoJsonContent);
+  const {
+    geoJson: _05,
+    dataLookup: countyDeathsLookup,
+    weekDefinitionsList: _06,
+    weekDefinitionsLookup: _07,
+  } = getCovidResults(countyDeathsCsvContent, countyGeoJsonContent);
+  const {
+    geoJson: _08,
+    dataLookup: stateDeathsLookup,
+    weekDefinitionsList: _09,
+    weekDefinitionsLookup: _10,
+  } = getCovidResults(stateDeathsCsvContent, stateGeoJsonContent);
+  const {
+    geoJson: _11,
+    dataLookup: nationalDeathsLookup,
+    weekDefinitionsList: _12,
+    weekDefinitionsLookup: _13,
+  } = getCovidResults(nationalDeathsCsvContent, nationalGeoJsonContent);
   
   const dataPackage = {
     "county": {
       "geoJson": countyGeoJson,
-      "dataLookup": countyDataLookup,
+      "caseLookup": countyCaseLookup,
+      "deathsLookup": countyDeathsLookup,
     },
     "state": {
       "geoJson": stateGeoJson,
-      "dataLookup": stateDataLookup,
+      "caseLookup": stateCaseLookup,
+      "deathsLookup": stateDeathsLookup,
     },
     "national": {
       "geoJson": nationalGeoJson,
-      "dataLookup": nationalDataLookup,
+      "caseLookup": nationalCaseLookup,
+      "deathsLookup": nationalDeathsLookup,
     },
     "weekDefinitions": {
       "list": countyWeekDefinitionsList,
@@ -420,8 +462,8 @@ function getCovidResults(csvContent, geoJsonContent) {
         let calculatedRate = covid19WeeklyRateLookup[fips][i_wk - 1];
         const rate = calculatedRate >= 0 ? calculatedRate : 0;
         const acceleration = covid19WeeklyAccelerationLookup[fips][i_wk - accelerationRange - 1]
-        const rateNormalized = Math.round(rate / pop * 100000);
-        const accelerationNormalized = Math.round(acceleration / pop * 100000);
+        const rateNormalized = roundPrecise(rate / pop * 100000, 1);
+        const accelerationNormalized = roundPrecise(acceleration / pop * 100000, 1);
         const recoveryStreak = covid19WeeklyRecoveryStreakLookup[fips][i_wk - 1];
         weeklyCovidDataArray.push([count, rate, acceleration, rateNormalized, accelerationNormalized, recoveryStreak])
       }
@@ -479,6 +521,10 @@ async function queryPrimaryDatabase(queryString, dataArr, callBackFunction = (er
   }
   pgPsqlClient.end();
   return result;
+}
+
+function roundPrecise (number, decimalPlaces) {
+  return Number(Math.round(number + "e" + decimalPlaces) + "e-" + decimalPlaces);
 }
 
 /**

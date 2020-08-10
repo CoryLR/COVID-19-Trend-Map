@@ -122,10 +122,10 @@ $leaflet-geosearch-label-width-mobile: 105px;
     background-color: rgb(240, 240, 240);
     font-style: italic;
   }
-  .fa-inline {
-    display: inline-block;
-    width: 20px;
-  }
+}
+.fa-inline {
+  display: inline-block;
+  width: 20px;
 }
 
 /* Chart js modifications */
@@ -137,10 +137,10 @@ $leaflet-geosearch-label-width-mobile: 105px;
 /* CSS Animations */
 @keyframes rotation {
   from {
-    transform: rotate(0deg);
+    transform: rotate(-45deg);
   }
   to {
-    transform: rotate(359deg);
+    transform: rotate(314deg);
   }
 }
 
