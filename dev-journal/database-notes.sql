@@ -35,6 +35,9 @@ DELETE FROM covid_19 WHERE id IN (
 /* Delete test data */
 delete from covid_19 where lower(label) like 'test%';
 
+/* Delete a record from the covid table */
+delete from covid_19 where id = '153';
+
 /* Labels:
   "latest" = county geojson, data lookup, and week definitions
  */

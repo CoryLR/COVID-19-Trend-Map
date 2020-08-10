@@ -131,7 +131,7 @@ export class TrendMapComponent implements OnInit {
         const innerWidth = window.innerWidth;
         this.windowWidth = screenWidth < innerWidth ? screenWidth : innerWidth;
 
-        this.titleService.setTitle("COVID-19-Watch");
+        // this.titleService.setTitle("COVID-19-Watch");
         
         this.metaService.addTags([
           { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
