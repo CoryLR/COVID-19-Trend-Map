@@ -15,13 +15,20 @@
   <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">
     <p class="loading-text">Loading...</p>
     <img src="assets/img/covid-watch-256px.png">
+    <p class="loading-subtext">
+      <br> <em>Developed by</em>
+      <br> <strong>Cory Leigh Rahman</strong>
+      <br>
+      <br> <em>Data calculated from</em>
+      <br> <strong>Johns Hopkins CSSE</strong>
+    </p>
   </div>
 
   <div class="map-wrapper">
     <div id="map"></div>
   </div>
 
-  <div class="info-panel" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
+  <div class="status-report" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
 
     <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faCircle"></fa-icon></div>
     <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faTimesCircle"></fa-icon></div>

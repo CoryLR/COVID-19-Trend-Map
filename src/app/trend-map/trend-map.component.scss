@@ -14,43 +14,49 @@
   height: 100vh;
   min-height: -webkit-fill-available; // Fix for weird iOS height issues
   overflow-x: hide;
+  // position: relative;
 
   .loading-splash {
-    z-index: 100000;
     position: absolute;
+    z-index: 9050;
     top: $header-height;
     left: 0;
     height: calc( 100% - #{$header-height} );
     width: 100%;
-    background-color: rgba(160, 160, 160, 0.7);
+    background-color: rgb(235, 235, 235);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    p {
+    .loading-text {
       font-size: 40px;
-      margin-bottom: 20px;
       font-weight: 600;
+      margin-bottom: 20px;
+      margin-right: -20px;
     }
     img {
       height: 256px;
       animation: rotation 30s infinite linear;
     }
+    .loading-subtext {
+      margin-top: 10px;
+      text-align: center;
+    }
   }
   
   .header {
     position: absolute;
+    z-index: 9999;
     top: 0;
     left: 0;
     width: 100%;
     height: $header-height;
     // background-color: rgb(235, 235, 235);
-    background-image: linear-gradient(20deg, rgb(235, 235, 235), rgb(235, 235, 235) 50%, rgb(170, 170, 170) /* 40%, hsl(0, 43%, 52%) */); /*45deg*/
+    background-image: linear-gradient(20deg, rgb(222, 222, 222), rgb(222, 222, 222) 40%, rgb(140, 140, 140) /* 40%, hsl(0, 43%, 52%) */); /*45deg*/
     color: black;
     // border-bottom: 2px solid rgb(52, 52, 52);
     box-sizing: border-box;
-    z-index: 9000;
     box-shadow: 0px 0 10px 5px rgba(0,0,0,0.35), 0px 0 5px 5px rgba(0,0,0,0.1);
 
     .logo {
@@ -88,7 +94,7 @@
     }
   }
 
-  .info-panel {
+  .status-report {
     position: absolute;
     z-index: 1000;
     top: $header-height;
@@ -96,7 +102,7 @@
     opacity: 0; // Updated by Angular Animations
     width: 280px;
     height: calc( 100% - #{$header-height} );
-    background-color: white;
+    background-color: rgb(247, 247, 247);
     padding: 20px;
     box-shadow: 0px 0 20px 5px rgba(0,0,0,0.35), 0px 0 5px 5px rgba(0,0,0,0.1);
     opacity: 1;
@@ -178,7 +184,7 @@
     right: 15px;
     width: 320px;
     height: auto;
-    background-color: rgb(235,235,235);
+    background-color: rgb(247, 247, 247);
     padding: 15px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
     overflow-y: auto;
@@ -229,7 +235,7 @@
       padding: 10px 15px 15px 15px;
       display: flex;
       flex-direction: row;
-      background-color: rgb(222, 222, 222);
+      background-color: rgb(232, 232, 232);
       // // // background-color: rgb(255, 255, 255);
       // align-items: flex-start;
 

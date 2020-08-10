@@ -30,9 +30,7 @@ export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   // changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('panelOpenClosed', getPanelTransitions()),
-    // trigger('mapMinMax', getMapTransitions()),
     trigger('ngIfAnimation', getNgIfAnimation()),
-    // trigger('layerInfoCollapseAnimation', getLayerInfoCollapseAnimation()),
   ]
 })
 export class TrendMapComponent implements OnInit {
@@ -120,34 +118,39 @@ export class TrendMapComponent implements OnInit {
   
   ngOnInit(): void {
     setTimeout(() => {
-      
-      window.dispatchEvent(new Event('resize'));
-      const screenWidth = window.screen.width;
-      const innerWidth = window.innerWidth;
-      this.windowWidth = screenWidth < innerWidth ? screenWidth : innerWidth;
+      try {
 
-      this.titleService.setTitle("COVID-19-Watch");
-      
-      this.metaService.addTags([
-        { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
-        { name: 'description', content: 'See COVID-19 trends where you live.' },
-        // {name: 'robots', content: 'index, follow'},
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
-      ]);
+        window.dispatchEvent(new Event('resize'));
+        const screenWidth = window.screen.width;
+        const innerWidth = window.innerWidth;
+        this.windowWidth = screenWidth < innerWidth ? screenWidth : innerWidth;
 
-      this.map = this.initializeMap();
-      this.getData();
+        this.titleService.setTitle("COVID-19-Watch");
+        
+        this.metaService.addTags([
+          { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
+          { name: 'description', content: 'See COVID-19 trends where you live.' },
+          // {name: 'robots', content: 'index, follow'},
+          { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0' }
+        ]);
 
-      for (let key in this.stateFipsLookup) {
-        if (key in this.stateFipsLookup) {
-          this.stateNameList.push(this.stateFipsLookup[key].name);
+        this.map = this.initializeMap();
+        this.getData();
+
+        for (let key in this.stateFipsLookup) {
+          if (key in this.stateFipsLookup) {
+            this.stateNameList.push(this.stateFipsLookup[key].name);
+          }
         }
+
+        /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
+        /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
+
+      } catch (err) {
+        console.error(err);
+        alert("Oops, there appears to be an error. Please try refreshing or contact the developer, Cory Leigh Rahman.");
       }
 
-
-      /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
-
-      /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
     }, 0);
   }
 
@@ -627,7 +630,9 @@ export class TrendMapComponent implements OnInit {
       this.map.setView([30, -96], 3);
     }  
 
-    this.initialLoadingDone = true;
+    setTimeout(() => {
+      this.initialLoadingDone = true;
+    }, 250);
 
   }
 
@@ -932,64 +937,15 @@ function getPanelTransitions() {
   ]
 }
 
-// function getMapTransitions() {
-//   return [
-//     state('max', style({
-//       left: '0',
-//       width: '100%',
-//     })),
-//     state('min', style({
-//       left: '280px',
-//       width: 'calc( 100% - 280px )',
-//     })),
-//     transition('max => min', [
-//       animate('0.25s')
-//     ]),
-//     transition('min => max', [
-//       animate('0.25s')
-//     ]),
-//   ]
-// }
-
 function getNgIfAnimation() {
   return [
-      // transition(
-      //   ':enter', 
-      //   [
-      //     style({ opacity: 0 }),
-      //     animate('0.25s ease-out', 
-      //             style({ opacity: 1 }))
-      //   ]
-      // ),
       transition(
         ':leave', 
         [
           style({ opacity: 1 }),
-          animate('0.25s ease-in', 
+          animate('0.66s ease-in', 
                   style({ opacity: 0 }))
         ]
       )
     ]
-}
-
-function getLayerInfoCollapseAnimation() {
-  /* TODO: Height isn't working */
-  return [
-    transition(
-      ':enter', 
-      [
-        // style({ height: 0 }),
-        animate('0.5s ease-out', 
-                style({ height: "auto" }))
-      ]
-    ),
-    transition(
-      ':leave', 
-      [
-        // style({ height: 1 }),
-        animate('0.5s ease-in', 
-                style({ height: 0 }))
-      ]
-    )
-  ]
 }
