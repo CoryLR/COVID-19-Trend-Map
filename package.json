@@ -36,6 +36,7 @@
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "got": "^11.3.0",
+    "heroku-ssl-redirect": "^0.1.1",
     "input-range-scss": "^1.5.2",
     "leaflet": "^1.6.0",
     "leaflet-geosearch": "^3.0.6",

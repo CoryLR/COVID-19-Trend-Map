@@ -1,10 +1,12 @@
 const express = require('express');
 const path = require('path');
 const Diego = require("./Diego-DataBroker.bot.js");
+const sslRedirect = require('heroku-ssl-redirect').default;
 
 module.exports = {
   start: function () {
     const app = express();
+    app.use(sslRedirect());
     app.use(express.static('./dist/covid19trendmap'));
     app.use(express.json());
     setUrlRoutes(app);
