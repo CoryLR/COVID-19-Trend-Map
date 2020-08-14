@@ -178,7 +178,7 @@ export class TrendMapComponent implements OnInit {
     const url = '/api/getData';
     const body = {};
     this.http.post(url, body).subscribe((response: any) => {
-      console.log("Data Package:\n", response);
+      // console.log("Data Package:\n", response);
 
       this.weekDefinitions = response.weekDefinitions;
 

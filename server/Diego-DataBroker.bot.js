@@ -32,7 +32,6 @@ async function runStartupTasks() {
 
   }
   
-
   await cleanUpDatabase();
 }
 
@@ -72,7 +71,8 @@ async function retrieveCovidDataPackage() {
       const source = "1 - GitHub (JHU CSSE)";
       return await generateCovidDataPackage(source);
     } else {
-      return await generateCovidDataPackage_dev();
+      const source = "2 - Local (Diego is in 'dev' mode)";
+      return await generateCovidDataPackage_dev(source);
     }
   }
 }
@@ -80,12 +80,12 @@ async function retrieveCovidDataPackage() {
 async function updateDatabaseWithCovidDataPackage() {
   const source = "0 - Database";
   let dataPackage;
-  if(productionMode) {
+  if (productionMode) {
     dataPackage = await generateCovidDataPackage(source);
   } else {
     dataPackage = await generateCovidDataPackage_dev(source);
   }
-  if(/* productionMode */true) {
+  if (productionMode) {
     queryPrimaryDatabase(`
       INSERT INTO covid_19 (
         label,
@@ -158,7 +158,7 @@ async function generateCovidDataPackage(source = "unknown") {
 
 }
 
-async function generateCovidDataPackage_dev() {
+async function generateCovidDataPackage_dev(source) {
 
   /* Get County Deaths CSV */
   let filePath_deaths = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv');
@@ -194,11 +194,8 @@ async function generateCovidDataPackage_dev() {
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
   
-  const source = "2 - Local (Diego is in 'dev' mode)";
-
-  // const data = [[countyCsvContent, countyGeoJsonContent], [stateCsvContent, stateGeoJsonContent], [nationalCsvContent, nationalGeoJsonContent]];
   const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
-  // return getCovidResults(csvContent, geoJsonContent, source);
+
   return getCovidDataPackage(freshData, source);
 
 }
@@ -221,9 +218,14 @@ function dissolveCsv(csvContent, dissolveField) {
         const cellValue = currentRow[ii];
         const currentHeader = headerRow[ii];
 
-        /* If this cell is COVID data that we want to aggregate */
         if ((currentHeader.length === 6 || currentHeader.length === 7 || currentHeader.length === 8) && currentHeader.match(/\//g) && currentHeader.match(/\//g).length == 2) {
+          /* If this cell is COVID data that we want to aggregate */
           dataRows[groupName][ii] = parseInt(dataRows[groupName][ii], 10) + parseInt(cellValue, 10);
+        } else {
+          /* Otherwise, update it if empty */
+          if (dataRows[groupName][ii].length < 1) {
+            dataRows[groupName][ii] = cellValue;
+          }
         }
       }
     }
@@ -318,6 +320,11 @@ function getCovidResults(csvContent, geoJsonContent) {
   /* Parse inputs into usable data structures */
   const usDailyConfirmedArray2d = PapaParse(csvContent).data;
   const geoJson = JSON.parse(geoJsonContent); // "Object.keys(geoJson)" => [ 'type', 'name', 'crs', 'features' ]
+
+  /* Useful for testing */
+  // if (geoJson.name === "us_states" || geoJson.features.length >= 50) {
+  //   fs.writeFileSync(`${__dirname}/data/tmp-us-states-${testingIterator}.csv`, csvContent); testingIterator += 1;
+  // }
 
   /** Data diagnostics **/
 
@@ -450,9 +457,9 @@ function getCovidResults(csvContent, geoJsonContent) {
       - delete POPULATION from county 
     */
 
-   const fips = feature.properties.FIPS;
-   const name = feature.properties.NAME;
-   const pop = feature.properties.POPULATION <= 0 ? 0.0001 : feature.properties.POPULATION;
+    const fips = feature.properties.FIPS;
+    const name = feature.properties.NAME;
+    const pop = feature.properties.POPULATION <= 0 ? 0.0001 : feature.properties.POPULATION;
 
     try {
       /* Initialize "i" at 2 to skip first 2 weeks where we do not have acceleration data */
@@ -556,3 +563,5 @@ function getDependencies() {
 
   return { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path };
 }
+
+var testingIterator = 0;
