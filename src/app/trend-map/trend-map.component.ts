@@ -301,7 +301,10 @@ export class TrendMapComponent implements OnInit {
   }
 
   locationSearched(place) {
-    /* TODO: Add State support */
+
+    /* Deconflict NYC and NYS */
+    console.log("\nplace:\n", place);
+
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
@@ -310,11 +313,11 @@ export class TrendMapComponent implements OnInit {
       this.map.closePopup();
     } catch (e) { }
     if (topLevelLocation == "United States of America") {
-      const localityException = place.location.raw.place_id == 234930245 /* NYC */ ? true : false;
+      let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
+      const localityException = this.getLocalityExceptions(matchedLayer);
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
 
-        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
         this.map.flyToBounds(matchedLayer.getBounds().pad(1), { duration: 0.6 });
         this.map.once('zoomend', () => {
           const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
@@ -327,7 +330,7 @@ export class TrendMapComponent implements OnInit {
       } else if (this.stateNameList.includes(secondLevelLocation)) {
         // console.log("US State Detected: ", secondLevelLocation);
         // this.map.flyToBounds(place.location.bounds);
-        let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
+        matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
         this.map.flyToBounds(matchedLayer.getBounds().pad(0.5), { duration: 0.6 });
         this.map.once('zoomend', () => {
           
@@ -362,6 +365,14 @@ export class TrendMapComponent implements OnInit {
       /* Fix bug where the map needs to be clicked twice to show a popup */
       this.eventFire(this.elementRef.nativeElement.querySelector('#map'), 'click');
     }, 200);
+  }
+
+  getLocalityExceptions(matchedLayer) {
+    if (matchedLayer.feature.properties.FIPS === "36061") {
+      return true
+    } else {
+      return false;
+    }
   }
 
   openStatusReport(layer) {
