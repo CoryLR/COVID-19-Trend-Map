@@ -17,6 +17,9 @@ SELECT id, label, created_time_stamp FROM covid_19;
 /* Select latest data */
 SELECT id FROM covid_19 WHERE label='test_latest' ORDER BY created_time_stamp DESC LIMIT 1;
 
+/* Metrics */
+
+
 /* Add covid-19 data */
 INSERT INTO covid_19 (
   label,
@@ -26,6 +29,26 @@ INSERT INTO covid_19 (
   '{"key": "value", "key2": "value2"}'
 );
 /* Helpful guide for JSON w/ Node & Postgres: https://itnext.io/storing-json-in-postgres-using-node-js-c8ff50337013 */
+
+/* Metrics */
+INSERT INTO metrics_pages (
+  label, count
+) VALUES (
+  'covid-19-watch', 0
+);
+select * from metrics_pages where label = 'covid-19-watch';
+UPDATE metrics_pages SET count = count + 1 WHERE label = 'covid-19-watch';
+
+INSERT INTO metrics_status_reports (
+  fips, label, count
+) VALUES (
+  '00000', 'Test, Nowhere', 0
+);
+select fips, label, count from metrics_status_reports ORDER BY count DESC;
+select * from metrics_status_reports where fips = '00000';
+UPDATE metrics_status_reports SET count = count + 1 WHERE label = 'covid-19-watch';
+
+
 
 /* Delete all but the 2 "latest" data from the database */
 DELETE FROM covid_19 WHERE id IN (
@@ -67,6 +90,24 @@ CREATE TABLE covid_19 (
   created_time_stamp TIMESTAMPTZ
 );
 ALTER TABLE covid_19 ALTER COLUMN created_time_stamp SET DEFAULT NOW();
+
+/* 2020-08-15 */
+CREATE TABLE metrics_pages (
+  id SERIAL PRIMARY KEY,
+  label TEXT,
+  count BIGINT,
+  created_time_stamp TIMESTAMPTZ
+);
+ALTER TABLE metrics_pages ALTER COLUMN created_time_stamp SET DEFAULT NOW();
+
+CREATE TABLE metrics_status_reports (
+  id SERIAL PRIMARY KEY,
+  fips TEXT,
+  label TEXT,
+  count BIGINT,
+  created_time_stamp TIMESTAMPTZ
+);
+ALTER TABLE metrics_status_reports ALTER COLUMN created_time_stamp SET DEFAULT NOW();
 
 
 

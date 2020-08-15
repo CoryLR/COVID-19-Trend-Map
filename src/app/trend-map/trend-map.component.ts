@@ -177,7 +177,7 @@ export class TrendMapComponent implements OnInit {
   getData() {
     const url = '/api/getData';
     const body = {};
-    this.http.post(url, body).subscribe((response: any) => {
+    const getDataObservable = this.http.post(url, body).subscribe((response: any) => {
       // console.log("Data Package:\n", response);
 
       this.weekDefinitions = response.weekDefinitions;
@@ -208,6 +208,8 @@ export class TrendMapComponent implements OnInit {
 
       this.actOnUrlScheme();
 
+      getDataObservable.unsubscribe();
+
     });
 
   }
@@ -230,7 +232,7 @@ export class TrendMapComponent implements OnInit {
     // const Stamen_TonerHybrid = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-hybrid/{z}/{x}/{y}{r}.{ext}', { ext: 'png' });
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
-    map.attributionControl.setPrefix('https://www.covid-19-watch.com');
+    map.attributionControl.setPrefix('www.covid-19-watch.com');
     map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: Johns Hopkins CSSE");
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
@@ -434,7 +436,10 @@ export class TrendMapComponent implements OnInit {
 
     /* Open the Status Report */
     this.infoPanelOpen = true;
-    setTimeout(() => {this.infoPanelCloseButton = true;}, 250);
+    setTimeout(() => {
+      this.infoPanelCloseButton = true;
+      this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
+    }, 250);
 
     /* Used to reset the feature style when the Status Report is closed. */
     this.lastSelectedLayer = layer;
@@ -930,9 +935,13 @@ export class TrendMapComponent implements OnInit {
 
   }
 
-  // function fallbackCopyTextToClipboard(text) {
-  // }
-  
+  noteStatusReportView(fips, label) {
+    const url = '/api/note/statusReport';
+    const body = {fips, label};
+    const viewStatusReportObservable = this.http.post(url, body).subscribe((res: any) => {
+      viewStatusReportObservable.unsubscribe();
+    });
+  }
 
   getStateFipsLookup() {
     return { "01": { "name": "Alabama", "abbr": "AL" }, "02": { "name": "Alaska", "abbr": "AK" }, "03": { "name": "American Samoa", "abbr": "AS" }, "04": { "name": "Arizona", "abbr": "AZ" }, "05": { "name": "Arkansas", "abbr": "AR" }, "06": { "name": "California", "abbr": "CA" }, "07": { "name": "Canal Zone", "abbr": "CZ" }, "08": { "name": "Colorado", "abbr": "CO" }, "09": { "name": "Connecticut", "abbr": "CT" }, "10": { "name": "Delaware", "abbr": "DE" }, "11": { "name": "District of Columbia", "abbr": "DC" }, "12": { "name": "Florida", "abbr": "FL" }, "13": { "name": "Georgia", "abbr": "GA" }, "14": { "name": "Guam", "abbr": "GU" }, "15": { "name": "Hawaii", "abbr": "HI" }, "16": { "name": "Idaho", "abbr": "ID" }, "17": { "name": "Illinois", "abbr": "IL" }, "18": { "name": "Indiana", "abbr": "IN" }, "19": { "name": "Iowa", "abbr": "IA" }, "20": { "name": "Kansas", "abbr": "KS" }, "21": { "name": "Kentucky", "abbr": "KY" }, "22": { "name": "Louisiana", "abbr": "LA" }, "23": { "name": "Maine", "abbr": "ME" }, "24": { "name": "Maryland", "abbr": "MD" }, "25": { "name": "Massachusetts", "abbr": "MA" }, "26": { "name": "Michigan", "abbr": "MI" }, "27": { "name": "Minnesota", "abbr": "MN" }, "28": { "name": "Mississippi", "abbr": "MS" }, "29": { "name": "Missouri", "abbr": "MO" }, "30": { "name": "Montana", "abbr": "MT" }, "31": { "name": "Nebraska", "abbr": "NE" }, "32": { "name": "Nevada", "abbr": "NV" }, "33": { "name": "New Hampshire", "abbr": "NH" }, "34": { "name": "New Jersey", "abbr": "NJ" }, "35": { "name": "New Mexico", "abbr": "NM" }, "36": { "name": "New York", "abbr": "NY" }, "37": { "name": "North Carolina", "abbr": "NC" }, "38": { "name": "North Dakota", "abbr": "ND" }, "39": { "name": "Ohio", "abbr": "OH" }, "40": { "name": "Oklahoma", "abbr": "OK" }, "41": { "name": "Oregon", "abbr": "OR" }, "42": { "name": "Pennsylvania", "abbr": "PA" }, "43": { "name": "Puerto Rico", "abbr": "PR" }, "44": { "name": "Rhode Island", "abbr": "RI" }, "45": { "name": "South Carolina", "abbr": "SC" }, "46": { "name": "South Dakota", "abbr": "SD" }, "47": { "name": "Tennessee", "abbr": "TN" }, "48": { "name": "Texas", "abbr": "TX" }, "49": { "name": "Utah", "abbr": "UT" }, "50": { "name": "Vermont", "abbr": "VT" }, "51": { "name": "Virginia", "abbr": "VA" }, "52": { "name": "Virgin Islands", "abbr": "VI" }, "53": { "name": "Washington", "abbr": "WA" }, "54": { "name": "West Virginia", "abbr": "WV" }, "55": { "name": "Wisconsin", "abbr": "WI" }, "56": { "name": "Wyoming", "abbr": "WY" }, "72": { "name": "Puerto Rico", "abbr": "PR" } }

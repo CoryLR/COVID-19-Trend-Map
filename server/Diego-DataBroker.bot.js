@@ -2,9 +2,7 @@
 /* Hello, I am Diego the Data Broker. */
 /*                                    */
 
-const { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path } = getDependencies();
-
-const productionMode = true;
+const { CronJob, Got, PapaParse, PapaUnparse, fs, path, productionMode, queryPrimaryDatabase } = getDependencies();
 
 module.exports = {
   start: () => {
@@ -507,28 +505,28 @@ function getCovidResults(csvContent, geoJsonContent) {
 }
 
 
-/**
- * Asynchronous function which queries the database and returns the response
- * @param {string} queryString - SQL Query String
- * @param {function} callBackFunction - requires parameters (err, res), fires when query finishes
- */
-async function queryPrimaryDatabase(queryString, dataArr, callBackFunction = (err, res) => {}) {
-  const pgPsqlClient = new Client({
-    connectionString: process.env.DATABASE_URL,
-    // ssl: true,
-    ssl: { rejectUnauthorized: false }
-  });
-  let result;
-  try {
-    await pgPsqlClient.connect();
-    result = await pgPsqlClient.query(queryString, dataArr);
-  } catch (err) {
-    result = false;
-    /* TODO: Return this error somehow */
-  }
-  pgPsqlClient.end();
-  return result;
-}
+// /**
+//  * Asynchronous function which queries the database and returns the response
+//  * @param {string} queryString - SQL Query String
+//  * @param {function} callBackFunction - requires parameters (err, res), fires when query finishes
+//  */
+// async function queryPrimaryDatabase(queryString, dataArr, callBackFunction = (err, res) => {}) {
+//   const pgPsqlClient = new Client({
+//     connectionString: process.env.DATABASE_URL,
+//     // ssl: true,
+//     ssl: { rejectUnauthorized: false }
+//   });
+//   let result;
+//   try {
+//     await pgPsqlClient.connect();
+//     result = await pgPsqlClient.query(queryString, dataArr);
+//   } catch (err) {
+//     result = false;
+//     /* TODO: Return this error somehow */
+//   }
+//   pgPsqlClient.end();
+//   return result;
+// }
 
 function roundPrecise (number, decimalPlaces) {
   return Number(Math.round(number + "e" + decimalPlaces) + "e-" + decimalPlaces);
@@ -551,17 +549,17 @@ function addEntryToDiegosJournal(entry_name, success, note) {
  * Gets all dependencies used by Diego
  */
 function getDependencies() {
-  const {
-    Client
-  } = require('pg');
   const CronJob = require('cron').CronJob;
   const Got = require('got');
   const PapaParse = require('papaparse').parse;
   const PapaUnparse = require('papaparse').unparse;
   const fs = require("fs");
   const path = require('path');
+  const common = require("./common.js");
+  const queryPrimaryDatabase = common.queryPrimaryDatabase;
+  const productionMode = common.productionMode;
 
-  return { Client, CronJob, Got, PapaParse, PapaUnparse, fs, path };
+  return { CronJob, Got, PapaParse, PapaUnparse, fs, path, productionMode, queryPrimaryDatabase };
 }
 
 var testingIterator = 0;
