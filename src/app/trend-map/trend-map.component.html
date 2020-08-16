@@ -9,7 +9,7 @@
   <!-- this element gets initialized here and moved on initial load -->
   <div *ngIf="windowWidth" class="search-text">
     <fa-icon [icon]="faSearch"></fa-icon>
-    {{windowWidth > 384 ? "Find a Status Report" : "Status Reports"}}
+    {{windowWidth > 384 ? "Find a Status Report" : "Find Status"}}
   </div>
 
   <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">
@@ -138,40 +138,33 @@
   </div> -->
   
   <div *ngIf="weekDefinitions && legendColorSchemeData" class="map-legend">
-    <h5>Map Legend</h5> &nbsp;&nbsp;
-    <!-- <span 
-      ngbPopover="Current map data is for the week ending in {{weekDefinitions.list[currentTimeStop.num] + 20}} {{weekDefinitions.list[currentTimeStop.num - 1] ? '(' + weekDefinitions.list[currentTimeStop.num - 1] + '20 through ' + weekDefinitions.list[currentTimeStop.num] + '20)' : ''}}"
-      triggers="mouseenter:mouseleave"
-      container="body"
-      class="legend-date">{{weekDefinitions.list[currentTimeStop.num]}}20</span> -->
-
-      <div class="btn-group layer-picker-wrapper">
-        <div ngbDropdown container="body" class="layer-picker-part-dropdown">
-          <button type="button" id="layer-picker" class="layer-picker layer-picker-button btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
-            <!-- <div class="fa-inline layer-picker-fa-icon"><fa-icon [icon]="layerSelection.faIcon"></fa-icon></div> -->
-            {{layerSelection.alias}}
-          </button>
-          <div ngbDropdownMenu aria-labelledby="layer-picker">
-            <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
-            <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Case Rate</a>
-            <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
-            <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faShieldAlt"></fa-icon></div> County Recovery</a>
-            <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Death Rate</a> -->
-            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('scr')" class="disabled dropdown-layer-option">State Case Rate</a> -->
-            <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('sca')" class="disabled dropdown-layer-option">State Case Acceleration</a> -->
-            <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->
-          </div>
-        </div>    
-        <button type="button"
-        class="layer-picker-part-collapse layer-picker-button btn btn-secondary btn-sm btn-light"
-        (click)="legendLayerInfoOpen = !legendLayerInfoOpen"
-        title="{{legendLayerInfoOpen ? 'Collapse layer info' : 'Show layer info'}}">
-        <span class="layer-picker-fa-icon">
-          <fa-icon *ngIf="legendLayerInfoOpen" [icon]="faArrowDown"></fa-icon>
-          <fa-icon *ngIf="!legendLayerInfoOpen" [icon]="faInfo"></fa-icon>
-        </span>
+    <div class="btn-group layer-picker-wrapper" [ngClass]="{'info-open': legendLayerInfoOpen}">
+      <div ngbDropdown container="body" class="layer-picker-part-dropdown">
+        <button type="button" id="layer-picker" class="layer-picker layer-picker-button btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
+          <!-- <div class="fa-inline layer-picker-fa-icon"><fa-icon [icon]="layerSelection.faIcon"></fa-icon></div> -->
+          <span class="legend-label">Display: </span> {{layerSelection.alias}}
         </button>
-      </div>
+        <div ngbDropdownMenu aria-labelledby="layer-picker">
+          <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
+          <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Case Rate</a>
+          <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
+          <a ngbDropdownItem (click)="changeLayerSelection('cr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faShieldAlt"></fa-icon></div> County Recovery</a>
+          <!-- <a ngbDropdownItem (click)="changeLayerSelection('cdr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Death Rate</a> -->
+          <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('scr')" class="disabled dropdown-layer-option">State Case Rate</a> -->
+          <!-- <a disabled ngbDropdownItem (click)="changeLayerSelection('sca')" class="disabled dropdown-layer-option">State Case Acceleration</a> -->
+          <!-- <a ngbDropdownItem (click)="changeLayerSelection('sdr')" class="dropdown-layer-option">State Death Rate</a> -->
+        </div>
+      </div>    
+      <button type="button"
+      class="layer-picker-part-collapse layer-picker-button btn btn-secondary btn-sm btn-light"
+      (click)="legendLayerInfoOpen = !legendLayerInfoOpen"
+      title="{{legendLayerInfoOpen ? 'Collapse layer info' : 'Show layer info'}}">
+      <span class="layer-picker-fa-icon">
+        <fa-icon *ngIf="legendLayerInfoOpen" [icon]="faArrowDown"></fa-icon>
+        <fa-icon *ngIf="!legendLayerInfoOpen" [icon]="faInfo"></fa-icon>
+      </span>
+      </button>
+    </div>
 
     <!-- ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
     triggers="mouseenter:mouseleave"

@@ -201,7 +201,7 @@
     width: 320px;
     height: auto;
     background-color: rgb(247, 247, 247);
-    padding: 15px;
+    padding: 10px 15px;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
     overflow-y: auto;
     border-radius: 10px;
@@ -214,31 +214,45 @@
       box-shadow: 0px 0 3px 4px rgba(0,0,0,0.15);
     }
     
-
-    h5 {
-      display: inline-block;
+    .legend-label {
+      font-weight: 600;
     }
+
     .legend-date {
       color: gray;
       cursor: default;
     }
 
+    // .info-open {
+    //   // border-bottom: 1px solid rgb(100, 100, 100);
+    //   button.layer-picker {
+    //     padding-left: 8px;
+    //   }
+    // }
+
     .layer-picker-wrapper {
       margin-left: -1px;
       width: calc( 100% + 2px );
+      // border-left: 1px solid rgb(100, 100, 100);
+      // border-right: 1px solid rgb(100, 100, 100);
 
       .layer-picker-fa-icon {
         margin-right: 2px;
         fa-icon {
-          color: rgb(140, 140, 140);
+          color: rgb(120, 120, 120);
         }
       }
 
       .layer-picker-button {
-        border: 1px solid rgb(200, 200, 200);
+        // border-bottom: 1px solid rgb(200, 200, 200);
         color: black;
       }
-      .layer-picker-button.layer-picker {
+      .layer-picker.layer-picker-button {
+        text-align: left;
+        padding-left: 0;
+      }
+
+      .layer-picker-button {
         width: 100%;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
@@ -250,7 +264,7 @@
         width: 29px;
       }
       .layer-picker-fa-icon {
-        color: rgb(80, 80, 80);
+        color: rgb(50, 50, 50);
       }
     }
 
@@ -286,12 +300,12 @@
       position: relative;
       width: 100%;
       height: 40px;
-      margin-bottom: -10px;
+      margin-bottom: -5px;
       padding: 0;
       overflow-y: auto;
       // border-top: 1px solid gray;
   
-      $temporal-content-top: 12px;
+      $temporal-content-top: 10px;
       .animation-play-pause-button-wrapper {
         position: absolute;
         left: 0;

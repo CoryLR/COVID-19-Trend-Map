@@ -233,7 +233,7 @@ export class TrendMapComponent implements OnInit {
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('www.covid-19-watch.com');
-    map.attributionControl.addAttribution("Cartographer: Cory Leigh Rahman | Data Source: Johns Hopkins CSSE");
+    map.attributionControl.addAttribution("Data Source: Johns Hopkins CSSE | Cartographer: Cory Leigh Rahman");
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -272,7 +272,7 @@ export class TrendMapComponent implements OnInit {
       showMarker: false,
       showPopup: false,
       autoClose: true,
-      searchLabel: 'Search the U.S. | Local, State, or USA',
+      searchLabel: "Search Local, State, or 'USA'",
       classNames: { container: "geosearch-container", button: "geosearch-button", /* resetButton: "geosearch-resetButton", */ msgbox: "geosearch-msgbox", form: "geosearch-form", input: "geosearch-input" },
       retainZoomLevel: true,
       autoCompleteDelay: 500,
@@ -301,9 +301,6 @@ export class TrendMapComponent implements OnInit {
   }
 
   locationSearched(place) {
-
-    /* Deconflict NYC and NYS */
-    console.log("\nplace:\n", place);
 
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);

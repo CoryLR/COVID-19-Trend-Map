@@ -5,8 +5,8 @@
 // MIT License
 
 $track-color: rgb(200, 200, 200) !default;
-$thumb-color: hsl(180, 40%, 40%) !default;
-$thumb-border-width: 0px !default;
+$thumb-color: rgb(120, 120, 120) !default;
+$thumb-border-width: 12px !default;
 $thumb-border-color: hsl(180, 40%, 25%) !default;
 $contrast: 5% !default;
 $ie-bottom-track-color: darken($track-color, $contrast) !default;
@@ -17,8 +17,14 @@ $ie-bottom-track-color: darken($track-color, $contrast) !default;
 
 @mixin thumb {
   
+  // box-sizing: border-box;
+  // $margin-border-adjust: #{ 0px - ( $thumb-border-width / 2 ) };
+  // margin: $margin-border-adjust 0 0;
   background: $thumb-color;
-  border: $thumb-border-width solid $thumb-border-color;
+  margin-top: -6px;
+  width: 20px;
+  height: 20px;
+  // border: $thumb-border-width solid $thumb-color;
   // cursor: pointer;
 
 }
