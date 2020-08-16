@@ -390,6 +390,9 @@ export class TrendMapComponent implements OnInit {
     } else {
       this.updatePanel(layer);
     }
+
+    const fips = layer.feature.properties.FIPS;
+    this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
   }
 
   updatePanel(layer) {
@@ -449,7 +452,6 @@ export class TrendMapComponent implements OnInit {
     this.infoPanelOpen = true;
     setTimeout(() => {
       this.infoPanelCloseButton = true;
-      this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
     }, 250);
 
     /* Used to reset the feature style when the Status Report is closed. */
