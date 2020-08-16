@@ -8,7 +8,7 @@ Master's in GIS and Web Map Programming, University of Wisconsin-Madison
 **Table of Contents**
 
 - [Executive Summary: COVID-19-Watch](#executive-summary-covid-19-watch)
-  - [Problem & Purpose](#problem--purpose)
+  - [Purpose](#purpose)
   - [Solution](#solution)
     - [How To: Quickly find and share local COVID-19 trends](#how-to-quickly-find-and-share-local-covid-19-trends)
     - [How To: Explore local and national trends](#how-to-explore-local-and-national-trends)
@@ -17,11 +17,11 @@ Master's in GIS and Web Map Programming, University of Wisconsin-Madison
     - [Data Flow:](#data-flow)
   - [Acknowledgements & Technologies Used](#acknowledgements--technologies-used)
 
-## Problem & Purpose
-
-Many people see a statistic on the national News like "there have now been 5 million cases in the US" and find it hard to personally connect to that number. It's hard to conceptualize. However, when someone sees "*Your County* is reporting 500 new cases of COVID-19 in the past week", that's a lot easier to connect to and comprehend.
+## Purpose
 
 This project is meant to encourage our fellow U.S. Citizens to take COVID-19 more seriously by enabling direct access to local, easy-to-understand COVID-19 trends.
+
+Many people see a statistic on the national News such as "there have now been 5 million cases in the US" and find it hard to personally connect to that number. It's hard to conceptualize. However, when someone sees "*Your County* is reporting 500 new cases of COVID-19 in the past week", that's a lot easier to connect to and comprehend.
 
 ## Solution
 
@@ -94,5 +94,6 @@ All information is calculated from raw COVID-19 case and death data provided by 
 - [OpenStreetMap](https://www.openstreetmap.org/) for location search capabilities
 - [Leaflet](https://leafletjs.com) for web mapping capabilities
 - [Angular](https://angular.io) for web framework capabilities
-- [Node / Express](https://angular.io) for web server capabilities
-- [Heroku](https://www.heroku.com) for development operations platform capabilities
+- [Node](https://nodejs.org/) / [Express](https://expressjs.com) for web server capabilities
+- [PostgreSQL](https://www.postgresql.org) database capabilities
+- [Heroku](https://www.heroku.com) for development operations & hosting capabilities
