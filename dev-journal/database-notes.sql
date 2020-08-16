@@ -11,12 +11,21 @@
 /* See all tables in psql database */
 SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';
 
-/* See covid-19 data records */
+/* See Diego's COVID-19 data packages */
 SELECT id, label, created_time_stamp FROM covid_19;
 
-/* View Metrics */
-select label, count from metrics_pages ORDER BY count DESC;
-select fips, label, count from metrics_status_reports ORDER BY count DESC;
+
+/** Metrics **/
+
+/* View Cumulative Metrics */
+SELECT label, count FROM metrics_pages ORDER BY count DESC;
+SELECT fips, label, count FROM metrics_status_reports ORDER BY count DESC;
+
+/* List of metrics snapshot timestamp keys */
+SELECT jsonb_object_keys(snapshot) FROM metrics_snapshots WHERE label = 'all_snapshots';
+
+/* See a specific metrics snapshot */
+select snapshot::jsonb-> 'PASTE_SNAPSHOT_KEY' FROM metrics_snapshots WHERE label = 'all_snapshots';
 
 
 /* Add covid-19 data */
