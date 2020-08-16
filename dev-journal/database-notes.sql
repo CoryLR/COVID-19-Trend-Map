@@ -14,10 +14,9 @@ SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemana
 /* See covid-19 data records */
 SELECT id, label, created_time_stamp FROM covid_19;
 
-/* Select latest data */
-SELECT id FROM covid_19 WHERE label='test_latest' ORDER BY created_time_stamp DESC LIMIT 1;
-
-/* Metrics */
+/* View Metrics */
+select label, count from metrics_pages ORDER BY count DESC;
+select fips, label, count from metrics_status_reports ORDER BY count DESC;
 
 
 /* Add covid-19 data */
@@ -36,7 +35,6 @@ INSERT INTO metrics_pages (
 ) VALUES (
   'covid-19-watch', 0
 );
-select * from metrics_pages where label = 'covid-19-watch';
 UPDATE metrics_pages SET count = count + 1 WHERE label = 'covid-19-watch';
 
 INSERT INTO metrics_status_reports (
@@ -44,11 +42,42 @@ INSERT INTO metrics_status_reports (
 ) VALUES (
   '00000', 'Test, Nowhere', 0
 );
-select fips, label, count from metrics_status_reports ORDER BY count DESC;
-select * from metrics_status_reports where fips = '00000';
 UPDATE metrics_status_reports SET count = count + 1 WHERE label = 'covid-19-watch';
 
+INSERT INTO metrics_snapshots (
+  label, snapshot
+) VALUES (
+  'all_snapshots', '{}'
+);
+CREATE TABLE metrics_snapshots (
+  id SERIAL PRIMARY KEY,
+  label TEXT,
+  snapshot JSONB,
+  created_time_stamp TIMESTAMPTZ
+);
 
+/* Add root key:value */
+UPDATE metrics_snapshots
+SET snapshot = jsonb_set(snapshot, '{Test}', '[1, 2, 3]', TRUE)
+WHERE label = 'all_snapshots';
+
+/* Delete for testing */
+update metrics_snapshots set snapshot = '{}';
+
+/* Snapshot JSONB format: */
+{
+  "2020-04-23T18:25:43.511Z": {
+    "status_reports": {
+      "00000": 20,
+      "10001": 20,
+      "49": 20,
+      "0": 20,
+    },
+    "pages": {
+      "covid-19-watch": 12,
+    }
+  },
+}
 
 /* Delete all but the 2 "latest" data from the database */
 DELETE FROM covid_19 WHERE id IN (
@@ -108,6 +137,20 @@ CREATE TABLE metrics_status_reports (
   created_time_stamp TIMESTAMPTZ
 );
 ALTER TABLE metrics_status_reports ALTER COLUMN created_time_stamp SET DEFAULT NOW();
+
+CREATE TABLE metrics_snapshots (
+  id SERIAL PRIMARY KEY,
+  label TEXT,
+  snapshot JSONB,
+  created_time_stamp TIMESTAMPTZ
+);
+ALTER TABLE metrics_snapshots ALTER COLUMN created_time_stamp SET DEFAULT NOW();
+
+INSERT INTO metrics_snapshots (
+  label, snapshot
+) VALUES (
+  'all_snapshots', '{}'
+);
 
 
 

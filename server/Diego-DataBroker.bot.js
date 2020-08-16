@@ -26,7 +26,8 @@ async function runStartupTasks() {
   } else {
 
     /* Useful for testing backend */
-    await updateDatabaseWithCovidDataPackage();
+    // await updateDatabaseWithCovidDataPackage();
+    // recordMetricsSnapshot();
 
   }
   
@@ -48,13 +49,40 @@ function initDataCollectionSchedule() {
   }, null, true, 'America/New_York');
   dataCollectionJob.start();
 
+  /* Record a snapshot of the site metrics at 3am ET (midnight PT) */
+  const metricsSnapshotJob = new CronJob('00 00 03 * * *', async function() {
+    await recordMetricsSnapshot();
+  }, null, true, 'America/New_York');
+  metricsSnapshotJob.start();
+
 }
 
-/* 
-  TODO:
-  - Fix bug causing the discrepancy between rate and cumulative cases (example: City of Fairfax, VA
+async function recordMetricsSnapshot() {
+  const currentPagesResponse = await queryPrimaryDatabase(`SELECT label, count FROM metrics_pages;`);
+  const currentStatusReportsResponse = await queryPrimaryDatabase(`SELECT fips, count FROM metrics_status_reports;`);
+  const currentPages = currentPagesResponse.rows;
+  const currentStatusReports = currentStatusReportsResponse.rows;
 
-*/
+  const timeString = new Date().toISOString();
+
+  const snapshot = {
+    status_reports: {},
+    pages: {}
+  };
+
+  for (page of currentPages) {
+    snapshot.pages[page.label] = page.count;
+  }
+  for (statusReport of currentStatusReports) {
+    snapshot.status_reports[statusReport.fips] = statusReport.count;
+  }
+
+  await queryPrimaryDatabase(`
+    UPDATE metrics_snapshots
+    SET snapshot = jsonb_set(snapshot, '{${timeString}}', '${JSON.stringify(snapshot)}', TRUE)
+    WHERE label = 'all_snapshots';  
+  `);
+}
 
 async function retrieveCovidDataPackage() {
   let result = await queryPrimaryDatabase(`SELECT data FROM covid_19 WHERE label='latest_full' ORDER BY created_time_stamp DESC LIMIT 1;`);

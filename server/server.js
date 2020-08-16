@@ -43,7 +43,6 @@ async function noteStatusReport(req) {
     const fips = req.sanitize(params.fips, 'string');
     const label = req.sanitize(params.label, 'string');
     const noted = await queryPrimaryDatabase(`select * from metrics_status_reports where fips = '${fips}';`);
-    console.log("typeof noted.rowCount", typeof noted.rowCount);
     if (noted.rowCount === 0) {
       queryPrimaryDatabase(`
         INSERT INTO metrics_status_reports (
