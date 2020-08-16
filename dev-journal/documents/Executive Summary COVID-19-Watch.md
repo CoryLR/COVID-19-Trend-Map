@@ -43,7 +43,7 @@ This app allows the public to:
 - Send a direct link to any particular Status Report
 
 | ![Search for a Local Status Report](img/function1-find-and-share-1.jpg) | ![View Status Report](img/function1-find-and-share-2.jpg) | ![Share Direct URL to Status Report](img/function1-find-and-share-3.jpg) |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ----------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Search for a Local Status Report                                        | View Status Report                                        | Share Direct URL to Status Report                                        |
 
 ### How To: Explore local and national trends
@@ -51,9 +51,11 @@ This app allows the public to:
 - Examine the change in colors in the map
 - View neighboring, State and National Status Reports
 
-| ![Fairfax County Status Report](img/function2-scale-1.jpg)                       | ![Virginia Status Report](img/function2-scale-2.jpg)                         | ![US Status Report](img/function2-scale-3.jpg)                                      |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Fairfax County had 51.5 cases per 100k in the week leading up to August 16, 2020 | Virginia had 77.1 cases per 100k, a slightly higher rate than Fairfax County | The County and State were both beating the national average of 110.9 cases per 100k |
+| ![Fairfax County Status Report](img/function2-scale-1.jpg) | ![Virginia Status Report](img/function2-scale-2.jpg) | ![US Status Report](img/function2-scale-3.jpg) |
+| ---------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------- |
+| 51.5 new cases per 100,000 people                          | 77.1 new cases per 100,000 people                    | 110.9 new cases per 100,000 people             |
+
+By comparing population-normalized new cases, we can conclude that in the week leading up to August 16, 2020, both Fairfax County and Virginia were beating the national average in number of new cases, relative to population.
 
 ### How To: Explore how COVID-19 has progressed over time
 
