@@ -75,16 +75,16 @@ All information is calculated from raw COVID-19 case and death data provided by 
 1. Raw COVID-19 data are automatically scraped from Johns Hopkins every morning around 3 a.m. by **Diego the Data Broker**, a web robot developed to support COVID-19-Watch.
 2. For every county and state, the nation, and for every week since the data begins, Diego calculates and records the following metrics:
    - Cumulative count of COVID-19 cases (used to calculate other case metrics)
-   - Case rate (7-day average of new COVID-19 cases)
-   - Case rate, population-normalized (7-day average of new COVID-19 cases per 100,000 people)
-   - Acceleration (change in 7-day average of new COVID-19 cases from 2 weeks prior)
-   - Acceleration, population-normalized (change in 7-day average of new COVID-19 cases from 2 weeks prior per 100,000 people)
+   - Case rate (7-day total of new COVID-19 cases)
+   - Case rate, population-normalized (7-day total of new COVID-19 cases per 100,000 people)
+   - Acceleration (change in 7-day total of new COVID-19 cases from 2 weeks prior)
+   - Acceleration, population-normalized (change in 7-day total of new COVID-19 cases from 2 weeks prior per 100,000 people)
    - Recovery streak (number of weeks since the last reported case of COVID-19)
    - Cumulative count of COVID-19 deaths (used to calculate other deaths metrics)
-   - Death rate (7-day average of new COVID-19 deaths)
-   - Death rate, population-normalized (7-day average of new COVID-19 deaths per 100,000 people)
-   <!-- - Death acceleration (change in 7-day average of new COVID-19 deaths from 2 weeks prior) -->
-   <!-- - Death acceleration, normalized (change in 7-day average of new COVID-19 deaths from 2 weeks prior per 100,000 people) -->
+   - Death rate (7-day total of new COVID-19 deaths)
+   - Death rate, population-normalized (7-day total of new COVID-19 deaths per 100,000 people)
+   <!-- - Death acceleration (change in 7-day total of new COVID-19 deaths from 2 weeks prior) -->
+   <!-- - Death acceleration, normalized (change in 7-day total of new COVID-19 deaths from 2 weeks prior per 100,000 people) -->
 3. This data is added to a Data Package alongside county, state, and national GeoJSON map files and added to the database.
 4. When a member of the public accesses the app online, Diego takes the morning's latest Data Package and gives it to the app for display in the map and Status Reports.
 
