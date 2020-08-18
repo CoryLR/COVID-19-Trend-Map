@@ -5,13 +5,11 @@ Cory Leigh Rahman • 2020-08-18 • GEOG 778: Practicum in GIS Development
 
 Master's in GIS and Web Map Programming, University of Wisconsin-Madison
 
-## Self-Review
-
-**What went well with the project? (Good)**
+## What went well with the project? (Good)
 
 The project has turned out extraordinarily well. At a minimum, I wanted to create something that would provide the public with direct access to local, easy-to-understand COVID-19 data. However, COVID-19-Watch can do so much more than that. Users can also see how COVID-19 is progressing through change-over-time visualization and exploration of not only local, but state and national level trends as well.
 
-**What could have been better with the project? (Bad)**
+## What could have been better with the project? (Bad)
 
 There is a lot of room for improvement, and I intend to continue working on this project to make it even better. Here is my current to-do list:
 
@@ -26,7 +24,7 @@ There is a lot of room for improvement, and I intend to continue working on this
 - [ ] Provide the option to automatically acquire the user's location using their device's location service
 - [ ] Make the app more accessible so people with disabilities can use it well too
 
-**What was a disaster? (Ugly)**
+## What was a disaster? (Ugly)
 
 When it comes to development of the project itself, I don't think there were any "disasters". One issue is that the county/state/national boundaries are a bit jagged because of the generalization and minimization required to keep the app lightweight, but that will be very difficult to solve without entirely changing the mapping portion of the application.
 
