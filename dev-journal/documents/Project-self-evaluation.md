@@ -16,6 +16,8 @@ There is a lot of room for improvement, and I intend to continue working on this
 - [ ] Add an About page with details on the data and "how-to" sections for directions (currently in progress)
 - [ ] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
 - [ ] Implement nearest-neighbor match-finding for search results so that coastal searches work better
+- [ ] Add easier way to see the USA status report
+- [ ] Add option to display deaths in the map
 - [ ] Add support for Puerto Rico
 - [ ] Add lazy loading for historical COVID-19 data and UI to support
 - [ ] Improve mobile design (scroll over map instead of slide-in)

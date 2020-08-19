@@ -100,34 +100,38 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [ ] [Deliverable] Write & deliver executive report
   - [ ] Socialize & advertize the application publicly
 
-- **Scope Creep**
+- **Additional Tasks (scope creep) Week 8**
   - [x] Teach Diego to differentiate "zero" (`0`) values between "has never had a new case", "back to no new cases", and the magnitude of "back to no new cases" (e.g. "no new cases in x weeks")
   - [x] Add death and recovery statistics
   - [x] Add state-level aggregations and borders
   - [x] Add national aggregation
-  - [ ] Automatically acquire the user's location using their device's GPS
-  - [ ] Add generalized Puerto Rico counties to GeoJSON (Hopkins has their data in the US csv but Esri doesn't in their counties layer, so I'll need to add them and their populations myself)
-  - [ ] Add lazy loading for historical COVID-19 data, load on opening of the historical data section
-  - [ ] Improve mobile design (especi)
-  - [ ] Make the app accessible so people with disabilities can find out the same information
 
-## Triage
+- **Additional tasks pre-final-demo 2020-08-06 - 2020-08-09**
+  - [x] [functional] State & National data integrated
+  - [x] [functional] Time-enable status reports
+  - [x] [design] Improve UI (organize UI, add a "find a status report" type section)
+  - [x] [follow-through] Get mentor/peer feedback
+  - [x] [design/debugging] Ensure mobile-friendliness
+  - [x] [functional] Death & Recovery integration
+  - [x] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
 
-Crunch time + scope creep 2020-08-06 - 2020-08-09
+### Triage
 
-- [x] [functional] State & National data integrated
-- [x] [functional] Time-enable status reports
-- [x] [design] Improve UI (organize UI, add a "find a status report" type section)
-- [x] [follow-through] Get mentor/peer feedback
-- [x] [design/debugging] Ensure mobile-friendliness
-- [x] [functional] Death & Recovery integration
-- [x] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
-- [ ] [follow-through] Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
-- [ ] [functional] Add zoom-to-original-extent button
-- [ ] [functional] Automatically acquire user's location on "find me" click
-- [ ] [debugging] Ensure cross-browser compatibility & stress testing
-- [ ] [functional] Make temporal animation more efficient
-- [ ] [functional] Add Puerto Rico
-- [ ] [design/debugging] Resolve Safari mobile hight issue, make content scrollable over the map for Mobile
-- [ ] [functional] Lazy-load historic data
-- [ ] [functional] Explore options for further improving performance and load times
+- **Pre release**
+  - [ ] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
+  - [ ] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
+  - [ ] [functional] Add easier way to see the USA status report
+  - [ ] [efficiency/sharing] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
+  - [ ] [sharing] Implement different meta tags for share links (title, description, og:image, etc)
+
+- **Backlog**
+  - [ ] [functional] Add option to display deaths in the map
+  - [ ] [functional] Add support for Puerto Rico
+  - [ ] [efficiency] Add lazy loading for historical COVID-19 data and UI to support
+  - [ ] [functional] Add zoom-to-extent button
+  - [ ] [design] Improve mobile design (scroll over map instead of slide-in)
+  - [ ] [debugging] Ensure cross-browser compatibility & stress testing
+  - [ ] [functional] Provide the option to automatically acquire the user's location using their device's location service
+  - [ ] [functional] Make the app more accessible so people with disabilities can use it well too
+  - [ ] [functional] Make temporal animation more efficient
+  - [ ] [functional] Explore options for further improving performance and load times
