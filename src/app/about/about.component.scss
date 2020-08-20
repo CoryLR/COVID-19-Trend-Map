@@ -1,0 +1,37 @@
+
+.about-container {
+  background-color: white;
+  width: 100vw;
+  min-height: -webkit-fill-available; // Fix for weird iOS height issues
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  a.text-link {
+    color: #0065d2;
+    font-weight: 700;
+  }
+
+  h1 {
+    // font-size: 3rem;
+  }
+
+  h2 {
+    padding-top: 45px;
+  }
+
+  .display-image {
+    margin-top: 15px;
+    img {
+      // border: 1px solid rgb(52, 52, 52);
+      // border: 3px solid white;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    p {
+      padding-top: 10px;
+      font-style: italic;
+    }
+  }
+
+}
