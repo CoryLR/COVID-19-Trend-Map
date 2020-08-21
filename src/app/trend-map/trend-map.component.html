@@ -161,7 +161,8 @@
   </div> -->
   
   <div *ngIf="weekDefinitions && legendColorSchemeData" class="map-legend">
-    <div class="btn-group layer-picker-wrapper" [ngClass]="{'info-open': legendLayerInfoOpen}">
+    <div class="btn-group layer-picker-wrapper" [ngClass]="{'info-open': legendLayerInfoOpen}"
+      *ngIf="windowWidth < 451 && !infoPanelOpen || windowWidth >= 451">
       <div ngbDropdown container="body" class="layer-picker-part-dropdown">
         <button type="button" id="layer-picker" class="layer-picker layer-picker-button btn btn-secondary btn-sm btn-light" ngbDropdownToggle>
           <!-- <div class="fa-inline layer-picker-fa-icon"><fa-icon [icon]="layerSelection.faIcon"></fa-icon></div> -->
@@ -192,7 +193,7 @@
     <!-- ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
     triggers="mouseenter:mouseleave"
     container="body" -->
-    <div class="layer-info" *ngIf="legendLayerInfoOpen"><!-- [@layerInfoCollapseAnimation] -->
+    <div class="layer-info" *ngIf="legendLayerInfoOpen && (windowWidth < 451 && !infoPanelOpen || windowWidth >= 451)"><!-- [@layerInfoCollapseAnimation] -->
       <div class="layer-color-scheme">
         <div *ngFor="let item of legendContent.colorSchemeData" class="color-set">
           <div [ngStyle]="mapZoomedIn ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}
