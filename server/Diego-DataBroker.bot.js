@@ -271,7 +271,7 @@ function dissolveCsv(csvContent, dissolveField) {
 
 function getCovidDataPackage(data, source = "unknown") {
 
-  console.log("Starting Data Package...");
+  // console.log("Starting Data Package...");
 
   const {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
 
@@ -335,13 +335,13 @@ function getCovidDataPackage(data, source = "unknown") {
     "source": source,
   }
 
-  console.log("...Finished generating Data Package!");
+  // console.log("...Finished generating Data Package!");
   return dataPackage
 
 }
 
 function getCovidResults(csvContent, geoJsonContent) {
-  console.log("Getting Covid Results...");
+  // console.log("Getting Covid Results...");
 
   /* Parse inputs into usable data structures */
   const usDailyConfirmedArray2d = PapaParse(csvContent).data;

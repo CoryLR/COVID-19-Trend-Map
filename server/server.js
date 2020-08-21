@@ -30,6 +30,12 @@ function setUrlRoutes(app) {
     }
     res.send(true);
   });
+  app.post('/api/note/page', async function (req, res) {
+    if (productionMode) {
+      await notePage(req);
+    }
+    res.send(true);
+  });
 
   /* Send all other routes to Angular app */
   app.get('*', function (req, res) {
@@ -54,6 +60,13 @@ async function noteStatusReport(req) {
     } else {
       queryPrimaryDatabase(`UPDATE metrics_status_reports SET count = count + 1 WHERE fips = '${fips}';`);
     }
+  }
+}
+async function notePage(req) {
+  params = req.body;
+  if (params.label) {
+    const label = req.sanitize(params.label, 'string');
+    queryPrimaryDatabase(`UPDATE metrics_pages SET count = count + 1 WHERE label = '${label}';`);
   }
 }
 

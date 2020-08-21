@@ -1,9 +1,30 @@
 <div class="trend-map-container">
 
   <div class="header">
-    <img class="logo" src="assets/img/covid-watch-compass-128px.png">
-    <h3>COVID-19-Watch</h3>
-    <!-- <h5> BETA 3 // WORK IN PROGRESS</h5> -->
+    <div class="title-section">
+      <img class="logo" src="assets/img/covid-watch-compass-128px.png">
+      <div class="header-title-text">COVID-19-Watch</div>
+    </div>
+    <div class="about-section">
+      <div ngbDropdown placement="bottom-right">
+        <button class="btn" id="about-dropdown" ngbDropdownToggle><span class="about-label">About </span><fa-icon [icon]="faBars"></fa-icon></button>
+        <div ngbDropdownMenu aria-labelledby="about-dropdown">
+          <a href="/about" target="_blank" ngbDropdownItem>About COVID-19-Watch <fa-icon [icon]="faExternalLinkAlt"></fa-icon></a>
+          <div ngbDropdownItem class="dropdown-item-separator"></div>
+          <a ngbDropdownItem class="dropdown-layer-label">How-to:</a>
+          <a href="/about#find-and-share" target="_blank" ngbDropdownItem>&nbsp; Find and Share</a>
+          <a href="/about#local-state-national" target="_blank" ngbDropdownItem>&nbsp; Local, State, and National</a>
+          <a href="/about#change-over-time" target="_blank" ngbDropdownItem>&nbsp; Change over Time</a>
+          <div ngbDropdownItem class="dropdown-item-separator"></div>
+          <a ngbDropdownItem class="dropdown-layer-label">About:</a>
+          <a href="/about#up-to-date-data" target="_blank" ngbDropdownItem>&nbsp; The Data</a>
+          <a href="/about#key-technologies-services" target="_blank" ngbDropdownItem>&nbsp; Key Technologies and Services</a>
+          <a href="/about#development-author" target="_blank" ngbDropdownItem>&nbsp; Development & Author</a>
+          <div ngbDropdownItem class="dropdown-item-separator"></div>
+          <a href="/about#disclaimer" target="_blank" ngbDropdownItem>Disclaimer</a>
+        </div>
+      </div>  
+    </div>
   </div>
 
   <!-- this element gets initialized here and moved on initial load -->
@@ -21,6 +42,8 @@
       <br>
       <br> <em>Developed by</em>
       <br> <strong>Cory Leigh Rahman</strong>
+      <br>
+      <br> <a href="/about#disclaimer" target="_blank" class="disclaimer-link">Disclaimer</a>
     </p>
   </div>
 
@@ -61,7 +84,7 @@
     </div>
 
     <div *ngIf="initialLoadingDone" class="panel-stats-section">
-      <div class="stat-title">New Cases This Week</div>&nbsp;&nbsp;<fa-icon
+      <div class="stat-title">New Cases This Week</div>&nbsp;<fa-icon
         [icon]="faInfoCircle"
         popoverTitle="7-Day COVID-19 New Cases"
         ngbPopover="Number of new COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"

@@ -10,7 +10,7 @@ import * as leafletPip from '@mapbox/leaflet-pip'
 /* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -55,6 +55,7 @@ export class TrendMapComponent implements OnInit {
   faTimesCircle = faTimesCircle;
   faVirus = faVirus;
   faVirusSlash = faVirusSlash;
+  faExternalLinkAlt = faExternalLinkAlt;
 
   /* Map Data Control */
   map: any;
@@ -167,7 +168,11 @@ export class TrendMapComponent implements OnInit {
         if(params.fips) {
           const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : params.fips.length === 1 ? this.nationalLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
-            this.map.fitBounds(selectedLayer.getBounds().pad(1));
+            if (params.fips.length === 1) {
+              this.map.flyTo([30, -98.5], 4, { duration: 0 });
+            } else {
+              this.map.fitBounds(selectedLayer.getBounds().pad(1));
+            }
             this.openStatusReport(selectedLayer);  
           }
         }
@@ -233,7 +238,7 @@ export class TrendMapComponent implements OnInit {
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('www.covid-19-watch.com');
-    map.attributionControl.addAttribution("Data Source: Johns Hopkins CSSE | Cartographer: Cory Leigh Rahman");
+    map.attributionControl.addAttribution(`<a href="/about#disclaimer" target="_blank">Disclaimer</a> | <a href="/about#up-to-date-data" target="_blank">Data Source: Johns Hopkins CSSE</a> | <a href="/about#development-author" target="_blank">Author: Cory Leigh Rahman</a>`);
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

@@ -49,6 +49,12 @@ html, body {
     display: none;
   }
 }
+.leaflet-control-attribution {
+  color: #333;
+  a {
+    color: #333;
+  }
+}
 
 $leaflet-geosearch-label-width-standard: 165px;
 $leaflet-geosearch-label-width-mobile: 100px;

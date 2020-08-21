@@ -38,13 +38,15 @@ INSERT INTO covid_19 (
 );
 /* Helpful guide for JSON w/ Node & Postgres: https://itnext.io/storing-json-in-postgres-using-node-js-c8ff50337013 */
 
-/* Metrics */
+/* Initialize a new page for metrics */
 INSERT INTO metrics_pages (
   label, count
 ) VALUES (
-  'covid-19-watch', 0
+  'about', 0
 );
-UPDATE metrics_pages SET count = count + 1 WHERE label = 'covid-19-watch';
+
+/* Increment a page counter */
+UPDATE metrics_pages SET count = count + 1 WHERE label = 'about';
 
 INSERT INTO metrics_status_reports (
   fips, label, count
