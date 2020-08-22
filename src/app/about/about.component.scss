@@ -16,7 +16,9 @@
   }
 
   h1 {
-    // font-size: 3rem;
+    a {
+      color: black;
+    }
   }
 
   h2 {
@@ -29,7 +31,7 @@
     img {
       // border: 1px solid rgb(52, 52, 52);
       // border: 3px solid white;
-      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+      box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.6);
     }
     p {
       padding-top: 10px;
@@ -38,7 +40,7 @@
   }
   .profile-pic {
     border-radius: 50%;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.6);
   }
 
 }

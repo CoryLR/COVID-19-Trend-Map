@@ -4,7 +4,7 @@
     <div class="row">
       <div class="col-sm">
         <br><br>
-        <h1>About</h1>
+        <h1><a href="/about">About</a></h1>
         <br>
         <!-- <p><a href="/" class="text-link strong">COVID-19-Watch</a> is a public online tool to provide direct access to local, easy-to-understand COVID-19 data.</p>
         <p><a href="/" class="text-link strong">COVID-19-Watch</a> is a public online tool to provide up-to-date, easy-to-understand COVID-19 progression insights.</p>
@@ -14,19 +14,37 @@
 
         <p><strong>Key Features:</strong></p>
         <ul>
-          <li><a href="/about#find-and-share" class="text-link strong">Find and share</a> - Quickly find and share local COVID-19 Status Reports for anywhere in the nation</li>
+          <li><a href="/about#find-and-share" class="text-link strong" (click)="scrollToFragment('find-and-share')">Find and share</a> - Quickly find and share local COVID-19 Status Reports for anywhere in the nation</li>
           <li><a href="/about#local-state-national" class="text-link strong">Local, state, and national</a> - Explore data and trends at local, state, and national levels</li>
           <li><a href="/about#change-over-time" class="text-link strong">Change over time</a> - Watch change over time in the map and graph</li>
           <li><a href="/about#up-to-date-data" class="text-link strong">Up-to-date data</a> - Data is updated daily from Johns Hopkins</li>
         </ul>
 
-      </div>
+      <!-- </div>
     </div>
     <div class="row">
-      <div class="col-12">
+      <div class="col-sm"> -->
+        <p><strong>Access:</strong></p>
+        <ul>
+          <li><a href="https://www.covid-19-watch.com" class="text-link strong">www.covid-19-watch.com</a></li>
+          <li><a href="https://covid-19-watch.herokuapp.com" class="text-link strong">covid-19-watch.herokuapp.com</a> - Alternative, sometimes better for firewalls</li>
+        </ul>
+
+        <p><strong>Project Information:</strong></p>
+        <ul>
+          <li><a href="/about#key-technologies-services" class="text-link strong">Key Technologies and Services</a></li>
+          <li><a href="/about#development-author" class="text-link strong">Development & Author</a></li>
+          <li><a href="/about#disclaimer" class="text-link strong">Disclaimer</a></li>
+        </ul>
+        <br>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- <div class="col-12">
         <br>
         <p><strong>Screenshots (Desktop & Mobile):</strong></p>
-      </div>
+      </div> -->
       <div class="col-12 col-sm-6 col-md-4 display-image">
         <a href="/"><img src="assets/img/app-home.jpg" class="img-fluid"></a>
         <p>Initial view: map of new COVID-19 cases</p>
@@ -42,23 +60,6 @@
       <div class="col-6 col-md-2 display-image">
         <a href="/?fips=0&name=United+States+of+America"><img src="assets/img/app-use-mobile.jpg" class="img-fluid"></a>
         <p>National Status Report (Mobile)</p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-sm">
-        <p><strong>Access:</strong></p>
-        <ul>
-          <li><a href="https://www.covid-19-watch.com" class="text-link strong">www.covid-19-watch.com</a></li>
-          <li><a href="https://covid-19-watch.herokuapp.com" class="text-link strong">covid-19-watch.herokuapp.com</a> - Alternative, sometimes better for firewalls</li>
-        </ul>
-
-        <p><strong>Project Information:</strong></p>
-        <ul>
-          <li><a href="/about#key-technologies-services" class="text-link strong">Key Technologies and Services</a></li>
-          <li><a href="/about#development-author" class="text-link strong">Development & Author</a></li>
-          <li><a href="/about#disclaimer" class="text-link strong">Disclaimer</a></li>
-        </ul>
       </div>
     </div>
 
@@ -164,7 +165,7 @@
     <div class="row">
       <div class="col-sm-12">
         <h2 id="development-author">Development & Author</h2>
-        <p>The COVID-19-Watch project started from graduate coursework at the University of Wisconsin-Madison's Master's Program in GIS and Web Map Programming. The project continues to be maintained by the author and original creator, Cory Leigh Rahman. The project is Open Source and licensed under the a GNU Affero General Public License v3.0 (AGPL-3.0). The application source code can be found in full on GitHub: <a href="https://github.com/CoryLR/COVID-19-Trend-Map" target="_blank" class="text-link">https://github.com/CoryLR/COVID-19-Trend-Map</a>. See the <a href="https://github.com/CoryLR/COVID-19-Trend-Map/tree/main/dev-journal" target="_blank" class="text-link">Development Journal</a> to find development notes and reports.</p>
+        <p>The COVID-19-Watch project started from graduate coursework at the University of Wisconsin-Madison's Master's Program in GIS and Web Map Programming. The project continues to be maintained by the author and original creator, Cory Leigh Rahman. The project is Open Source and licensed under the a GNU Affero General Public License v3.0 (AGPL-3.0). The application source code can be found in full on GitHub: <a href="https://github.com/CoryLR/COVID-19-Trend-Map" target="_blank" class="text-link">https://github.com/CoryLR/COVID-19-Trend-Map</a>.
         <br>
       </div>
       <div class="col-sm-3">

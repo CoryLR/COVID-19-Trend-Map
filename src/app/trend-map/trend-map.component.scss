@@ -116,7 +116,7 @@
       }
       .dropdown-item-separator {
         width: calc( 100% - 48px );
-        border-bottom: 1px solid gray;
+        border-bottom: 1px solid rgb(220, 220, 220);
         margin: 5px 24px;
         &:hover {
           background-color: transparent;
@@ -166,7 +166,7 @@
 
   .status-report {
     position: absolute;
-    z-index: 1000;
+    z-index: 1040;
     top: $header-height;
     left: -280px; // Updated by Angular Animations
     opacity: 0; // Updated by Angular Animations
@@ -216,6 +216,8 @@
       fa-icon {
         color: rgb(210, 210, 210);
         font-size: 18px;
+        cursor: pointer;
+
         &:hover {
           color: rgb(100, 100, 100);
         }
@@ -265,7 +267,7 @@
 
   .map-legend {
     position: absolute;
-    z-index: 1100;
+    z-index: 1048;
     bottom: 25px;
     right: 15px;
     width: 320px;

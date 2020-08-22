@@ -114,7 +114,6 @@ export class TrendMapComponent implements OnInit {
   /* Misc */
   window = window;
   windowWidth: number = 0;
-  // windowWidth: any;
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
@@ -551,10 +550,10 @@ export class TrendMapComponent implements OnInit {
           }
         }]
       },
-      tooltips: {
+      tooltips: this.windowWidth >= 451 ? {
         mode: 'index',
         intersect: false
-      },
+      } : { },
       animation: {
         duration: duration
       },

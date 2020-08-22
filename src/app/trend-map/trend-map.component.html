@@ -51,7 +51,10 @@
     <div id="map"></div>
   </div>
 
-  <div class="status-report" *ngIf="panelContent && currentTimeStop" [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'">
+  <div class="status-report" *ngIf="panelContent && currentTimeStop"
+  [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'" (scroll)="true">
+  <!-- For some reason, the very existence of "(scroll)" causes the popovers
+    to update to the appropriate position when scrolling the Status Report -->
 
     <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faCircle"></fa-icon></div>
     <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
@@ -59,7 +62,7 @@
     <div><em>{{currentTimeStop.num === latestTimeStop.num ? '' : 'Historic '}}Status Report for:</em></div>
     <h3>{{panelContent.title}}</h3> <!-- County or State -->
     <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
-    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : ''}}</em></p>
+    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></p>
     <!-- <p>{{panelContent.date}}20</p> -->
 
     <div class="panel-separator"></div>
@@ -71,7 +74,7 @@
 
     <div class="panel-subtitle">New Cases</div>
     <div *ngIf="statusReportChartConfig.lineChartData">
-      <canvas baseChart height="200" class="stat-chart"
+      <canvas baseChart [height]="windowWidth < 451 ? 140 : 200 " class="stat-chart"
           [datasets]="statusReportChartConfig.lineChartData" 
           [labels]="statusReportChartConfig.lineChartLabels" 
           [options]="statusReportChartConfig.lineChartOptions"
@@ -86,28 +89,28 @@
     <div *ngIf="initialLoadingDone" class="panel-stats-section">
       <div class="stat-title">New Cases This Week</div>&nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="7-Day COVID-19 New Cases"
-        ngbPopover="Number of new COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-        triggers="mouseenter:mouseleave"
-        placement="right"
+        popoverTitle="New Cases This Week"
+        ngbPopover="Number of new COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+        triggers="click"
+        placement="auto"
         container="body"
         ></fa-icon>
       <div class="stat-data"><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
       <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="2-Week COVID-19 Case Acceleration"
+        popoverTitle="Acceleration"
         ngbPopover="The number of more new cases this week compared to 2 weeks ago. Specifically, the difference in weekly rate between the weeks of {{weekDefinitions.list[currentTimeStop.num-2]}} and {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
-        triggers="mouseenter:mouseleave"
-        placement="right"
+        triggers="click"
+        placement="auto"
         container="body"
         ></fa-icon>
       <div class="stat-data"><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
       <div class="stat-title">Cumulative Cases</div> &nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="Cumulative COVID-19 Case Count"
+        popoverTitle="Cumulative Cases"
         ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
-        triggers="mouseenter:mouseleave"
-        placement="right"
+        triggers="click"
+        placement="auto"
         container="body"
         ></fa-icon>
       <div class="stat-data"><span class="primary-stat">{{panelContent.cumulative}}</span></div>
@@ -116,19 +119,19 @@
 
       <div class="stat-title">Deaths This Week</div> &nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="7-Day COVID-19 Death Count"
-        ngbPopover="Number of deaths due to COVID-19 cases from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-        triggers="mouseenter:mouseleave"
-        placement="right"
+        popoverTitle="Deaths This Week"
+        ngbPopover="Number of deaths due to COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+        triggers="click"
+        placement="auto"
         container="body"
         ></fa-icon>
       <div class="stat-data"><span class="primary-stat">{{panelContent.deathsRate}}</span> ({{panelContent.deathsRateNorm}} per 100k)</div>
       <div class="stat-title">Cumulative Deaths</div> &nbsp;<fa-icon
         [icon]="faInfoCircle"
-        popoverTitle="Cumulative COVID-19 Death Count"
+        popoverTitle="Cumulative Deaths"
         ngbPopover="Total count of deaths due to COVID-19 since the beginning"
-        triggers="mouseenter:mouseleave"
-        placement="right"
+        triggers="click"
+        placement="auto"
         container="body"
         ></fa-icon>
       <div class="stat-data"><span class="primary-stat">{{panelContent.deathsCumulative}}</span></div>
@@ -168,7 +171,7 @@
           <!-- <div class="fa-inline layer-picker-fa-icon"><fa-icon [icon]="layerSelection.faIcon"></fa-icon></div> -->
           <span class="legend-label">Display: </span> {{layerSelection.alias}}
         </button>
-        <div ngbDropdownMenu aria-labelledby="layer-picker">
+        <div ngbDropdownMenu aria-labelledby="layer-picker" class="legend-dropdown">
           <a ngbDropdownItem class="dropdown-layer-label">Select a COVID-19 metric:</a>
           <a ngbDropdownItem (click)="changeLayerSelection('ccr')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faVirus"></fa-icon></div> County Case Rate</a>
           <a ngbDropdownItem (click)="changeLayerSelection('cca')" class="dropdown-layer-option"><div class="fa-inline"><fa-icon [icon]="faChartLine"></fa-icon></div> County Case Acceleration</a>
@@ -190,9 +193,6 @@
       </button>
     </div>
 
-    <!-- ngbPopover="Number of new COVID-19 Cases for {{weekDefinitions.list[currentTimeStop.num - 1] ? weekDefinitions.list[currentTimeStop.num - 1] + '20 to ' : ''}}{{weekDefinitions.list[currentTimeStop.num]}} per 100,000 people"
-    triggers="mouseenter:mouseleave"
-    container="body" -->
     <div class="layer-info" *ngIf="legendLayerInfoOpen && (windowWidth < 451 && !infoPanelOpen || windowWidth >= 451)"><!-- [@layerInfoCollapseAnimation] -->
       <div class="layer-color-scheme">
         <div *ngFor="let item of legendContent.colorSchemeData" class="color-set">
