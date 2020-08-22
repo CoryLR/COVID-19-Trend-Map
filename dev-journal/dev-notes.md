@@ -118,8 +118,8 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 ### Triage
 
 - **Pre release**
-  - [ ] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
-  - [ ] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
+  - [x] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
+  - [x] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
   - [ ] [functional] Add easier way to see the USA status report
   - [ ] [efficiency/sharing] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
   - [ ] [sharing] Implement different meta tags for share links (title, description, og:image, etc)

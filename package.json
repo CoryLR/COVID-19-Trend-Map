@@ -8,7 +8,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "heroku-postbuild": "ng build --configuration=production"
+    "heroku-postbuild": "ng build --configuration=production",
+    "deploy": "git add . && git stash && git push && git checkout live && git pull origin main && git push && git checkout main && git stash pop"
   },
   "private": true,
   "dependencies": {
@@ -40,6 +41,7 @@
     "heroku-ssl-redirect": "^0.1.1",
     "input-range-scss": "^1.5.2",
     "leaflet": "^1.6.0",
+    "leaflet-geometryutil": "^0.9.3",
     "leaflet-geosearch": "^3.0.6",
     "ng2-charts": "^2.3.2",
     "node-fetch": "^2.6.0",

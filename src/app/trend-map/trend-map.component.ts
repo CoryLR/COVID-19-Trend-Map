@@ -6,8 +6,8 @@ import { ActivatedRoute } from '@angular/router';
 
 import * as L from 'leaflet';
 import * as GeoSearch from 'leaflet-geosearch';
-import * as leafletPip from '@mapbox/leaflet-pip'
-/* TODO: Replace leaflet-pip's pointInLayer with leaflet-geometryutil's closestLayer (npm i leaflet-geometryutil) */
+import * as leafletPip from '@mapbox/leaflet-pip';
+import { closestLayer } from 'leaflet-geometryutil';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
 import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
@@ -309,19 +309,25 @@ export class TrendMapComponent implements OnInit {
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
+    console.log("locationInfo", locationInfo);
     try {
       this.closePanel();
       this.map.closePopup();
     } catch (e) { }
-    if (topLevelLocation == "United States of America") {
-      let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.countyGeoJSON, true)[0];
+    if (topLevelLocation == "United States of America" && secondLevelLocation !== "Puerto Rico") { /* Puerto Rico is not yet supported. */
+      let matchedLayer = this.getLayerMatch(this.countyGeoJSON, place.location.x, place.location.y);
       const localityException = this.getLocalityExceptions(matchedLayer);
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
 
         this.map.flyToBounds(matchedLayer.getBounds().pad(1), { duration: 0.6 });
         this.map.once('zoomend', () => {
-          const popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+          let popupText = "";
+          if (localityException) {
+            popupText = `<strong>${locationInfo[0]}`
+          } else {
+            popupText = `<strong>${locationInfo[0]}, </strong>${locationInfo.slice(1, -1).join(", ")}`
+          }
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
           setTimeout(() => {
@@ -331,7 +337,7 @@ export class TrendMapComponent implements OnInit {
       } else if (this.stateNameList.includes(secondLevelLocation)) {
         // console.log("US State Detected: ", secondLevelLocation);
         // this.map.flyToBounds(place.location.bounds);
-        matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.stateGeoJSON, true)[0];
+        matchedLayer = this.getLayerMatch(this.stateGeoJSON, place.location.x, place.location.y);
         this.map.flyToBounds(matchedLayer.getBounds().pad(0.5), { duration: 0.6 });
         this.map.once('zoomend', () => {
           
@@ -344,20 +350,20 @@ export class TrendMapComponent implements OnInit {
         });
       } else {
         const currentView = this.map.getBounds();
-        alert("Location not found in the U.S.");
+        alert("Location not found or available in the U.S.");
         setTimeout(() => {
           this.map.fitBounds(currentView);
         }, 50);  
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
-      let matchedLayer = leafletPip.pointInLayer([place.location.x, place.location.y], this.nationalGeoJSON, true)[0];
+      let matchedLayer = this.getLayerMatch(this.nationalGeoJSON, place.location.x, place.location.y);
       this.map.flyTo([30, -98.5], 4, { duration: 0.6 });
       this.map.once('zoomend', () => {
         this.openStatusReport(matchedLayer);
       });
     } else {
       const currentView = this.map.getBounds();
-      alert("Location not found in the U.S.");
+      alert("Location not found or available in the U.S.");
       setTimeout(() => {
         this.map.fitBounds(currentView);
       }, 50);
@@ -366,6 +372,16 @@ export class TrendMapComponent implements OnInit {
       /* Fix bug where the map needs to be clicked twice to show a popup */
       this.eventFire(this.elementRef.nativeElement.querySelector('#map'), 'click');
     }, 200);
+  }
+
+  getLayerMatch(geoJson, x, y): any {
+    const directMatch = leafletPip.pointInLayer([x, y], geoJson, true)[0];
+    if (directMatch) {
+      return directMatch;
+    } else {
+      const closestMatch = closestLayer(this.map, geoJson.getLayers(), [y, x]).layer;
+      return closestMatch;
+    }
   }
 
   getLocalityExceptions(matchedLayer) {
