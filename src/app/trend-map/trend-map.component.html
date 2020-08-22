@@ -196,7 +196,7 @@
     <div class="layer-info" *ngIf="legendLayerInfoOpen && (windowWidth < 451 && !infoPanelOpen || windowWidth >= 451)"><!-- [@layerInfoCollapseAnimation] -->
       <div class="layer-color-scheme">
         <div *ngFor="let item of legendContent.colorSchemeData" class="color-set">
-          <div [ngStyle]="mapZoomedIn ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}
+          <div [ngStyle]="mapZoomLevel >= 6 ? {'background-color': item.colorFaded} : {'background-color': item.color}" class="box"></div>{{item.label}}
         </div>
       </div>
       <div class="layer-description">

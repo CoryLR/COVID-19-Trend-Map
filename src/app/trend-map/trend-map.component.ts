@@ -59,6 +59,8 @@ export class TrendMapComponent implements OnInit {
 
   /* Map Data Control */
   map: any;
+  mapZoomLevel: number;
+  lastZoomLevel: number;
   countyGeoJSON: any; /* GeoJSON Object format,  */
   stateGeoJSON: any; /* GeoJSON Object format,  */
   nationalGeoJSON: any; /* GeoJSON Object format,  */
@@ -68,7 +70,6 @@ export class TrendMapComponent implements OnInit {
   lastSelectedLayer: any;
   choroplethDisplayAttribute: number = 3;// 3(rateNormalized), 4(accelerationNormalized), 5(streak)
   choroplethDisplaySource = "cases";
-  mapZoomedIn: boolean = false;
   layerSelection: any = {
     layer: "ccr",
     alias: "County Case Rate",
@@ -149,8 +150,8 @@ export class TrendMapComponent implements OnInit {
           }
         }
 
-        /* TODO: Use Leaflet's map.locate() to get the user's location and give it a URL scheme command */
-        /* TODO: Add JHU's attribution, something like "All COVID-19 information is calculated from the COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University" */
+        /* TODO: Use Leaflet's map.locate() to get the user's location and open an appropriate Status Report,
+          Add an option to make it auto-activate via URL scheme */
 
       } catch (err) {
         console.error(err);
@@ -250,25 +251,34 @@ export class TrendMapComponent implements OnInit {
 
     map.on('zoomend', () => {
       if (this.map) {
-        const zoomLevel = this.map.getZoom();
-        /* TODO: Figure out how to efficiently deconflict state boundaries zoom change with cyan highlight */
-        if (zoomLevel >= 6) {
+        this.mapZoomLevel = this.map.getZoom();
+        if (this.lastZoomLevel < 7 && this.mapZoomLevel >= 7) {
+          this.stateGeoJSON.eachLayer((layer) => {
+            if (layer.options.color === "rgb(50, 50, 50)" || layer.options.color === "rgb(100, 100, 100)") {
+              layer.setStyle({weight: 3, color: "rgb(100, 100, 100)"});
+            }
+          });
+        } else if (this.lastZoomLevel >= 7 && this.mapZoomLevel < 7) {
+          this.stateGeoJSON.eachLayer((layer) => {
+            if (layer.options.color === "rgb(50, 50, 50)" || layer.options.color === "rgb(100, 100, 100)") {
+              layer.setStyle({weight: 1, color: "rgb(50, 50, 50)"});
+            }
+          });
+        }
+        if (this.lastZoomLevel < 6 && this.mapZoomLevel >= 6) {
           if (!this.map.hasLayer(Stamen_TonerHybrid)) {
             this.map.addLayer(Stamen_TonerHybrid);
             this.countyGeoJSON.setStyle({ fillOpacity: 0.6 });
-            this.mapZoomedIn = true;
           }
-        } else {
+        } else if (this.lastZoomLevel >= 6 && this.mapZoomLevel < 6) {
           if (this.map.hasLayer(Stamen_TonerHybrid)) {
             this.map.removeLayer(Stamen_TonerHybrid)
             this.countyGeoJSON.setStyle({ fillOpacity: 1 });
-            this.mapZoomedIn = false;
           }
         }
       }
+      this.lastZoomLevel = this.mapZoomLevel;
     });
-
-    /* This is the default Leaflet Control and is somewhat customizable */
 
     const geoSearch = new GeoSearch.GeoSearchControl({
       provider: new GeoSearch.OpenStreetMapProvider(),
@@ -684,8 +694,10 @@ export class TrendMapComponent implements OnInit {
 
     if (this.windowWidth > 750) {
       this.map.setView([30, -98.5], 4);
+      this.lastZoomLevel = 4;
     } else {
       this.map.setView([30, -96], 3);
+      this.lastZoomLevel = 3;
     }  
 
     setTimeout(() => {
@@ -770,7 +782,11 @@ export class TrendMapComponent implements OnInit {
       this.infoPanelOpen = false;
       this.infoPanelCloseButton = false;
       if (this.lastSelectedLayer.feature.properties.FIPS.length === 2) {
-        this.lastSelectedLayer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
+        if ( this.mapZoomLevel >= 7 ) {
+          this.lastSelectedLayer.setStyle({ weight: 3, color: "rgb(100, 100, 100)" });
+        } else {
+          this.lastSelectedLayer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
+        }
       } else {
         this.lastSelectedLayer.setStyle({ weight: 0 });
       }

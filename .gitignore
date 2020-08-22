@@ -2,6 +2,7 @@
 
 # Custom
 /dev-journal/documents/*.html
+/dev-journal/metrics/*.json
 
 # compiled output
 /dist

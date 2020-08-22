@@ -57,6 +57,9 @@ html, body {
     color: #333;
   }
 }
+.leaflet-top {
+  margin-top: 5px;
+}
 
 $leaflet-geosearch-label-width-standard: 165px;
 $leaflet-geosearch-label-width-mobile: 100px;
