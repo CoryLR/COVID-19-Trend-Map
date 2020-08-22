@@ -30,6 +30,7 @@ export interface CustomGeoJSONOptions extends L.GeoJSONOptions {
   // changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('panelOpenClosed', getPanelTransitions()),
+    trigger('loadingSplash', getLoadingSplashTransition()),
     trigger('ngIfAnimation', getNgIfAnimation()),
   ]
 })
@@ -115,6 +116,7 @@ export class TrendMapComponent implements OnInit {
   /* Misc */
   window = window;
   windowWidth: number = 0;
+  console = console;
 
   @HostListener('window:resize', ['$event'])
   onResize(event) {
@@ -238,7 +240,7 @@ export class TrendMapComponent implements OnInit {
     const CartoDB_PositronNoLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {});
     map.addLayer(CartoDB_PositronNoLabels);
     map.attributionControl.setPrefix('www.covid-19-watch.com');
-    map.attributionControl.addAttribution(`<a href="/about#disclaimer" target="_blank">Disclaimer</a> | <a href="/about#up-to-date-data" target="_blank">Data Source: Johns Hopkins CSSE</a> | <a href="/about#development-author" target="_blank">Author: Cory Leigh Rahman</a>`);
+    map.attributionControl.addAttribution(`<a href="/about#up-to-date-data" target="_blank">Data Source: Johns Hopkins<span class="attribution-mobile-hide"> CSSE</span></a> | <a href="/about#disclaimer" target="_blank">Disclaimer</a><span class="attribution-mobile-hide"> | <a href="/about#development-author" target="_blank">Author: Cory Leigh Rahman</a></span>`);
 
     let Stamen_TonerHybrid_Options: CustomTileLayerOptions = {
       // attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -319,7 +321,6 @@ export class TrendMapComponent implements OnInit {
     const locationInfo = place.location.label.split(", ");
     const topLevelLocation = locationInfo.slice(-1);
     const secondLevelLocation = locationInfo.slice(-2)[0];
-    console.log("locationInfo", locationInfo);
     try {
       this.closePanel();
       this.map.closePopup();
@@ -1022,7 +1023,7 @@ function getPanelTransitions() {
   ]
 }
 
-function getNgIfAnimation() {
+function getLoadingSplashTransition() {
   return [
       transition(
         ':leave', 
@@ -1030,6 +1031,26 @@ function getNgIfAnimation() {
           style({ opacity: 1 }),
           animate('0.66s ease-in', 
                   style({ opacity: 0 }))
+        ]
+      )
+    ]
+}
+function getNgIfAnimation() {
+  return [
+      transition(
+        ':leave', 
+        [
+          style({ opacity: 1 }),
+          animate('0.25s ease-in', 
+                  style({ opacity: 0 }))
+        ]
+      ),
+      transition(
+        ':enter', 
+        [
+          style({ opacity: 0 }),
+          animate('0.25s ease-out', 
+                  style({ opacity: 1 }))
         ]
       )
     ]

@@ -33,7 +33,7 @@
     {{windowWidth > 384 ? "Find a Status Report" : "Find Status"}}
   </div>
 
-  <div *ngIf="!initialLoadingDone" [@ngIfAnimation] class="loading-splash">
+  <div *ngIf="!initialLoadingDone" [@loadingSplash] class="loading-splash">
     <p class="loading-text">Loading...</p>
     <img src="assets/img/covid-watch-256px.png">
     <p class="loading-subtext">
@@ -42,8 +42,6 @@
       <br>
       <br> <em>Developed by</em>
       <br> <strong>Cory Leigh Rahman</strong>
-      <br>
-      <br> <a href="/about#disclaimer" target="_blank" class="disclaimer-link">Disclaimer</a>
     </p>
   </div>
 
@@ -52,9 +50,15 @@
   </div>
 
   <div class="status-report" *ngIf="panelContent && currentTimeStop"
-  [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'" (scroll)="true">
+  [@panelOpenClosed]="infoPanelOpen ? 'open' : 'closed'" #statusReportElement (scroll)="true">
   <!-- For some reason, the very existence of "(scroll)" causes the popovers
     to update to the appropriate position when scrolling the Status Report -->
+
+    <div class="status-report-floating-title"  
+    [@ngIfAnimation] *ngIf="infoPanelCloseButton && statusReportElement.scrollTop > 75">
+      <span><strong>{{panelContent.title}}</strong>{{panelContent.subtitle ? ", " + panelContent.subtitle : ""}}</span>&nbsp;
+      <span class="floating-sub"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></span>
+    </div>
 
     <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faCircle"></fa-icon></div>
     <div class="close-panel" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faTimesCircle"></fa-icon></div>
@@ -74,7 +78,7 @@
 
     <div class="panel-subtitle">New Cases</div>
     <div *ngIf="statusReportChartConfig.lineChartData">
-      <canvas baseChart [height]="windowWidth < 451 ? 140 : 200 " class="stat-chart"
+      <canvas baseChart height="200" class="stat-chart"
           [datasets]="statusReportChartConfig.lineChartData" 
           [labels]="statusReportChartConfig.lineChartLabels" 
           [options]="statusReportChartConfig.lineChartOptions"

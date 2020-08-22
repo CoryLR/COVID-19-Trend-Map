@@ -46,9 +46,28 @@ html, body {
     color: white;
   }
 }
-.leaflet-control-attribution {
+
+.leaflet-bottom {
   @media (max-width: 450px) {
-    display: none;
+    width: 100%;
+    background-color: rgb(247, 247, 247);
+    z-index: 9000;
+  }
+}
+.leaflet-control-attribution {
+  white-space: nowrap;
+
+  @media (max-width: 450px) {
+    width: 100%;
+    .attribution-mobile-hide {
+      display: none;
+    }
+  }
+
+  .attribution-mobile-hide {
+    @media (max-width: 450px) {
+      display: none;
+    }
   }
 }
 .leaflet-control-attribution {

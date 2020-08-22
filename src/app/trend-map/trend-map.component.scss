@@ -182,7 +182,7 @@
       height: calc( 100% - #{$header-height + 75px} );
     }
     @media (max-width: 450px) {
-      height: calc( 100% - #{$header-height + 50px} );
+      height: calc( 100% - #{$header-height + 50px + 16px} );
       width: 100%;
     }
 
@@ -244,7 +244,7 @@
 
     @mixin close-panel-styles {
       position: fixed;
-      top: $header-height + 13px;
+      top: $header-height + 7px;
       left: 245px;
       cursor: pointer;
       font-size: 20px;
@@ -263,6 +263,30 @@
       color: white;
       @include close-panel-styles();
     }
+
+    .status-report-floating-title {
+      position: fixed;
+      top: $header-height;
+      left: 0;
+      width: 280px;
+      padding: 10px 35px 5px 20px;
+      background-color: white;
+      border-bottom: 2px solid rgb(220, 220, 220);
+
+      .floating-sub {
+        font-size: 13px;
+      }
+
+      span {
+        white-space: nowrap;
+      }
+
+      @media (max-width: 450px) {
+        width: 100%;
+      }
+
+    }
+
   }
 
   .map-legend {
@@ -279,7 +303,7 @@
     border-radius: 10px;
     
     @media (max-width: 450px) {
-      bottom: 0;
+      bottom: 16px;
       right: 0;
       width: 100%;
       border-radius: 0;
