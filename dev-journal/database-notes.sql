@@ -27,6 +27,13 @@ SELECT jsonb_object_keys(snapshot) FROM metrics_snapshots WHERE label = 'all_sna
 /* See a specific metrics snapshot */
 select snapshot::jsonb-> 'PASTE_SNAPSHOT_KEY' FROM metrics_snapshots WHERE label = 'all_snapshots';
 
+/* Save snapshots to JSON file */
+\o dev-journal/metrics/all_snapshots.json
+\t
+SELECT snapshot FROM metrics_snapshots where label = 'all_snapshots';
+\t
+\o
+
 
 /* Add covid-19 data */
 INSERT INTO covid_19 (
