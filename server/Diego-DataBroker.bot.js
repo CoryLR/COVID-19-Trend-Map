@@ -20,7 +20,7 @@ module.exports = {
 /**
  * Runs on every new build
  */
-async function runStartupTasks() {  
+async function runStartupTasks() {
   if (productionMode === true) {
     await updateDatabaseWithCovidDataPackage();
   } else {
@@ -30,7 +30,7 @@ async function runStartupTasks() {
     // recordMetricsSnapshot();
 
   }
-  
+
   await cleanUpDatabase();
 }
 
@@ -43,14 +43,14 @@ function initDataCollectionSchedule() {
   /*Seconds(0-59) Minutes(0-59) Hours(0-23) Day-of-Month(1-31) Months(0-11,Jann-Dec)) Day-of-Week(0-6,Sun-Sat)*/
 
   /* Pull data daily at 2:44:26 AM ET; JHU does automated updates to their time-series data at 1:50 AM ET. Use 2:44:26 AM ET to give buffer time and pull at low-load time. */
-  const dataCollectionJob = new CronJob('26 44 02 * * *', async function() {
+  const dataCollectionJob = new CronJob('26 44 02 * * *', async function () {
     await updateDatabaseWithCovidDataPackage();
     await cleanUpDatabase();
   }, null, true, 'America/New_York');
   dataCollectionJob.start();
 
   /* Record a snapshot of the site metrics at 3am ET (midnight PT) */
-  const metricsSnapshotJob = new CronJob('00 00 03 * * *', async function() {
+  const metricsSnapshotJob = new CronJob('00 00 03 * * *', async function () {
     await recordMetricsSnapshot();
   }, null, true, 'America/New_York');
   metricsSnapshotJob.start();
@@ -144,29 +144,29 @@ async function cleanUpDatabase() {
 async function generateCovidDataPackage(source = "unknown") {
 
   /*** Get CSVs ***/
-  
+
   /* County Cases */
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
   const countyCsvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
-  
+
   /* State Cases */
   const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
-  
+
   /* National Cases */
   const nationalCsvContent = dissolveCsv(countyCsvContent, "Country_Region");
 
   /* County Deaths */
   const url_jhuUsDeathsCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv";
   const countyDeathsCsvContent = await Got(url_jhuUsDeathsCsv).text();
-  
+
   /* State Deaths */
   const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
-  
+
   /* National Deaths */
   const nationalDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Country_Region");
-  
+
   /*** Get GeoJSONs ***/
-  
+
   /* County */
   const filePath_geoJson = path.join(__dirname, './data/us_counties.geojson');
   const countyGeoJsonContent = fs.readFileSync(filePath_geoJson, "utf8");
@@ -174,12 +174,12 @@ async function generateCovidDataPackage(source = "unknown") {
   /* State */
   const filePath_stateGeoJson = path.join(__dirname, './data/us_states.geojson');
   const stateGeoJsonContent = fs.readFileSync(filePath_stateGeoJson, "utf8");
-  
+
   /* National */
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
 
-  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+  const freshData = { countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent };
   return getCovidDataPackage(freshData, source);
 
 }
@@ -198,13 +198,13 @@ async function generateCovidDataPackage_dev(source) {
 
   /* Get State Deaths CSV */
   const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
-  
+
   /* Get National Deaths CSV */
   const nationalDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Country_Region");
 
   /* Get State CSV */
   const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
-  
+
   /* Get National CSV */
   const nationalCsvContent = dissolveCsv(countyCsvContent, "Country_Region");
 
@@ -215,12 +215,12 @@ async function generateCovidDataPackage_dev(source) {
   /* Get State GeoJSON */
   const filePath_stateGeoJson = path.join(__dirname, './data/us_states.geojson');
   const stateGeoJsonContent = fs.readFileSync(filePath_stateGeoJson, "utf8");
-  
+
   /* Get National GeoJSON */
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
-  
-  const freshData = {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent};
+
+  const freshData = { countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent };
 
   return getCovidDataPackage(freshData, source);
 
@@ -233,7 +233,7 @@ function dissolveCsv(csvContent, dissolveField) {
   dataRows = {};
 
   /* Each Row */
-  for(let i = 1; i < csv2dArray.length; i++) {
+  for (let i = 1; i < csv2dArray.length; i++) {
     currentRow = csv2dArray[i];
     groupName = currentRow[dissolveIndex];
     if (dataRows[groupName] === undefined) {
@@ -273,7 +273,7 @@ function getCovidDataPackage(data, source = "unknown") {
 
   // console.log("Starting Data Package...");
 
-  const {countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent} = data;
+  const { countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent } = data;
 
   const {
     geoJson: countyGeoJson,
@@ -311,7 +311,7 @@ function getCovidDataPackage(data, source = "unknown") {
     weekDefinitionsList: _12,
     weekDefinitionsLookup: _13,
   } = getCovidResults(nationalDeathsCsvContent, nationalGeoJsonContent);
-  
+
   const dataPackage = {
     "county": {
       "geoJson": countyGeoJson,
@@ -391,7 +391,7 @@ function getCovidResults(csvContent, geoJsonContent) {
         currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
       } else if (geoJson.name === "us_states" || geoJson.features.length >= 50) {
         /* Assume FIPS should be 2 digits ("00") */
-        currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0').slice(0,2);
+        currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0').slice(0, 2);
       } else {
         /* Assume FIPS should be 1 digit (`0` hard-coded) */
         currentFips = "0";
@@ -558,7 +558,7 @@ function getCovidResults(csvContent, geoJsonContent) {
 //   return result;
 // }
 
-function roundPrecise (number, decimalPlaces) {
+function roundPrecise(number, decimalPlaces) {
   return Number(Math.round(number + "e" + decimalPlaces) + "e-" + decimalPlaces);
 }
 

@@ -122,9 +122,9 @@ export class TrendMapComponent implements OnInit {
   onResize(event) {
     this.windowWidth = event.target.innerWidth;
   }
-  
+
   constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */) { }
-  
+
   ngOnInit(): void {
     setTimeout(() => {
       try {
@@ -135,7 +135,7 @@ export class TrendMapComponent implements OnInit {
         this.windowWidth = screenWidth < innerWidth ? screenWidth : innerWidth;
 
         // this.titleService.setTitle("COVID-19-Watch");
-        
+
         // this.metaService.addTags([
         //   // { name: 'keywords', content: 'COVID-19, Coronavirus, Trend, JHU, Johns Hopkins' },
         //   // { name: 'description', content: 'See COVID-19 trends where you live.' },
@@ -167,7 +167,7 @@ export class TrendMapComponent implements OnInit {
     this.route.queryParams
       .subscribe(params => {
         // console.log("URL params: ", params); // e.g. { fips: "51059" }
-        if(params.fips) {
+        if (params.fips) {
           const selectedLayer = params.fips.length === 2 ? this.stateLayerLookup[params.fips] : params.fips.length === 1 ? this.nationalLayerLookup[params.fips] : this.countyLayerLookup[params.fips];
           if (selectedLayer) {
             if (params.fips.length === 1) {
@@ -175,7 +175,7 @@ export class TrendMapComponent implements OnInit {
             } else {
               this.map.fitBounds(selectedLayer.getBounds().pad(1));
             }
-            this.openStatusReport(selectedLayer);  
+            this.openStatusReport(selectedLayer);
           }
         }
       });
@@ -257,13 +257,13 @@ export class TrendMapComponent implements OnInit {
         if (this.lastZoomLevel < 7 && this.mapZoomLevel >= 7) {
           this.stateGeoJSON.eachLayer((layer) => {
             if (layer.options.color === "rgb(50, 50, 50)" || layer.options.color === "rgb(100, 100, 100)") {
-              layer.setStyle({weight: 3, color: "rgb(100, 100, 100)"});
+              layer.setStyle({ weight: 3, color: "rgb(100, 100, 100)" });
             }
           });
         } else if (this.lastZoomLevel >= 7 && this.mapZoomLevel < 7) {
           this.stateGeoJSON.eachLayer((layer) => {
             if (layer.options.color === "rgb(50, 50, 50)" || layer.options.color === "rgb(100, 100, 100)") {
-              layer.setStyle({weight: 1, color: "rgb(50, 50, 50)"});
+              layer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
             }
           });
         }
@@ -306,7 +306,7 @@ export class TrendMapComponent implements OnInit {
             this.openStatusReport(selectedLayer);
           }
         } else if (e.target.classList.contains("popup-status-report-btn-state")) {
-          const popupFips = e.target.getAttribute('popup-fips').slice(0,2);
+          const popupFips = e.target.getAttribute('popup-fips').slice(0, 2);
           if (this.panelContent.fips !== popupFips || !this.infoPanelOpen) {
             const selectedLayer = this.stateLayerLookup[popupFips];
             this.openStatusReport(selectedLayer);
@@ -351,7 +351,7 @@ export class TrendMapComponent implements OnInit {
         matchedLayer = this.getLayerMatch(this.stateGeoJSON, place.location.x, place.location.y);
         this.map.flyToBounds(matchedLayer.getBounds().pad(0.5), { duration: 0.6 });
         this.map.once('zoomend', () => {
-          
+
           const popupText = `<strong>${locationInfo[0]}`
           this.map.openPopup(popupText, [place.location.y, place.location.x])
           // matchedLayer.openPopup(); // This is for opening the normal click-popup
@@ -364,7 +364,7 @@ export class TrendMapComponent implements OnInit {
         alert("Location not found or available in the U.S.");
         setTimeout(() => {
           this.map.fitBounds(currentView);
-        }, 50);  
+        }, 50);
       }
     } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
       let matchedLayer = this.getLayerMatch(this.nationalGeoJSON, place.location.x, place.location.y);
@@ -429,7 +429,7 @@ export class TrendMapComponent implements OnInit {
     const fips = layer.feature.properties.FIPS;
     const caseInfo = fips.length === 2 ? this.stateCaseLookup[fips] : fips.length === 1 ? this.nationalCaseLookup[fips] : this.countyCaseLookup[fips];
     const deathsInfo = fips.length === 2 ? this.stateDeathsLookup[fips] : fips.length === 1 ? this.nationalDeathsLookup[fips] : this.countyDeathsLookup[fips];
-    
+
     const placeName = caseInfo.name;
     const caseData = caseInfo.data[this.currentTimeStop.num];
     const deathsData = deathsInfo.data[this.currentTimeStop.num];
@@ -440,7 +440,7 @@ export class TrendMapComponent implements OnInit {
     const acceleration: number = caseData[2];
     const accelerationNorm: number = caseData[4];
     const recoveryStreak: number = caseData[5];
-    
+
     const deathCumulative: number = deathsData[0];
     const deathRate: number = deathsData[1];
     const deathRateNorm: number = deathsData[3];
@@ -461,7 +461,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     if (recoveryStreak === 0 && cumulative > 0) {
       this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
-    } else if (recoveryStreak > 0 &&  cumulative > 0) {
+    } else if (recoveryStreak > 0 && cumulative > 0) {
       this.panelContent.summary = `${this.panelContent.title} ${current ? "has" : "had"} not reported a new case of COVID-19 in ${recoveryStreak} week${recoveryStreak === 1 ? "" : "s"}.`
     } else if (cumulative === 0) {
       this.panelContent.summary = current ? `${this.panelContent.title} has never reported a case of COVID-19.` : `${this.panelContent.title} had not reported any cases of COVID-19.`;
@@ -580,7 +580,7 @@ export class TrendMapComponent implements OnInit {
       tooltips: this.windowWidth >= 451 ? {
         mode: 'index',
         intersect: false
-      } : { },
+      } : {},
       animation: {
         duration: duration
       },
@@ -699,7 +699,7 @@ export class TrendMapComponent implements OnInit {
     } else {
       this.map.setView([30, -96], 3);
       this.lastZoomLevel = 3;
-    }  
+    }
 
     setTimeout(() => {
       this.initialLoadingDone = true;
@@ -721,7 +721,7 @@ export class TrendMapComponent implements OnInit {
     let cumulativeId = 0;
     if (attribute === 3) {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week" : "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     } else if (attribute === 4) {
@@ -736,7 +736,7 @@ export class TrendMapComponent implements OnInit {
       // normalizedId = 4;
     } else {
       getStyle = this.getRateStyleFunction;
-      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week": "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
+      attributeLabel = this.currentTimeStop.num == this.latestTimeStop.num ? "New This Week" : "New (1 Week) " + this.weekDefinitions.list[this.currentTimeStop.num];
       rawCountId = 1;
       normalizedId = 3;
     }
@@ -768,7 +768,7 @@ export class TrendMapComponent implements OnInit {
 
       /* Update color */
       console.log();
-      if(attribute === 5) {
+      if (attribute === 5) {
         layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
       } else {
         layer.setStyle(getStyle(countyData[normalizedId]));
@@ -783,7 +783,7 @@ export class TrendMapComponent implements OnInit {
       this.infoPanelOpen = false;
       this.infoPanelCloseButton = false;
       if (this.lastSelectedLayer.feature.properties.FIPS.length === 2) {
-        if ( this.mapZoomLevel >= 7 ) {
+        if (this.mapZoomLevel >= 7) {
           this.lastSelectedLayer.setStyle({ weight: 3, color: "rgb(100, 100, 100)" });
         } else {
           this.lastSelectedLayer.setStyle({ weight: 1, color: "rgb(50, 50, 50)" });
@@ -818,12 +818,12 @@ export class TrendMapComponent implements OnInit {
       }
 
       /* Stop when the end is reached, may want to add a loop option later */
-      if(this.currentTimeStop.num === this.latestTimeStop.num) {
+      if (this.currentTimeStop.num === this.latestTimeStop.num) {
         this.pauseAnimation();
       }
     }, milliseconds);
   }
-  
+
   pauseAnimation() {
     this.animationPaused = true;
     clearInterval(this.animationInterval);
@@ -834,8 +834,8 @@ export class TrendMapComponent implements OnInit {
   }
 
   changeLayerSelection(layerCode) {
-    switch(layerCode) {
-      case("ccr"):
+    switch (layerCode) {
+      case ("ccr"):
         this.layerSelection.layer = "ccr";
         this.layerSelection.alias = "County Case Rate";
         this.layerSelection.faIcon = this.faVirus;
@@ -843,7 +843,7 @@ export class TrendMapComponent implements OnInit {
         this.legendContent.colorSchemeData = this.getLegendColorSchemeRateData();
         this.legendContent.layerDescription = "New COVID-19 Cases (7-day total per 100k people)";
         break;
-      case("cca"):
+      case ("cca"):
         this.layerSelection.layer = "cca";
         this.layerSelection.alias = "County Case Acceleration";
         this.layerSelection.faIcon = this.faChartLine;
@@ -851,7 +851,7 @@ export class TrendMapComponent implements OnInit {
         this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
         this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people); negative means deceleration";
         break;
-      case("cdr"):
+      case ("cdr"):
         // this.layerSelection.layer = "cdr";
         // this.layerSelection.alias = "County Death Rate";
         // this.layerSelection.faIcon = this.faVirus;
@@ -859,7 +859,7 @@ export class TrendMapComponent implements OnInit {
         // this.legendContent.colorSchemeData = this.getLegendColorSchemeAccelerationData();
         // this.legendContent.layerDescription = "Change in new COVID-19 cases from 2 weeks prior (7-day total per 100k people); negative means deceleration";
         break;
-      case("cr"):
+      case ("cr"):
         this.layerSelection.layer = "cr";
         this.layerSelection.alias = "County Recovery";
         this.layerSelection.faIcon = faShieldAlt;
@@ -867,15 +867,15 @@ export class TrendMapComponent implements OnInit {
         this.legendContent.colorSchemeData = this.getLegendColorSchemeRecoveryData();
         this.legendContent.layerDescription = "Number of weeks without any confirmed cases; n/a means no cases reported yet";
         break;
-      case("scr"):
+      case ("scr"):
         this.layerSelection.layer = "scr";
         this.layerSelection.alias = "State Case Rate";
         break;
-      case("sca"):
+      case ("sca"):
         this.layerSelection.layer = "sca";
         this.layerSelection.alias = "State Case Acceleration";
         break;
-      case("sdr"):
+      case ("sdr"):
         this.layerSelection.layer = "sdr";
         this.layerSelection.alias = "State Death Rate";
     }
@@ -902,12 +902,12 @@ export class TrendMapComponent implements OnInit {
   }
   getLegendColorSchemeRateData() {
     return [
-      {label: "> 400", color: "hsl(-20, 100%, 14%)", colorFaded: "hsla(-20, 100%, 14%, 0.6)"},
-      {label: "200 - 400", color: "hsl(-10, 70%, 34%)", colorFaded: "hsla(-10, 70%, 34%, 0.6)"},
-      {label: "100 - 200", color: "hsl(0, 43%, 52%)", colorFaded: "hsla(0, 43%, 52%, 0.6)"},
-      {label: "50 - 100", color: "hsl(10, 57%, 75%)", colorFaded: "hsla(10, 57%, 75%, 0.6)"},
-      {label: "1 - 50", color: "hsl(20, 62%, 91%)", colorFaded: "hsla(20, 62%, 91%, 0.6)"},
-      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
+      { label: "> 400", color: "hsl(-20, 100%, 14%)", colorFaded: "hsla(-20, 100%, 14%, 0.6)" },
+      { label: "200 - 400", color: "hsl(-10, 70%, 34%)", colorFaded: "hsla(-10, 70%, 34%, 0.6)" },
+      { label: "100 - 200", color: "hsl(0, 43%, 52%)", colorFaded: "hsla(0, 43%, 52%, 0.6)" },
+      { label: "50 - 100", color: "hsl(10, 57%, 75%)", colorFaded: "hsla(10, 57%, 75%, 0.6)" },
+      { label: "1 - 50", color: "hsl(20, 62%, 91%)", colorFaded: "hsla(20, 62%, 91%, 0.6)" },
+      { label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)" },
     ]
   }
 
@@ -926,13 +926,13 @@ export class TrendMapComponent implements OnInit {
   }
   getLegendColorSchemeAccelerationData() {
     return [
-      {label: "> 80", color: "hsl(28, 90%, 37%)", colorFaded: "hsla(28, 90%, 37%, 0.6)"},
-      {label: "40 - 80", color: "hsl(28, 80%, 60%)", colorFaded: "hsla(28, 80%, 60%, 0.6)"},
-      {label: "0 - 40", color: "hsl(28, 70%, 85%)", colorFaded: "hsla(28, 70%, 85%, 0.6)"},
-      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
-      {label: "-40 - 0", color: "hsl(190, 35%, 85%)", colorFaded: "hsla(190, 35%, 85%, 0.6)"},
-      {label: "-80 - -40", color: "hsl(190, 25%, 55%)", colorFaded: "hsla(190, 25%, 55%, 0.6)"},
-      {label: "< -80", color: "hsl(190, 15%, 40%)", colorFaded: "hsla(190, 15%, 40%, 0.6)"},
+      { label: "> 80", color: "hsl(28, 90%, 37%)", colorFaded: "hsla(28, 90%, 37%, 0.6)" },
+      { label: "40 - 80", color: "hsl(28, 80%, 60%)", colorFaded: "hsla(28, 80%, 60%, 0.6)" },
+      { label: "0 - 40", color: "hsl(28, 70%, 85%)", colorFaded: "hsla(28, 70%, 85%, 0.6)" },
+      { label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)" },
+      { label: "-40 - 0", color: "hsl(190, 35%, 85%)", colorFaded: "hsla(190, 35%, 85%, 0.6)" },
+      { label: "-80 - -40", color: "hsl(190, 25%, 55%)", colorFaded: "hsla(190, 25%, 55%, 0.6)" },
+      { label: "< -80", color: "hsl(190, 15%, 40%)", colorFaded: "hsla(190, 15%, 40%, 0.6)" },
     ]
   }
   getRecoveryStyleFunction(streak, cumulative) {
@@ -947,12 +947,12 @@ export class TrendMapComponent implements OnInit {
   }
   getLegendColorSchemeRecoveryData() {
     return [
-      {label: "4+", color: "hsl(144, 100%, 21%)", colorFaded: "hsla(144, 100%, 21%, 0.6)"},
-      {label: "3", color: "hsl(146, 57%, 40%)", colorFaded: "hsla(146, 57%, 40%, 0.6)"},
-      {label: "2", color: "hsl(160, 43%, 58%)", colorFaded: "hsla(160, 43%, 58%, 0.6)"},
-      {label: "1", color: "hsl(180, 45%, 79%)", colorFaded: "hsla(180, 45%, 79%, 0.6)"},
-      {label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)"},
-      {label: "n/a", color: "hsl(0, 0%, 85%)", colorFaded: "hsla(0, 0%, 85%, 0.6)"},
+      { label: "4+", color: "hsl(144, 100%, 21%)", colorFaded: "hsla(144, 100%, 21%, 0.6)" },
+      { label: "3", color: "hsl(146, 57%, 40%)", colorFaded: "hsla(146, 57%, 40%, 0.6)" },
+      { label: "2", color: "hsl(160, 43%, 58%)", colorFaded: "hsla(160, 43%, 58%, 0.6)" },
+      { label: "1", color: "hsl(180, 45%, 79%)", colorFaded: "hsla(180, 45%, 79%, 0.6)" },
+      { label: "0", color: "hsl(0, 0%, 97%)", colorFaded: "hsla(0, 0%, 97%, 0.6)" },
+      { label: "n/a", color: "hsl(0, 0%, 85%)", colorFaded: "hsla(0, 0%, 85%, 0.6)" },
     ]
   }
 
@@ -960,16 +960,16 @@ export class TrendMapComponent implements OnInit {
   copyText(text) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
-    
+
     // Avoid scrolling to bottom
     textArea.style.top = "0";
     textArea.style.left = "0";
     textArea.style.position = "fixed";
-  
+
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-  
+
     try {
       var successful = document.execCommand('copy');
       var msg = successful ? 'Copied!' : 'Auto-copy failed, please try copying from the text box.';
@@ -977,14 +977,14 @@ export class TrendMapComponent implements OnInit {
     } catch (err) {
       alert("Auto-copy failed, please try copying from the text box.");
     }
-  
+
     document.body.removeChild(textArea);
 
   }
 
   noteStatusReportView(fips, label) {
     const url = '/api/note/statusReport';
-    const body = {fips, label};
+    const body = { fips, label };
     const viewStatusReportObservable = this.http.post(url, body).subscribe((res: any) => {
       viewStatusReportObservable.unsubscribe();
     });
@@ -1025,33 +1025,33 @@ function getPanelTransitions() {
 
 function getLoadingSplashTransition() {
   return [
-      transition(
-        ':leave', 
-        [
-          style({ opacity: 1 }),
-          animate('0.66s ease-in', 
-                  style({ opacity: 0 }))
-        ]
-      )
-    ]
+    transition(
+      ':leave',
+      [
+        style({ opacity: 1 }),
+        animate('0.66s ease-in',
+          style({ opacity: 0 }))
+      ]
+    )
+  ]
 }
 function getNgIfAnimation() {
   return [
-      transition(
-        ':leave', 
-        [
-          style({ opacity: 1 }),
-          animate('0.25s ease-in', 
-                  style({ opacity: 0 }))
-        ]
-      ),
-      transition(
-        ':enter', 
-        [
-          style({ opacity: 0 }),
-          animate('0.25s ease-out', 
-                  style({ opacity: 1 }))
-        ]
-      )
-    ]
+    transition(
+      ':leave',
+      [
+        style({ opacity: 1 }),
+        animate('0.25s ease-in',
+          style({ opacity: 0 }))
+      ]
+    ),
+    transition(
+      ':enter',
+      [
+        style({ opacity: 0 }),
+        animate('0.25s ease-out',
+          style({ opacity: 1 }))
+      ]
+    )
+  ]
 }
