@@ -35,6 +35,8 @@ SELECT snapshot FROM metrics_snapshots where label = 'all_snapshots';
 \t
 \o
 
+/* See today's incomplete snapshot */
+
 
 /* Add covid-19 data */
 INSERT INTO covid_19 (

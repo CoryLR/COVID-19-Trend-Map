@@ -18,14 +18,18 @@ async function main () {
   /* For reporting, remove any snapshot that was not automatically generated */
   deduplicateSnapshots();
 
-  // listSnapShots();
-  logLatestMetrics(3);
+  listSnapShots(1); // Number of snapshots
+  listChangeMetrics(1); // Number of days back to compare
+
+
 
   /* TODO: Output CSV of daily changes */
 
 }
 
-function logLatestMetrics(days = 1) {
+// function listLast
+
+function listChangeMetrics(days = 1) {
   let snapshotsKeys = Object.keys(snapshots);
   if (snapshotsKeys.length > days) {
     snapshotsKeys.reverse();
@@ -40,21 +44,27 @@ function logLatestMetrics(days = 1) {
     // console.log("latestSnapshotPageKeys", latestSnapshotPageKeys);
 
     /* Log Page metrics */
-    for (pageName of latestSnapshotPageKeys) {
-      const latestValue = parseInt(latestSnapshot["pages"][pageName], 10);
-      const lastValue = compareSnapshot["pages"][pageName] ? parseInt(compareSnapshot["pages"][pageName], 10) : 0;
-      // console.log("pageName, latestValue, lastValue", pageName, latestValue, lastValue);
-      // console.log("typeof pageName, typeof latestValue, typeof lastValue", typeof pageName, typeof latestValue, typeof lastValue);
-      console.log(`Page "${pageName}" change: ${latestValue - lastValue}`);
+    for (label of latestSnapshotPageKeys) {
+      const latestValue = parseInt(latestSnapshot["pages"][label], 10);
+      const lastValue = compareSnapshot["pages"][label] ? parseInt(compareSnapshot["pages"][label], 10) : 0;
+      const change = latestValue - lastValue;
+      // console.log("label, latestValue, lastValue", label, latestValue, lastValue);
+      // console.log("typeof label, typeof latestValue, typeof lastValue", typeof label, typeof latestValue, typeof lastValue);
+      if (change) {
+        console.log(`Page "${label}" change: ${change}`);
+      }
     }
 
     /* Log Status Report metrics */
-    for (pageName of latestSnapshotStatusReportKeys) {
-      const latestValue = parseInt(latestSnapshot["status_reports"][pageName], 10);
-      const lastValue = compareSnapshot["status_reports"][pageName] ? parseInt(compareSnapshot["status_reports"][pageName], 10) : 0;
-      // console.log("pageName, latestValue, lastValue", pageName, latestValue, lastValue);
-      // console.log("typeof pageName, typeof latestValue, typeof lastValue", typeof pageName, typeof latestValue, typeof lastValue);
-      console.log(`Status Report "${pageName}" change: ${latestValue - lastValue}`);
+    for (label of latestSnapshotStatusReportKeys) {
+      const latestValue = parseInt(latestSnapshot["status_reports"][label], 10);
+      const lastValue = compareSnapshot["status_reports"][label] ? parseInt(compareSnapshot["status_reports"][label], 10) : 0;
+      const change = latestValue - lastValue;
+      // console.log("label, latestValue, lastValue", label, latestValue, lastValue);
+      // console.log("typeof label, typeof latestValue, typeof lastValue", typeof label, typeof latestValue, typeof lastValue);
+      if (change) {
+        console.log(`Status Report "${label}" change: ${change}`);
+      }
     }
 
   } else {
@@ -65,9 +75,13 @@ function logLatestMetrics(days = 1) {
 
 function listSnapShots(count = false) {
   if (count) {
-    console.log("snapshots", Object.keys(snapshots).slice(count * -1));
+    if (count === 1) {
+      console.log("Latest Snapshot: ", Object.keys(snapshots).slice(count * -1)[0]);
+    } else {
+      console.log("Snapshots: ", Object.keys(snapshots).slice(count * -1));
+    }
   } else {
-    console.log("snapshots", Object.keys(snapshots));
+    console.log("Snapshots: ", Object.keys(snapshots));
   }
 }
 

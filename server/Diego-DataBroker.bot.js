@@ -40,7 +40,7 @@ async function runStartupTasks() {
 function initDataCollectionSchedule() {
 
   /* Cron format: */
-  /*Seconds(0-59) Minutes(0-59) Hours(0-23) Day-of-Month(1-31) Months(0-11,Jann-Dec)) Day-of-Week(0-6,Sun-Sat)*/
+  /*Seconds(0-59) Minutes(0-59) Hours(0-23) Day-of-Month(1-31) Months(0-11,Jan-Dec)) Day-of-Week(0-6,Sun-Sat)*/
 
   /* Pull data daily at 2:44:26 AM ET; JHU does automated updates to their time-series data at 1:50 AM ET. Use 2:44:26 AM ET to give buffer time and pull at low-load time. */
   const dataCollectionJob = new CronJob('26 44 02 * * *', async function () {
@@ -80,7 +80,7 @@ async function recordMetricsSnapshot() {
   await queryPrimaryDatabase(`
     UPDATE metrics_snapshots
     SET snapshot = jsonb_set(snapshot, '{${timeString}}', '${JSON.stringify(snapshot)}', TRUE)
-    WHERE label = 'all_snapshots';  
+    WHERE label = 'all_snapshots';
   `);
 }
 
