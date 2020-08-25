@@ -409,18 +409,19 @@ export class TrendMapComponent implements OnInit {
     layer.bringToFront();
     layer.setStyle({ weight: 5, color: "hsl(180, 100%, 44%)" });
 
+    const fips = layer.feature.properties.FIPS;
     /* Open the Status Report panel */
     if (this.infoPanelOpen) {
       this.closePanel();
       setTimeout(() => {
         this.updatePanel(layer);
+        this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
       }, 500);
     } else {
       this.updatePanel(layer);
+      this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
     }
 
-    const fips = layer.feature.properties.FIPS;
-    this.noteStatusReportView(fips, `${this.panelContent.title}${this.panelContent.subtitle.length > 0 ? ", " + this.panelContent.subtitle : ""}`);
   }
 
   updatePanel(layer) {

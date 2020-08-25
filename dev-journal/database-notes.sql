@@ -20,6 +20,7 @@ SELECT id, label, created_time_stamp FROM covid_19;
 /* View Cumulative Metrics */
 SELECT label, count FROM metrics_pages ORDER BY count DESC;
 SELECT fips, label, count FROM metrics_status_reports ORDER BY count DESC;
+SELECT fips, label, count FROM metrics_status_reports WHERE fips = '41051' ORDER BY count DESC;
 
 /* List of metrics snapshot timestamp keys */
 SELECT jsonb_object_keys(snapshot) FROM metrics_snapshots WHERE label = 'all_snapshots';
