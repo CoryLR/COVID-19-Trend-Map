@@ -381,91 +381,93 @@ function getCovidResults(csvContent, geoJsonContent) {
   /* Set acceleration range (how many weeks back to compare) */
   const accelerationRange = 2;
 
-  /* Loop through each feature */
-  for (let i_county = 1; i_county < usDailyConfirmedArray2d.length - 1; i_county++) {
+  /* Loop through each csv row */
+  for (let i_county = 1; i_county < usDailyConfirmedArray2d.length; i_county++) {
+    if (usDailyConfirmedArray2d[i_county].length > 1) {
 
-    let currentFips
-    if (geoJson.name === "us_counties" || geoJson.features.length > 3000) {
-      /* Assume FIPS should be 5 digits ("00000") */
-      currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
-    } else if (geoJson.name === "us_states" || geoJson.features.length >= 50) {
-      /* Assume FIPS should be 2 digits ("00") */
-      currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0').slice(0,2);
-    } else {
-      /* Assume FIPS should be 1 digit (`0` hard-coded) */
-      currentFips = "0";
-    }
-
-    let currentDailyDataArray = usDailyConfirmedArray2d[i_county].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_county].length);
-    covid19DailyCountLookup[currentFips] = currentDailyDataArray;
-
-    let currentWeeklyCountArray = [];
-    let currentWeeklyRateArray = [];
-    let currentWeeklyAccelerationArray = [];
-    let currentWeeklyRecoveryStreakArray = [];
-
-    // let currentWeeklyDeathCountArray = [];
-    // let currentWeeklyDeathRateArray = [];
-    // let currentWeeklyDeathAccelerationArray = [];
-    // let currentWeeklyDeathlessStreakArray = [];
-
-    /* Calculate county case count and rate for all time-stops */
-    let lastCount = undefined;
-    for (let i_count = currentDailyDataArray.length - 1; i_count >= 0; i_count -= 7) {
-      let currentCount = parseInt(currentDailyDataArray[i_count], 10);
-      currentWeeklyCountArray.push(currentCount);
-      if (lastCount !== undefined) {
-        let currentRate = lastCount - currentCount;
-        currentWeeklyRateArray.push(currentRate);
+      let currentFips
+      if (geoJson.name === "us_counties" || geoJson.features.length > 3000) {
+        /* Assume FIPS should be 5 digits ("00000") */
+        currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0');
+      } else if (geoJson.name === "us_states" || geoJson.features.length >= 50) {
+        /* Assume FIPS should be 2 digits ("00") */
+        currentFips = parseInt(usDailyConfirmedArray2d[i_county][4], 10).toString().padStart(5, '0').slice(0,2);
+      } else {
+        /* Assume FIPS should be 1 digit (`0` hard-coded) */
+        currentFips = "0";
       }
-      lastCount = currentDailyDataArray[i_count];
-    }
 
-    /* Calculate county acceleration for all time-stops */
+      let currentDailyDataArray = usDailyConfirmedArray2d[i_county].slice(dataStartColumnIndex, usDailyConfirmedArray2d[i_county].length);
+      covid19DailyCountLookup[currentFips] = currentDailyDataArray;
 
-    let lastRate = undefined;
-    let currentRate;
-    for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
-      futureRate = currentWeeklyRateArray[i_rate - accelerationRange];
-      if (futureRate !== undefined) {
-        currentRate = currentWeeklyRateArray[i_rate];
-        let currentAcceleration = futureRate - currentRate;
-        currentWeeklyAccelerationArray.push(currentAcceleration);
+      let currentWeeklyCountArray = [];
+      let currentWeeklyRateArray = [];
+      let currentWeeklyAccelerationArray = [];
+      let currentWeeklyRecoveryStreakArray = [];
+
+      // let currentWeeklyDeathCountArray = [];
+      // let currentWeeklyDeathRateArray = [];
+      // let currentWeeklyDeathAccelerationArray = [];
+      // let currentWeeklyDeathlessStreakArray = [];
+
+      /* Calculate county case count and rate for all time-stops */
+      let lastCount = undefined;
+      for (let i_count = currentDailyDataArray.length - 1; i_count >= 0; i_count -= 7) {
+        let currentCount = parseInt(currentDailyDataArray[i_count], 10);
+        currentWeeklyCountArray.push(currentCount);
+        if (lastCount !== undefined) {
+          let currentRate = lastCount - currentCount;
+          currentWeeklyRateArray.push(currentRate);
+        }
+        lastCount = currentDailyDataArray[i_count];
       }
-    }
 
-    /* Reverse arrays to order time-stops chronologically */
-    currentWeeklyCountArray.reverse();
-    currentWeeklyRateArray.reverse();
-    currentWeeklyAccelerationArray.reverse();
+      /* Calculate county acceleration for all time-stops */
 
-    /* Calculate county case-free week streak for all time-stops */
-    let zeroStreak = 0;
-    let lastValueWasZero = false;
-    let noCasesYet = true;
-    for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
-      if (currentWeeklyRateArray[i_rate] === 0) {
-        if (noCasesYet === false) {
-          currentWeeklyRecoveryStreakArray.push(zeroStreak);
-          zeroStreak++;
+      let lastRate = undefined;
+      let currentRate;
+      for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
+        futureRate = currentWeeklyRateArray[i_rate - accelerationRange];
+        if (futureRate !== undefined) {
+          currentRate = currentWeeklyRateArray[i_rate];
+          let currentAcceleration = futureRate - currentRate;
+          currentWeeklyAccelerationArray.push(currentAcceleration);
+        }
+      }
+
+      /* Reverse arrays to order time-stops chronologically */
+      currentWeeklyCountArray.reverse();
+      currentWeeklyRateArray.reverse();
+      currentWeeklyAccelerationArray.reverse();
+
+      /* Calculate county case-free week streak for all time-stops */
+      let zeroStreak = 0;
+      let lastValueWasZero = false;
+      let noCasesYet = true;
+      for (let i_rate = 0; i_rate < currentWeeklyRateArray.length; i_rate++) {
+        if (currentWeeklyRateArray[i_rate] === 0) {
+          if (noCasesYet === false) {
+            currentWeeklyRecoveryStreakArray.push(zeroStreak);
+            zeroStreak++;
+          } else {
+            currentWeeklyRecoveryStreakArray.push(0);
+          }
         } else {
           currentWeeklyRecoveryStreakArray.push(0);
+          zeroStreak = 0;
+          lastValueWasZero = false;
+          noCasesYet = false;
         }
-      } else {
-        currentWeeklyRecoveryStreakArray.push(0);
-        zeroStreak = 0;
-        lastValueWasZero = false;
-        noCasesYet = false;
       }
+
+      /* Log results */
+      covid19WeeklyCountLookup[currentFips] = currentWeeklyCountArray;
+      covid19WeeklyRateLookup[currentFips] = currentWeeklyRateArray;
+      covid19WeeklyAccelerationLookup[currentFips] = currentWeeklyAccelerationArray;
+      covid19WeeklyRecoveryStreakLookup[currentFips] = currentWeeklyRecoveryStreakArray;
     }
 
-    /* Log results */
-    covid19WeeklyCountLookup[currentFips] = currentWeeklyCountArray;
-    covid19WeeklyRateLookup[currentFips] = currentWeeklyRateArray;
-    covid19WeeklyAccelerationLookup[currentFips] = currentWeeklyAccelerationArray;
-    covid19WeeklyRecoveryStreakLookup[currentFips] = currentWeeklyRecoveryStreakArray;
   }
-
 
   /* Add data to County Data Lookup for every feature in the geojson */
 
