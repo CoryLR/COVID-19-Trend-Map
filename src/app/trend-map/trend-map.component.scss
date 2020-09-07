@@ -274,7 +274,9 @@
       border-bottom: 2px solid rgb(220, 220, 220);
 
       .floating-sub {
+        display: inline-block;
         font-size: 13px;
+        min-width: 132px;
       }
 
       span {

@@ -57,7 +57,7 @@
     <div class="status-report-floating-title"  
     [@ngIfAnimation] *ngIf="infoPanelCloseButton && statusReportElement.scrollTop > 75">
       <span><strong>{{panelContent.title}}</strong>{{panelContent.subtitle ? ", " + panelContent.subtitle : ""}}</span>&nbsp;
-      <span class="floating-sub"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></span>
+      <div class="floating-sub"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></div>
     </div>
 
     <div class="close-panel-background" (click)="closePanel()" *ngIf="infoPanelCloseButton"><fa-icon [icon]="faCircle"></fa-icon></div>

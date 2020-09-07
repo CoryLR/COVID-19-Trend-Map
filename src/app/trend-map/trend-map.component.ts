@@ -461,7 +461,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.deathsRateNorm = this.styleNum(deathRateNorm);
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     if (recoveryStreak === 0 && cumulative > 0) {
-      this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the rate of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+      this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the number of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
     } else if (recoveryStreak > 0 && cumulative > 0) {
       this.panelContent.summary = `${this.panelContent.title} ${current ? "has" : "had"} not reported a new case of COVID-19 in ${recoveryStreak} week${recoveryStreak === 1 ? "" : "s"}.`
     } else if (cumulative === 0) {
@@ -1038,14 +1038,14 @@ function getLoadingSplashTransition() {
 }
 function getNgIfAnimation() {
   return [
-    transition(
-      ':leave',
-      [
-        style({ opacity: 1 }),
-        animate('0.25s ease-in',
-          style({ opacity: 0 }))
-      ]
-    ),
+    // transition(
+    //   ':leave',
+    //   [
+    //     style({ opacity: 1 }),
+    //     animate('0.25s ease-in',
+    //       style({ opacity: 0 }))
+    //   ]
+    // ),
     transition(
       ':enter',
       [
