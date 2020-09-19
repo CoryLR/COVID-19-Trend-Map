@@ -1,14 +1,16 @@
 
 /* 
-  Update the snapshots JSON
+  Update the snapshots JSON (bash syntax):
+    # Open the Database, set it to Output ("\o") and Tuple ("\t"; value only) modes, then get the snapshots
     heroku pg:psql
     \o dev-journal/metrics/all_snapshots.json
     \t
     SELECT snapshot FROM metrics_snapshots where label = 'all_snapshots';
     \t
     \o
+    \q
 
-  Run this report on all_snapshots.json:
+    # Run this report on all_snapshots.json
     node dev-journal/metrics/report.js
 */
 
@@ -19,11 +21,12 @@ async function main () {
   deduplicateSnapshots();
 
   listSnapShots(1); // Number of snapshots
-  listChangeMetrics(1); // Number of days back to compare
+  listChangeMetrics(0); // Number of days back to compare
 
-
-
-  /* TODO: Output CSV of daily changes */
+  /* TODO: Output CSV of daily changes */  
+  /* TODO: Make a command combination to get "so far today" metrics */  
+  /* TODO: Match fips with names */  
+  /* TODO: Possibly create change-over-time visualization for metrics */
 
 }
 
@@ -31,7 +34,11 @@ async function main () {
 
 function listChangeMetrics(days = 1) {
   let snapshotsKeys = Object.keys(snapshots);
-  if (snapshotsKeys.length > days) {
+  if (snapshotsKeys.length > days || days === 0) {
+    if (days === 0) {
+      /* Take 0 as "all time" */
+      days = snapshotsKeys.length - 1;
+    }
     snapshotsKeys.reverse();
     let latestSnapshot = snapshots[snapshotsKeys[0]];
     let compareSnapshot = snapshots[snapshotsKeys[days]];
