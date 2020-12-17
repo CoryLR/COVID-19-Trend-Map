@@ -232,6 +232,8 @@ function dissolveCsv(csvContent, dissolveField) {
   dissolveIndex = headerRow.indexOf(dissolveField);
   dataRows = {};
 
+  /* TODO: Update this logic to account for Utah's weird enumeration units */
+
   /* Each Row */
   for (let i = 1; i < csv2dArray.length; i++) {
     currentRow = csv2dArray[i];

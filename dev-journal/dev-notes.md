@@ -40,6 +40,30 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
 
 ## Timeline / TO DO
 
+### Maintenance
+
+To Do:
+
+- [x] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
+- [x] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
+- [ ] [debugging/functional] Utah is not displaying correctly due to their reporting at the "Local Health Departments" enumeration unit instead of by county: https://github.com/CSSEGISandData/COVID-19/issues/2570 and county-mapping: https://utah.maps.arcgis.com/home/item.html?id=110d43fbfacc411b8e74f4d12b63d881
+- [ ] [functional] Add easier way to see the USA status report
+- [ ] [efficiency/sharing] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
+- [ ] [sharing] Implement different meta tags for share links (title, description, og:image, etc)
+- [ ] [functional] Add option to display deaths in the map
+- [ ] [functional] Add support for Puerto Rico
+- [ ] [efficiency] Add lazy loading for historical COVID-19 data and UI to support
+- [ ] [functional] Add zoom-to-extent button
+- [ ] [design] Improve mobile design (scroll over map instead of slide-in)
+- [ ] [debugging] Ensure cross-browser compatibility & stress testing
+- [ ] [functional] Provide the option to automatically acquire the user's location using their device's location service
+- [ ] [functional] Make the app more accessible so people with disabilities can use it well too
+- [ ] [functional] Make temporal animation more efficient
+- [ ] [functional] Explore options for further improving performance and load times
+
+
+### Class Timeline
+
 - **Week 1** (6/15 - 6/21)
   - [x] Initialize GitHub Repository
   - [x] Architect source code for the server and application
@@ -97,7 +121,7 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] [Deliverable] Write and deliver Status Report #4
 
 - **Week 9** (8/10 - 8/16)
-  - [ ] [Deliverable] Write & deliver executive report
+  - [x] [Deliverable] Write & deliver executive report
   - [ ] Socialize & advertize the application publicly
 
 - **Additional Tasks (scope creep) Week 8**
@@ -114,24 +138,3 @@ County map layer with size reduction (7.8 MB > 2.2 MB) process:
   - [x] [design/debugging] Ensure mobile-friendliness
   - [x] [functional] Death & Recovery integration
   - [x] [functional] Validate all aggregations (do manual math against origin CSVs, document process and findings)
-
-### Triage
-
-- **Pre release**
-  - [x] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
-  - [x] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
-  - [ ] [functional] Add easier way to see the USA status report
-  - [ ] [efficiency/sharing] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
-  - [ ] [sharing] Implement different meta tags for share links (title, description, og:image, etc)
-
-- **Backlog**
-  - [ ] [functional] Add option to display deaths in the map
-  - [ ] [functional] Add support for Puerto Rico
-  - [ ] [efficiency] Add lazy loading for historical COVID-19 data and UI to support
-  - [ ] [functional] Add zoom-to-extent button
-  - [ ] [design] Improve mobile design (scroll over map instead of slide-in)
-  - [ ] [debugging] Ensure cross-browser compatibility & stress testing
-  - [ ] [functional] Provide the option to automatically acquire the user's location using their device's location service
-  - [ ] [functional] Make the app more accessible so people with disabilities can use it well too
-  - [ ] [functional] Make temporal animation more efficient
-  - [ ] [functional] Explore options for further improving performance and load times

@@ -21,7 +21,7 @@ async function main () {
   deduplicateSnapshots();
 
   listSnapShots(1); // Number of snapshots
-  listChangeMetrics(0); // Number of days back to compare
+  listChangeMetrics(50); // Number of days back to compare
 
   /* TODO: Output CSV of daily changes */  
   /* TODO: Make a command combination to get "so far today" metrics */  

@@ -10,7 +10,9 @@ import * as leafletPip from '@mapbox/leaflet-pip';
 import { closestLayer } from 'leaflet-geometryutil';
 import { ChartDataSets, ChartOptions } from 'chart.js';
 import { Color, Label } from 'ng2-charts';
-import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars, faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+
+/* Font Awesome Icon imports */
+import { faInfoCircle, faInfo, faFileMedicalAlt, faPlay, faPause, faArrowUp, faArrowDown, faChartLine, faTimesCircle, faCircle, faSearch, faVirus, faVirusSlash, faShieldAlt, faShieldVirus, faBars, faExternalLinkAlt, faHistory, faMap, faStepForward, faStepBackward } from '@fortawesome/free-solid-svg-icons';
 import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 
 /* TODO: Contribute to @types/leaflet to fix these types */
@@ -57,6 +59,10 @@ export class TrendMapComponent implements OnInit {
   faVirus = faVirus;
   faVirusSlash = faVirusSlash;
   faExternalLinkAlt = faExternalLinkAlt;
+  faHistory = faHistory;
+  faMap = faMap;
+  faStepForward = faStepForward;
+  faStepBackward = faStepBackward;
 
   /* Map Data Control */
   map: any;
@@ -461,7 +467,7 @@ export class TrendMapComponent implements OnInit {
     this.panelContent.deathsRateNorm = this.styleNum(deathRateNorm);
     this.panelContent.date = this.weekDefinitions.lookup[`t${this.latestTimeStop.num + 1}`];
     if (recoveryStreak === 0 && cumulative > 0) {
-      this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over this week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the number of ${rate > 0 ? "" : "no"} new cases is <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
+      this.panelContent.summary = `${this.panelContent.title} ${current ? 'is reporting' : 'reported '} <strong>${this.panelContent.rate} new cases</strong> of COVID-19 ${current ? 'over the past week' : 'over the selected week'} ${acceleration >= 0 || rate == 0 ? "and" : "but"} the number of ${rate > 0 ? "" : "no"} new cases ${current ? 'is' : 'was'} <strong>${acceleration > 0 ? "accelerating." : acceleration == 0 ? "steady." : "decelerating."}</strong>`;
     } else if (recoveryStreak > 0 && cumulative > 0) {
       this.panelContent.summary = `${this.panelContent.title} ${current ? "has" : "had"} not reported a new case of COVID-19 in ${recoveryStreak} week${recoveryStreak === 1 ? "" : "s"}.`
     } else if (cumulative === 0) {
