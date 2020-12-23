@@ -2,7 +2,7 @@
 
 # Custom
 /dev-journal/documents/*.html
-/dev-journal/metrics/*.json
+/dev-journal/metrics/all_snapshots.json
 /dev-journal/metrics/*.txt
 
 # compiled output
