@@ -4,6 +4,7 @@
 @import "~leaflet/dist/leaflet.css";
 @import '~bootstrap/scss/bootstrap';
 @import '~leaflet-geosearch/dist/geosearch.css';
+@import 'sass/mixins';
 
 /* Global Styles */
 
@@ -157,6 +158,7 @@ $leaflet-geosearch-label-width-mobile: 100px;
 
 /* Chart js modifications */
 .stat-chart {
+  @include noSelect;
   width: 100%;
 }
 

@@ -6,16 +6,7 @@
 // // $track-width: 80%;
 // @import '~input-range-scss/inputrange';
 @use '../../sass/time-slider';
-
-@mixin noSelect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
-}
+@import '../../sass/mixins';
 
 .trend-map-container {
   $header-height: 50px;
@@ -445,6 +436,7 @@
       }    
     }
     .animation-step-buttons {
+      @include noSelect;
       position: absolute;
       right: 0px;
       top: $temporal-content-top;
@@ -452,8 +444,12 @@
       margin-right: -5px;
       height: 20px;
       fa-icon {
+        @include noSelect;
         cursor: pointer;
         padding: 0 5px;
+        svg {
+          @include noSelect;
+        }
       }
     }
 
