@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, Renderer2, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, HostListener, ChangeDetectionStrategy, ApplicationRef, ChangeDetectorRef } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { trigger, state, style, animate, transition, keyframes, } from '@angular/animations';
@@ -129,7 +129,7 @@ export class TrendMapComponent implements OnInit {
     this.windowWidth = event.target.innerWidth;
   }
 
-  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */) { }
+  constructor(private http: HttpClient, private titleService: Title, private metaService: Meta, private elementRef: ElementRef, private route: ActivatedRoute, renderer: Renderer2, /* private document: Document */ private changeDetector: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     setTimeout(() => {
@@ -816,6 +816,8 @@ export class TrendMapComponent implements OnInit {
   }
 
   timeSliderChange() {
+    this.changeDetector.detectChanges();
+    // ChangeDetectorRef.detectChanges();
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     if (this.infoPanelOpen) {
       this.updatePanel(this.lastSelectedLayer);
