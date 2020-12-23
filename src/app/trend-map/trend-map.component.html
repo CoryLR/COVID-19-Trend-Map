@@ -66,105 +66,112 @@
     <div><em>{{currentTimeStop.num === latestTimeStop.num ? '' : 'Historic '}}Status Report for:</em></div>
     <h3>{{panelContent.title}}</h3> <!-- County or State -->
     <h6>{{panelContent.subtitle}}</h6> <!-- State or blank -->
-    <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></p>
-    <!-- <p>{{panelContent.date}}20</p> -->
 
-    <div class="panel-separator"></div>
+    <div *ngIf="panelContent.subtitle != 'Utah'">
+      <p *ngIf="weekDefinitions"><em>{{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : '(Historic)'}}</em></p>
+      <!-- <p>{{panelContent.date}}20</p> -->
 
-    <div class="panel-subtitle">Summary</div>
-    <p innerHTML="{{panelContent.summary}}"></p>
+      <div class="panel-separator"></div>
 
-    <div class="panel-separator"></div>
+      <div class="panel-subtitle">Summary</div>
+      <p class="panel-summary" innerHTML="{{panelContent.summary}}"></p>
 
-    <div class="panel-subtitle">New Cases</div>
-    <div *ngIf="statusReportChartConfig.lineChartData">
-      <canvas baseChart height="200" class="stat-chart"
-          [datasets]="statusReportChartConfig.lineChartData" 
-          [labels]="statusReportChartConfig.lineChartLabels" 
-          [options]="statusReportChartConfig.lineChartOptions"
-          [colors]="statusReportChartConfig.lineChartColors" 
-          [legend]="statusReportChartConfig.lineChartLegend" 
-          [chartType]="statusReportChartConfig.lineChartType" 
-          [plugins]="statusReportChartConfig.lineChartPlugins"
-          >
-        </canvas>
-    </div>
+      <div class="panel-separator"></div>
 
-    <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box temporal-box-status-report">
-      <div class="animation-play-pause-button-wrapper">
-        <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
-        <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
+      <div class="panel-subtitle">New Cases</div>
+      <div *ngIf="statusReportChartConfig.lineChartData">
+        <canvas baseChart height="200" class="stat-chart"
+            [datasets]="statusReportChartConfig.lineChartData" 
+            [labels]="statusReportChartConfig.lineChartLabels" 
+            [options]="statusReportChartConfig.lineChartOptions"
+            [colors]="statusReportChartConfig.lineChartColors" 
+            [legend]="statusReportChartConfig.lineChartLegend" 
+            [chartType]="statusReportChartConfig.lineChartType" 
+            [plugins]="statusReportChartConfig.lineChartPlugins"
+            >
+          </canvas>
       </div>
-      <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
-        <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
-      </div>
-      <div class="animation-date">
+
+      <!-- <div class="animation-date">
         {{weekDefinitions.list[currentTimeStop.num]}}
+      </div> -->
+      <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box temporal-box-status-report">
+        <div class="animation-play-pause-button-wrapper">
+          <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
+          <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
+        </div>
+        <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
+          <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange()" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
+        </div>
+        <div class="animation-step-buttons">
+          <fa-icon (click)="timeStep(-1)" [icon]="faStepBackward"></fa-icon>
+          <fa-icon (click)="timeStep(1)" [icon]="faStepForward"></fa-icon>
+        </div>  
       </div>
+
+      <div *ngIf="initialLoadingDone" class="panel-stats-section">
+        <div class="stat-title">New Cases {{currentTimeStop.num === latestTimeStop.num ? 'This' : 'That'}} Week</div>&nbsp;<fa-icon
+          [icon]="faInfoCircle"
+          popoverTitle="New Cases Per Week"
+          ngbPopover="Number of new COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+          triggers="click"
+          placement="auto"
+          container="body"
+          ></fa-icon>
+        <div class="stat-data"><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
+        <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
+          [icon]="faInfoCircle"
+          popoverTitle="Acceleration"
+          ngbPopover="The number of more new cases this week compared to 2 weeks ago. Specifically, the difference in weekly rate between the weeks of {{weekDefinitions.list[currentTimeStop.num-2]}} and {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
+          triggers="click"
+          placement="auto"
+          container="body"
+          ></fa-icon>
+        <div class="stat-data"><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
+        <div class="stat-title">Cumulative Cases</div> &nbsp;<fa-icon
+          [icon]="faInfoCircle"
+          popoverTitle="Cumulative Cases"
+          ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
+          triggers="click"
+          placement="auto"
+          container="body"
+          ></fa-icon>
+        <div class="stat-data"><span class="primary-stat">{{panelContent.cumulative}}</span></div>
+
+        <div class="panel-separator"></div>
+
+        <div class="stat-title">Deaths {{currentTimeStop.num === latestTimeStop.num ? 'This' : 'That'}} Week</div> &nbsp;<fa-icon
+          [icon]="faInfoCircle"
+          popoverTitle="Deaths Per Week"
+          ngbPopover="Number of deaths due to COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
+          triggers="click"
+          placement="auto"
+          container="body"
+          ></fa-icon>
+        <div class="stat-data"><span class="primary-stat">{{panelContent.deathsRate}}</span> ({{panelContent.deathsRateNorm}} per 100k)</div>
+        <div class="stat-title">Cumulative Deaths</div> &nbsp;<fa-icon
+          [icon]="faInfoCircle"
+          popoverTitle="Cumulative Deaths"
+          ngbPopover="Total count of deaths due to COVID-19 since the beginning"
+          triggers="click"
+          placement="auto"
+          container="body"
+          ></fa-icon>
+        <div class="stat-data"><span class="primary-stat">{{panelContent.deathsCumulative}}</span></div>
+        <div class="panel-separator"></div>
+      </div>
+
+      <div class="form-group" style="margin-top: 24px">
+        <div class="panel-subtitle">Share or Bookmark</div>
+        <p>Direct URL to the status report for {{panelContent.title}}{{panelContent.subtitle ? ", " + panelContent.subtitle : ""}}:</p>
+        <input readonly class="form-control status-report-link-text"
+        value="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}">
+      </div>
+      <button (click)="copyText(window.location.origin + '?fips=' + panelContent.fips + '&name=' + replaceSpaces(panelContent.title, '+'))" class="btn btn-secondary">Copy</button>
+      &nbsp;
+      <a href="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}" target="_blank"><button class="btn btn-secondary">Open (New Tab)</button></a>
     </div>
-
-    <div *ngIf="initialLoadingDone" class="panel-stats-section">
-      <div class="stat-title">New Cases This Week</div>&nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="New Cases This Week"
-        ngbPopover="Number of new COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-        triggers="click"
-        placement="auto"
-        container="body"
-        ></fa-icon>
-      <div class="stat-data"><span class="primary-stat">{{panelContent.rate}}</span> ({{panelContent.rateNorm}} per 100k)</div>
-      <div class="stat-title">Acceleration</div> (2 Weeks) &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="Acceleration"
-        ngbPopover="The number of more new cases this week compared to 2 weeks ago. Specifically, the difference in weekly rate between the weeks of {{weekDefinitions.list[currentTimeStop.num-2]}} and {{weekDefinitions.list[currentTimeStop.num]}}. Note: negative acceleration is deceleration."
-        triggers="click"
-        placement="auto"
-        container="body"
-        ></fa-icon>
-      <div class="stat-data"><span class="primary-stat">{{panelContent.acceleration}}</span> ({{panelContent.accelerationNorm}} per 100k)</div>
-      <div class="stat-title">Cumulative Cases</div> &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="Cumulative Cases"
-        ngbPopover="Total count of confirmed COVID-19 cases since the beginning"
-        triggers="click"
-        placement="auto"
-        container="body"
-        ></fa-icon>
-      <div class="stat-data"><span class="primary-stat">{{panelContent.cumulative}}</span></div>
-
-      <div class="panel-separator"></div>
-
-      <div class="stat-title">Deaths This Week</div> &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="Deaths This Week"
-        ngbPopover="Number of deaths due to COVID-19 cases over 7 days from {{weekDefinitions.list[currentTimeStop.num-1]}} to {{weekDefinitions.list[currentTimeStop.num]}}"
-        triggers="click"
-        placement="auto"
-        container="body"
-        ></fa-icon>
-      <div class="stat-data"><span class="primary-stat">{{panelContent.deathsRate}}</span> ({{panelContent.deathsRateNorm}} per 100k)</div>
-      <div class="stat-title">Cumulative Deaths</div> &nbsp;<fa-icon
-        [icon]="faInfoCircle"
-        popoverTitle="Cumulative Deaths"
-        ngbPopover="Total count of deaths due to COVID-19 since the beginning"
-        triggers="click"
-        placement="auto"
-        container="body"
-        ></fa-icon>
-      <div class="stat-data"><span class="primary-stat">{{panelContent.deathsCumulative}}</span></div>
-      <div class="panel-separator"></div>
-    </div>
-
-    <div class="form-group" style="margin-top: 24px">
-      <div class="panel-subtitle">Share or Bookmark</div>
-      <p>Direct URL to the status report for {{panelContent.title}}{{panelContent.subtitle ? ", " + panelContent.subtitle : ""}}:</p>
-      <input readonly class="form-control status-report-link-text"
-      value="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}">
-    </div>
-    <button (click)="copyText(window.location.origin + '?fips=' + panelContent.fips + '&name=' + replaceSpaces(panelContent.title, '+'))" class="btn btn-secondary">Copy</button>
-    &nbsp;
-    <a href="{{window.location.origin}}?fips={{panelContent.fips}}&name={{replaceSpaces(panelContent.title, '+')}}" target="_blank"><button class="btn btn-secondary">Open (New Tab)</button></a>
-    
+    <div *ngIf="panelContent.subtitle == 'Utah'"><em>Utah data only available at the state level right now, update coming January 2021</em></div>
   </div>
 
   <!-- <div class="placeholder-box" style="z-index: 1000; position: absolute; left: 30%; bottom: 20px; width: 40%; height: 60px;">
@@ -221,20 +228,20 @@
       </div>
     </div>
 
-    <div class="temporal-box-title"><span class="fa-inline"><fa-icon [icon]="faHistory"></fa-icon></span>
-      <strong>Time:</strong> {{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Latest)' : ''}}
+    <div *ngIf="windowWidth < 451 && !infoPanelOpen || windowWidth >= 451" class="temporal-box-title"><span class="fa-inline"><fa-icon [icon]="faHistory"></fa-icon></span>
+      <strong>Time:</strong> {{weekDefinitions.list[currentTimeStop.num] + 20}} {{currentTimeStop.num === latestTimeStop.num ? '(Week Average, Latest)' : '(Week Average)'}}
     </div>
-    <div *ngIf="currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box">
+    <div *ngIf="windowWidth < 451 && !infoPanelOpen || windowWidth >= 451 && currentTimeStop && currentTimeStop.num != undefined && weekDefinitions.list" class="temporal-box">
       <div class="animation-play-pause-button-wrapper">
         <fa-icon *ngIf="animationPaused" (click)="playAnimation()" [icon]="faPlay"></fa-icon>
         <fa-icon *ngIf="!animationPaused" (click)="pauseAnimation()" [icon]="faPause"></fa-icon>
       </div>
       <div *ngIf="currentTimeStop && currentTimeStop.num != undefined" class="time-slider-wrapper">
-        <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange(currentTimeStop.num)" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
+        <input [(ngModel)]="currentTimeStop.num" (ngModelChange)="timeSliderChange()" type="range" class="custom-range time-slider" min="0" max="{{weekDefinitions.list.length - 1}}" id="customRange2">
       </div>
-      <div class="animation-date animation-step">
-        <fa-icon (click)="playAnimation()" [icon]="faStepBackward"></fa-icon>
-        <fa-icon (click)="playAnimation()" [icon]="faStepForward"></fa-icon>
+      <div class="animation-step-buttons">
+        <fa-icon (click)="timeStep(-1)" [icon]="faStepBackward"></fa-icon>
+        <fa-icon (click)="timeStep(1)" [icon]="faStepForward"></fa-icon>
       </div>
     </div>
   </div>

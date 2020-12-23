@@ -325,15 +325,16 @@ export class TrendMapComponent implements OnInit {
   locationSearched(place) {
 
     const locationInfo = place.location.label.split(", ");
-    const topLevelLocation = locationInfo.slice(-1);
+    const topLevelLocation = locationInfo.slice(-1)[0];
+    const inUsa = this.isInsideUsa(topLevelLocation);
     const secondLevelLocation = locationInfo.slice(-2)[0];
     try {
       this.closePanel();
       this.map.closePopup();
     } catch (e) { }
-    if (topLevelLocation == "United States of America" && secondLevelLocation !== "Puerto Rico") { /* Puerto Rico is not yet supported. */
+    if (inUsa && locationInfo.length > 1 && secondLevelLocation !== "Puerto Rico") { /* Puerto Rico is not yet supported. */
       let matchedLayer = this.getLayerMatch(this.countyGeoJSON, place.location.x, place.location.y);
-      const localityException = this.getLocalityExceptions(matchedLayer);
+      const localityException = this.isLocalityException(matchedLayer);
       if (locationInfo.length > 2 || localityException) {
         /* TODO: Exception for Alaska and places within */
 
@@ -367,12 +368,15 @@ export class TrendMapComponent implements OnInit {
         });
       } else {
         const currentView = this.map.getBounds();
-        alert("Location not found or available in the U.S.");
+        // console.log("locationInfo", locationInfo);
+        // console.log("topLevelLocation", topLevelLocation);
+        // console.log("secondLevelLocation", secondLevelLocation);  
+        alert("Location not found or unavailable in the U.S.");
         setTimeout(() => {
           this.map.fitBounds(currentView);
         }, 50);
       }
-    } else if (locationInfo.length == 1 && topLevelLocation == "United States") {
+    } else if (locationInfo.length == 1 && inUsa) {
       let matchedLayer = this.getLayerMatch(this.nationalGeoJSON, place.location.x, place.location.y);
       this.map.flyTo([30, -98.5], 4, { duration: 0.6 });
       this.map.once('zoomend', () => {
@@ -380,7 +384,7 @@ export class TrendMapComponent implements OnInit {
       });
     } else {
       const currentView = this.map.getBounds();
-      alert("Location not found or available in the U.S.");
+      alert("Location not found or unavailable in the U.S.");
       setTimeout(() => {
         this.map.fitBounds(currentView);
       }, 50);
@@ -389,6 +393,10 @@ export class TrendMapComponent implements OnInit {
       /* Fix bug where the map needs to be clicked twice to show a popup */
       this.eventFire(this.elementRef.nativeElement.querySelector('#map'), 'click');
     }, 200);
+  }
+
+  isInsideUsa(topLevelLocation){
+    return topLevelLocation.toLowerCase() === "united states" || topLevelLocation.toLowerCase() === "united states of america"
   }
 
   getLayerMatch(geoJson, x, y): any {
@@ -401,7 +409,7 @@ export class TrendMapComponent implements OnInit {
     }
   }
 
-  getLocalityExceptions(matchedLayer) {
+  isLocalityException(matchedLayer) {
     if (matchedLayer.feature.properties.FIPS === "36061") {
       return true
     } else {
@@ -759,26 +767,32 @@ export class TrendMapComponent implements OnInit {
       const countyName = countyInfo.name;
       const countyData = countyInfo.data[this.currentTimeStop.num];
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
-      layer.setPopupContent(`
-        <div class="popup-place-title">
-          <strong>${countyName}</strong>, ${stateName}
-        </div>
-        ${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> ${normalizedId ? "(" + this.styleNum(countyData[normalizedId]) + " per 100k)" : ""}
-        <p class="status-report-label"><em>See Status Report:</em></p>
-        <div class="popup-status-report-btn-wrapper">
-          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
-          <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-state btn btn-secondary btn-sm btn-light">State</button>
-        <div>
-      `);
+      const attributeContent = stateName != "Utah" ? `${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> ${normalizedId ? "(" + this.styleNum(countyData[normalizedId]) + " per 100k)" : ""}` : "";
+
+      const popupContent = `
+      <div class="popup-place-title">
+        <strong>${countyName}</strong>, ${stateName}
+      </div>`
+      + attributeContent
+      + `<p class="status-report-label"><em>See Status Report:</em></p>
+      <div class="popup-status-report-btn-wrapper">
+        <button type="button" ${stateName === "Utah" ? 'disabled title="Local data unavailable, update coming Jan 2021"' : ""} popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
+        <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-state btn btn-secondary btn-sm btn-light">State</button>
+      <div>
+      `
+      layer.setPopupContent(popupContent);
       /* Invisible FIPS */
       // <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
 
       /* Update color */
-      console.log();
-      if (attribute === 5) {
-        layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
+      if (stateName === "Utah") {
+        layer.setStyle({ fillColor: "hsl(0, 0%, 60%)" });
       } else {
-        layer.setStyle(getStyle(countyData[normalizedId]));
+        if (attribute === 5) {
+          layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
+        } else {
+          layer.setStyle(getStyle(countyData[normalizedId]));
+        }
       }
 
     });
@@ -801,7 +815,7 @@ export class TrendMapComponent implements OnInit {
     }
   }
 
-  timeSliderChange(timeStop) {
+  timeSliderChange() {
     this.updateMapDisplay(this.choroplethDisplayAttribute);
     if (this.infoPanelOpen) {
       this.updatePanel(this.lastSelectedLayer);
@@ -834,6 +848,19 @@ export class TrendMapComponent implements OnInit {
   pauseAnimation() {
     this.animationPaused = true;
     clearInterval(this.animationInterval);
+  }
+
+  timeStep(step) {
+    const targetTimeStop = this.currentTimeStop.num + step;
+    // const newTimeStop = targetTimeStop > this.latestTimeStop.num ? 0 
+    //   : targetTimeStop < 0 ? this.latestTimeStop.num
+    //   : targetTimeStop
+    const newTimeStop = targetTimeStop > this.latestTimeStop.num ? this.currentTimeStop.num
+      : targetTimeStop < 0 ? this.currentTimeStop.num
+      : targetTimeStop
+    // console.log("target, new", targetTimeStop, newTimeStop);
+    this.currentTimeStop = { name: `t${newTimeStop}`, num: newTimeStop };
+    this.timeSliderChange();
   }
 
   replaceSpaces(string = "", symbol = "+") {
