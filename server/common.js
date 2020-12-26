@@ -1,7 +1,7 @@
 
 const { Client } = getDependencies();
 
-const productionMode = false;
+const productionMode = true;
 
 module.exports = {
   queryPrimaryDatabase,
