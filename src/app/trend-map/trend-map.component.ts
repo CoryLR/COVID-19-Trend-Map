@@ -663,7 +663,7 @@ export class TrendMapComponent implements OnInit {
     };
 
     const countyGeoJsonOptions: CustomGeoJSONOptions = {
-      smoothFactor: 0.7,
+      smoothFactor: 0.4,
       style: countyStyle,
       onEachFeature: (feature, layer) => {
         layer.bindPopup("", popupOptions);

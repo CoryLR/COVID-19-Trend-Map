@@ -17,7 +17,7 @@ Follow these steps to get the app up-and-running after a fresh clone
 Other commands:
 
 - `ng serve` is also useful to start the front-end in a local server
-  - Useful for front-end testing, but will it will be cut off from the server
+  - Useful for front-end testing, but it will be cut off from the server
   - Port 4200 is default: http://localhost:4200, but can be changed like `ng s --port 4201`
 - `npm start` can be used as an alternative to `heroku local`, but heroku-specific tools will not be accessible
 

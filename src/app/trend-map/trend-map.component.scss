@@ -131,19 +131,16 @@
         // padding: 6px;
         margin: 0 6px;
         &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
+          background-color: rgba(255, 255, 255, 0.25);
         }
       }
       .btn:focus,.btn:active {
         outline: none !important;
         box-shadow: none;
       }
-      // .dropdown-menu {
-      //   .dropdown-item {
-      //     text-align: right;
-      //   }
-      // }
-     
+      .about-action:hover {
+        background-color: rgb(235, 235, 235);
+      }     
 
     }
   }
@@ -406,6 +403,7 @@
     font-size: 14px;
     margin-top: 10px;
     margin-bottom: -5px;
+    overflow-x: hidden;
   }
   .temporal-box {
     position: relative;

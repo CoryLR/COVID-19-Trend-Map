@@ -15,6 +15,11 @@ html, body {
   // overflow-y: hidden;
 }
 
+body {
+  /* This prevents double-tap zoom on iOS */
+  touch-action: manipulation;
+}
+
 /* Leaflet modifications */
 .leaflet-popup-content {
   font-size: 14px;
