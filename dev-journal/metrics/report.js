@@ -98,14 +98,14 @@ function listChangeMetrics(days = 1) {
     changeList.sort((a, b) => { return a.change < b.change ? 1 : -1 });
 
     console.log("\n\nSTATUS REPORTS\n")
-    console.log("FIPS\tChange\tLabel");
+    console.log("Change\tFIPS\tLabel");
     console.log("-------------------------");
     for (i of changeList) {
-      console.log(`${i.fipsCode}\t${i.change}\t${i.label}`);
+      console.log(`${i.change}\t${i.fipsCode}\t${i.label}`);
     }
 
   } else {
-    return "Not enough data for requested days, pick a smaller number."
+    return "Not enough data for requested days, pick a different number."
   }
 
 }
