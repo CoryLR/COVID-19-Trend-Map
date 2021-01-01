@@ -46,7 +46,7 @@ To Do:
 
 - [x] [follow-through] Add an About page with details on the data and "how-to" sections for directions (currently in progress) / Robust in-app documentation (about, links, data source, disclaimers, resources, etc)
 - [x] [functional] Implement nearest-neighbor match-finding for search results so that coastal searches work better
-- [ ] [debugging/functional] Utah is not displaying correctly due to their reporting at the "Local Health Departments" enumeration unit instead of by county: https://github.com/CSSEGISandData/COVID-19/issues/2570 and county-mapping: https://utah.maps.arcgis.com/home/item.html?id=110d43fbfacc411b8e74f4d12b63d881
+- [ ] [debugging/functional] Utah is not displaying correctly due to their reporting at the "Local Health Departments" enumeration unit instead of by county: https://github.com/CSSEGISandData/COVID-19/issues/2570 and county-mapping: https://utah.maps.arcgis.com/home/item.html?id=110d43fbfacc411b8e74f4d12b63d881 **(Progress: Counties aggregated in GeoJSON. TODO: Update Diego's workflow to aggregate each health district's numbers with its respective counties; I can use the pictures I took for the FIPS mapping.)**
 - [ ] [functional] Add easier way to see the USA status report
 - [ ] [efficiency/sharing] Implement server-side rendering (SSR) using Angular Universal to improve mobile load time and improve search engine optimization (SEO)
 - [ ] [sharing] Implement different meta tags for share links (title, description, og:image, etc)
