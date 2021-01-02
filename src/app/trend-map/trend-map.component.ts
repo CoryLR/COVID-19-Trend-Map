@@ -1039,6 +1039,9 @@ export class TrendMapComponent implements OnInit {
       el.dispatchEvent(evObj);
     }
   }
+  formatHopkinsDate(dateString) {
+    return dateString.slice(0, -2) + "20" + dateString.slice(-2);
+  }
 
 }
 
