@@ -267,6 +267,7 @@
     }
 
     .status-report-floating-title {
+      z-index: 1050;
       position: fixed;
       top: $header-height;
       left: 0;
