@@ -259,10 +259,12 @@
     
     .close-panel {
       color: rgb(120, 120, 120);
+      z-index: 1065;
       @include close-panel-styles();
     }
     .close-panel-background {
       color: white;
+      z-index: 1060;
       @include close-panel-styles();
     }
 
