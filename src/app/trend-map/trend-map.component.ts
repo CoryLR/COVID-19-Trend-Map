@@ -767,7 +767,7 @@ export class TrendMapComponent implements OnInit {
       const countyName = countyInfo.name;
       const countyData = countyInfo.data[this.currentTimeStop.num];
       const stateName = this.stateFipsLookup[layer.feature.properties.FIPS.substr(0, 2)].name
-      const attributeContent = stateName != "Utah" ? `${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> ${normalizedId ? "(" + this.styleNum(countyData[normalizedId]) + " per 100k)" : ""}` : "";
+      const attributeContent = `${attributeLabel}: <strong>${this.styleNum(countyData[rawCountId])}</strong> ${normalizedId ? "(" + this.styleNum(countyData[normalizedId]) + " per 100k)" : ""}`;
 
       const popupContent = `
       <div class="popup-place-title">
@@ -776,7 +776,7 @@ export class TrendMapComponent implements OnInit {
       + attributeContent
       + `<p class="status-report-label"><em>See Status Report:</em></p>
       <div class="popup-status-report-btn-wrapper">
-        <button type="button" ${stateName === "Utah" ? 'disabled title="Local data unavailable, update coming Jan 2021"' : ""} popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
+        <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-local btn btn-secondary btn-sm btn-light">Local</button>
         <button type="button" popup-fips="${layer.feature.properties.FIPS}" class="popup-status-report-btn-state btn btn-secondary btn-sm btn-light">State</button>
       <div>
       `
@@ -785,14 +785,13 @@ export class TrendMapComponent implements OnInit {
       // <span class="popup-fips-label">[<span class="popup-fips">${layer.feature.properties.FIPS}</span>]</span>
 
       /* Update color */
-      if (stateName === "Utah") {
-        layer.setStyle({ fillColor: "hsl(0, 0%, 60%)" });
+      // if (stateName === "Utah") {
+      //   layer.setStyle({ fillColor: "hsl(0, 0%, 60%)" });
+      // }
+      if (attribute === 5) {
+        layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
       } else {
-        if (attribute === 5) {
-          layer.setStyle(getStyle(countyData[rawCountId], countyData[cumulativeId]));
-        } else {
-          layer.setStyle(getStyle(countyData[normalizedId]));
-        }
+        layer.setStyle(getStyle(countyData[normalizedId]));
       }
 
     });

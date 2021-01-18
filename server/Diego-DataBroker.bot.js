@@ -13,7 +13,8 @@ module.exports = {
     return await retrieveCovidDataPackage();
 
     /* Useful for testing Diego: */
-    // return await generateCovidDataPackage_dev();
+    // const source = "2 - Local (Diego is in 'dev' mode)";
+    // return await generateCovidDataPackage_dev(source);
   }
 }
 
@@ -89,7 +90,7 @@ async function retrieveCovidDataPackage() {
   if (result && result.rows.length && result.rows[0].data) {
     return result.rows[0].data;
   } else {
-    console.log("Error in retrieveCovidDataPackage")
+    console.log("Error in retrieveCovidDataPackage");
     /* TODO: Write the error to Diego's Journal */
 
     /* If data cannot be retrieved from the database, manually recalculate directly from the data source */
@@ -147,7 +148,7 @@ async function generateCovidDataPackage(source = "unknown") {
 
   /* County Cases */
   const url_jhuUsConfirmedCasesCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv";
-  const countyCsvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
+  let countyCsvContent = await Got(url_jhuUsConfirmedCasesCsv).text();
 
   /* State Cases */
   const stateCsvContent = dissolveCsv(countyCsvContent, "Province_State");
@@ -157,7 +158,7 @@ async function generateCovidDataPackage(source = "unknown") {
 
   /* County Deaths */
   const url_jhuUsDeathsCsv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv";
-  const countyDeathsCsvContent = await Got(url_jhuUsDeathsCsv).text();
+  let countyDeathsCsvContent = await Got(url_jhuUsDeathsCsv).text();
 
   /* State Deaths */
   const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
@@ -179,6 +180,18 @@ async function generateCovidDataPackage(source = "unknown") {
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
 
+  /* Account for unique aggregations (like in Utah) */
+  const nonCountyAggregations = [
+    {state: "Utah", name: "Bear River", newFips: "49901", list: ["49901", "49033", "49005", "49003"]},
+    {state: "Utah", name: "Weber-Morgan", newFips: "49902", list: ["49902", "49057", "49029"]},
+    {state: "Utah", name: "TriCounty", newFips: "49903", list: ["49903", "49047", "49013", "49009"]},
+    {state: "Utah", name: "Central Utah", newFips: "49904", list: ["49904", "49055", "49041", "49039", "49031", "49027", "49023"]},
+    {state: "Utah", name: "Southeast Utah", newFips: "49905", list: ["49905", "49019", "49015", "49007"]},
+    {state: "Utah", name: "Southwest Utah", newFips: "49906", list: ["49906", "49053", "49025", "49021", "49017", "49001"]},
+  ];
+  countyCsvContent = dissolveCountyAggregations(countyCsvContent, nonCountyAggregations);
+  countyDeathsCsvContent = dissolveCountyAggregations(countyDeathsCsvContent, nonCountyAggregations);
+
   const freshData = { countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent };
   return getCovidDataPackage(freshData, source);
 
@@ -189,12 +202,12 @@ async function generateCovidDataPackage_dev(source) {
   /* Get County Deaths CSV */
   let filePath_deaths = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv');
   let data_deaths = fs.readFileSync(filePath_deaths, "utf8");
-  const countyDeathsCsvContent = data_deaths;
+  let countyDeathsCsvContent = data_deaths;
 
   /* Get County CSV */
   let filePath_cases = path.join(__dirname, '../../EXTERNAL/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv');
   let data = fs.readFileSync(filePath_cases, "utf8");
-  const countyCsvContent = data;
+  let countyCsvContent = data;
 
   /* Get State Deaths CSV */
   const stateDeathsCsvContent = dissolveCsv(countyDeathsCsvContent, "Province_State");
@@ -220,19 +233,33 @@ async function generateCovidDataPackage_dev(source) {
   const filePath_nationalGeoJson = path.join(__dirname, './data/us.geojson');
   const nationalGeoJsonContent = fs.readFileSync(filePath_nationalGeoJson, "utf8");
 
+  const nonCountyAggregations = [
+    {state: "Utah", name: "Bear River", newFips: "49901", list: ["49901", "49033", "49005", "49003"]},
+    {state: "Utah", name: "Weber-Morgan", newFips: "49902", list: ["49902", "49057", "49029"]},
+    {state: "Utah", name: "TriCounty", newFips: "49903", list: ["49903", "49047", "49013", "49009"]},
+    {state: "Utah", name: "Central Utah", newFips: "49904", list: ["49904", "49055", "49041", "49039", "49031", "49027", "49023"]},
+    {state: "Utah", name: "Southeast Utah", newFips: "49905", list: ["49905", "49019", "49015", "49007"]},
+    {state: "Utah", name: "Southwest Utah", newFips: "49906", list: ["49906", "49053", "49025", "49021", "49017", "49001"]},
+  ];
+  countyCsvContent = dissolveCountyAggregations(countyCsvContent, nonCountyAggregations);
+  countyDeathsCsvContent = dissolveCountyAggregations(countyDeathsCsvContent, nonCountyAggregations);
+
   const freshData = { countyCsvContent, countyGeoJsonContent, stateCsvContent, countyDeathsCsvContent, stateDeathsCsvContent, nationalDeathsCsvContent, stateGeoJsonContent, nationalCsvContent, nationalGeoJsonContent };
 
   return getCovidDataPackage(freshData, source);
 
 }
 
+/**
+ * Dissolves table rows (merges & sums rows based on a particular common attribute, like state name)
+ * @param {string} csvContent - Raw string CSV content from JHU
+ * @param {string} dissolveField - The field to dissolve (typically Province_State or Country_Region)
+ */
 function dissolveCsv(csvContent, dissolveField) {
   const csv2dArray = PapaParse(csvContent).data;
   headerRow = csv2dArray[0];
   dissolveIndex = headerRow.indexOf(dissolveField);
   dataRows = {};
-
-  /* TODO: Update this logic to account for Utah's weird enumeration units */
 
   /* Each Row */
   for (let i = 1; i < csv2dArray.length; i++) {
@@ -245,8 +272,9 @@ function dissolveCsv(csvContent, dissolveField) {
       for (let ii = 0; ii < currentRow.length; ii++) {
         const cellValue = currentRow[ii];
         const currentHeader = headerRow[ii];
-
-        if ((currentHeader.length === 6 || currentHeader.length === 7 || currentHeader.length === 8) && currentHeader.match(/\//g) && currentHeader.match(/\//g).length == 2) {
+        const headerSlashes = currentHeader.match(/\//g);
+        const headerLength = currentHeader.length;
+        if ((headerLength === 6 || headerLength === 7 || headerLength === 8) && headerSlashes && headerSlashes.length == 2) {
           /* If this cell is COVID data that we want to aggregate */
           dataRows[groupName][ii] = parseInt(dataRows[groupName][ii], 10) + parseInt(cellValue, 10);
         } else {
@@ -269,6 +297,72 @@ function dissolveCsv(csvContent, dissolveField) {
 
   return PapaUnparse(output2dArray);
 
+}
+
+/**
+ * Account for non-county aggregations like Utah's Health Districts
+ * @param {string} csvContent - Raw string CSV content from JHU
+ * @param {string} aggregations - 2D array of aggregate groups
+ */
+function dissolveCountyAggregations(csvContent, aggregations) {
+  const csv2dArray = PapaParse(csvContent).data;
+  headerRow = csv2dArray[0];
+  fipsIndex = headerRow.indexOf("FIPS");
+  nameIndex = headerRow.indexOf("Admin2");
+  stateIndex = headerRow.indexOf("Province_State");
+
+  aggregatedRows = {};
+
+  /* Each Row */
+  for (let i = csv2dArray.length-1; i >= 0; i--) {
+
+    /* Check if the FIPS is one that should be aggregated */
+    const currentRow = csv2dArray[i];
+    const rowFipsRaw = currentRow[fipsIndex];
+    const rowFips = parseInt(rowFipsRaw, 10).toString().padStart(5, '0');
+    const rowName = currentRow[nameIndex];
+    const rowState = currentRow[stateIndex];
+    let rowShouldBeAggregated = false;
+    let aggregateName = "";
+    let aggregateFips = "";
+    for (aggregate of aggregations) {
+      const isCountyToAggregate = aggregate.list.includes(rowFips);
+      const isProvidedAggregate = (rowName === aggregate.name && rowState === aggregate.state);
+      if(isCountyToAggregate || isProvidedAggregate) {
+        aggregateName = aggregate.name;
+        aggregateFips = aggregate.newFips;
+        rowShouldBeAggregated = true;
+      }
+    }
+
+    if (rowShouldBeAggregated) {
+      if (aggregatedRows[aggregateName] === undefined) {
+        aggregatedRows[aggregateName] = currentRow;
+      } else {
+        /* Each Cell */
+        for (let ii = 0; ii < currentRow.length; ii++) {
+          const cellValue = currentRow[ii];
+          const currentHeader = headerRow[ii];
+          const headerSlashes = currentHeader.match(/\//g);
+          const headerLength = currentHeader.length;
+          if ((headerLength === 6 || headerLength === 7 || headerLength === 8) && headerSlashes && headerSlashes.length == 2) {
+            /* This cell is COVID data that we want to aggregate */
+            aggregatedRows[aggregateName][ii] = parseInt(aggregatedRows[aggregateName][ii], 10) + parseInt(cellValue, 10);
+          } else if (currentHeader === "Admin2") {
+            aggregatedRows[aggregateName][ii] = aggregateName;
+          } else if (currentHeader === "FIPS") {
+            aggregatedRows[aggregateName][ii] = aggregateFips;
+          } else if ( !["iso2", "iso3", "code3", "Province_State", "Country_Region"].includes(currentHeader) ) {
+            /* Empty non-important columns */
+            aggregatedRows[aggregateName][ii] = "";
+          }
+        }
+      }
+      csv2dArray.splice(i, 1);
+    }
+  }
+
+  return PapaUnparse(csv2dArray.concat(Object.values(aggregatedRows)));
 }
 
 function getCovidDataPackage(data, source = "unknown") {
@@ -506,7 +600,7 @@ function getCovidResults(csvContent, geoJsonContent) {
       }
     } catch (err) {
       console.log("Feature Data Processing Error at ", fips, feature.properties.NAME);
-      console.log("Error:\n", err);
+      // console.log("Error:\n", err);
     }
 
     covidDataLookup[fips] = {
